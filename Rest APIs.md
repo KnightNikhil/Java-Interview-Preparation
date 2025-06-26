@@ -422,7 +422,7 @@ public class UserResolver implements GraphQLQueryResolver, GraphQLMutationResolv
 ### 10. Example GraphQL Operations
 
 Fetch User by ID
-```json
+```graphql
 query {
     getUser(id: "some-id") {
         id
@@ -433,7 +433,7 @@ query {
 ```
 
 Create New User
-```json
+```graphql
 mutation {
     createUser(name: "John Doe", email: "john@example.com") {
         id
@@ -445,7 +445,7 @@ mutation {
 
 Fetch All Users
 
-```json
+```graphql
 query {
     getAllUsers {
         id
