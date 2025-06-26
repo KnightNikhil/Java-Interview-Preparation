@@ -170,7 +170,7 @@ class PaymentServiceTest {
 
 #### 2. Stubbing and Verifying
 
-- `when(...).thenReturn(...)`: Defines mock behavior.
+- STUBBING - `when(...).thenReturn(...)`: Defines mock behavior.
 - `verify(...)`: Verifies interactions with the mock.
 
 ```java
