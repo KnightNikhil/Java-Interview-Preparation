@@ -541,8 +541,12 @@ class MyControllerTest {
     private MockMvc mockMvc;
 }
 ```
+**NOTE:** : 
+1. If no @MockBean for Service, then Test fails with UnsatisfiedDependencyException
+2. @WebMvcTest is meant for focused, isolated controller tests, not full integration.
+3. Use @SpringBootTest for full integration tests with all beans.
 
-**Difference:**
+4. **Difference:**
 
 - `@Mock` (Mockito): Creates a mock for unit tests, not registered in Spring context.
 - `@MockBean` (Spring Boot): Creates a mock and replaces the real bean in the Spring context.
