@@ -1,4 +1,3 @@
-```markdown
 # Unit Testing, Integration, and Service Virtualization in Java
 
 ---
