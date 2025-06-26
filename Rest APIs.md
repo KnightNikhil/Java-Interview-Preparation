@@ -332,7 +332,7 @@ src/main/java/com/example/graphql/
 ### 6. Defining GraphQL Schema
 
 schema.graphqls
-```json
+```graphql
 type Query {
     getUser(id: ID!): User
     getAllUsers: [User]
