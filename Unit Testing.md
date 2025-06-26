@@ -284,26 +284,385 @@ class MyClassTest {
 
 ⸻
 
+📍 PHASE 4: Service Virtualization (WireMock)
+
+🔥 Purpose:
+
+
+Service virtualization is the practice of simulating external systems (like APIs, databases, or third-party services) so you can test your application in isolation, even if those systems are unavailable or incomplete. WireMock is a popular Java tool for this purpose.
+
+<hr>
+What is WireMock?
+<br> WireMock is a flexible library for stubbing and mocking web services. It allows you to:
+
+1. Simulate HTTP APIs (REST, SOAP, etc.)
+2. Define expected requests and stub responses
+3. Simulate delays, errors, and dynamic responses
+4. Verify that your application made the expected HTTP calls
+<hr>
+Why use WireMock?
+
+1. Isolate tests: Test your code without relying on real external services.
+2. Control scenarios: Simulate edge cases, errors, or slow responses.
+3. Repeatability: Ensure tests are deterministic and not affected by external changes.
+<hr>
+How does WireMock work?
+
+* WireMock runs as a local HTTP server. 
+* You configure it to expect certain requests and return predefined responses. 
+* Your application is pointed to WireMock instead of the real service during tests.
+<hr>
+
+Basic Usage Example
+1. Add WireMock dependency (Maven)
+    ```java
+    <dependency>
+        <groupId>com.github.tomakehurst</groupId>
+        <artifactId>wiremock-jre8</artifactId>
+        <version>2.31.0</version>
+        <scope>test</scope>
+    ```
+
+2. Start WireMock in your test
+```java
+import com.github.tomakehurst.wiremock.WireMockServer;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+WireMockServer wireMockServer = new WireMockServer(8080);
+wireMockServer.start();
+ ```
+3. Stub an endpoint
+```java
+stubFor(get(urlEqualTo("/api/user/1"))
+    .willReturn(aResponse()
+        .withStatus(200)
+        .withBody("{\"id\":1,\"name\":\"Nikhil\"}")));
+```
+4. Test your code against WireMock
+   * Point your application’s API client to http://localhost:8080/api/user/1. It will receive the stubbed response.
+5. Verify requests
+```java
+verify(getRequestedFor(urlEqualTo("/api/user/1")));
+ ```
+6. Stop WireMock after tests
+```java
+wireMockServer.stop();
+ ```
+<hr></hr>
+Advanced Features
+Simulate delays:
+.withFixedDelay(2000) to test timeouts.
+Simulate errors:
+.withStatus(500) for server errors.
+Dynamic responses:
+Use response templating for dynamic data.
+<hr></hr>
+Typical Use Cases
+Testing code that calls payment gateways, third-party APIs, or microservices.
+Simulating failures or slow responses.
+Running integration tests in CI/CD pipelines without real dependencies.
+<hr></hr>
+
+. Do you want to use WireMock as a standalone server or embedded in your tests?
+
+
+Standalone server:
+WireMock can run as a separate process (via JAR or Docker). You configure stubs via REST API or files. This is useful for manual testing, contract testing, or when multiple teams share the same mock server.
+Embedded in tests:
+Most common for automated tests. You start and stop a WireMockServer instance in your test code (JUnit, etc.), configure stubs programmatically, and run tests against it. This keeps tests isolated and repeatable.
+<hr></hr> 2. Are you testing REST APIs, SOAP, or something else?
+
+
+REST APIs:
+WireMock natively supports stubbing and verifying HTTP(S) REST endpoints (GET, POST, PUT, DELETE, etc.).
+SOAP:
+WireMock can stub SOAP endpoints as well, since SOAP is also HTTP-based. You match on URL and request body (XML), and return XML responses.
+Other protocols:
+WireMock is limited to HTTP/HTTPS. For non-HTTP protocols, use other tools.
+<hr></hr> 3. Do you need to simulate authentication, headers, or query parameters?
+
+
+Yes, WireMock supports all of these:
+Authentication:
+You can stub endpoints that require specific headers (e.g., Authorization).
+Example:
+stubFor(get(urlEqualTo("/api/secure"))
+.withHeader("Authorization", equalTo("Bearer token123"))
+.willReturn(aResponse().withStatus(200)));
+Headers:
+Match or assert on any HTTP header.
+Query parameters:
+Use urlPathEqualTo and withQueryParam to match specific query parameters.
+stubFor(get(urlPathEqualTo("/api/user"))
+.withQueryParam("id", equalTo("1"))
+.willReturn(aResponse().withStatus(200)));
+<hr></hr> 4. Should I show a full JUnit test example with WireMock?
+
+Yes, here is a minimal JUnit 5 example:
+
+```java
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+class UserServiceTest {
+    static WireMockServer wireMockServer;
+
+    @BeforeAll
+    static void setup() {
+        wireMockServer = new WireMockServer(8080);
+        wireMockServer.start();
+        configureFor("localhost", 8080);
+        stubFor(get(urlEqualTo("/api/user/1"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("{\"id\":1,\"name\":\"Nikhil\"}")));
+    }
+
+    @AfterAll
+    static void teardown() {
+        wireMockServer.stop();
+    }
+
+    @Test
+    void testGetUser() {
+        // Call your API client here, e.g., userService.getUser(1)
+        // Assert the response matches the stubbed data
+        verify(getRequestedFor(urlEqualTo("/api/user/1")));
+    }
+}
+```
+
+<hr></hr> 5. Are you interested in using WireMock with Spring Boot’s @AutoConfigureWireMock?
+@AutoConfigureWireMock is a Spring Boot test annotation that automatically starts WireMock on a random port and injects it into your test context.
+It is useful for integration tests with @SpringBootTest or @WebMvcTest.
+Example usage:
+
+```java
+@SpringBootTest
+@AutoConfigureWireMock(port = 0) // random port
+class MyApiIntegrationTest {
+    @Test
+    void testExternalApiCall() {
+        stubFor(get(urlEqualTo("/external/api"))
+            .willReturn(aResponse().withStatus(200).withBody("OK")));
+        // Test your service that calls /external/api
+    }
+}
+```
+
+⸻
+
 📍 PHASE 2: Integration & Functional Testing (Spring Boot)
 
 🔹 A. Spring Boot Integration Testing
-1.	@SpringBootTest vs @WebMvcTest
-      <!-- @SpringBootTest: Loads the full application context for testing. -->
-      <!-- @WebMvcTest: Loads only the web layer for testing controllers. -->
+1. @SpringBootTest vs @WebMvcTest
+* @SpringBootTest
+  <br> Loads the full application context, including all beans, configurations, and external dependencies. Used for end-to-end or integration tests.
 
-2.	Use of @MockBean in integration tests
-      <!-- Replaces a bean in the application context with a mock. -->
 
-3.	Testing controllers using MockMvc
-      <!-- MockMvc is used to test Spring MVC controllers. -->
+```java
+@SpringBootTest
+class MyServiceIntegrationTest {
+@Test
+void contextLoads() {
+// Test with full context
+}
+}
+```
+* @WebMvcTest
+  <br> Loads only the web layer (controllers, filters, etc.), not services or repositories. Used for controller tests.
 
-4.	TestRestTemplate or WebTestClient (for REST APIs)
-      <!-- Tools for testing REST APIs in Spring Boot. -->
-      <!-- TestRestTemplate: Simplified REST client for integration tests. -->
-      <!-- WebTestClient: Reactive client for testing web applications. -->
 
-5.	Use @DataJpaTest to test repository layer
-      <!-- Loads only the JPA layer for testing database interactions. -->
+```java
+
+@WebMvcTest(AccountController.class)
+class AccountControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private AccountRepository accountRepository;
+
+    @Test
+    void testGetAllAccounts() throws Exception {
+        Account acc = new Account();
+        acc.setId(1L);
+        acc.setOwner("Nikhil");
+        acc.setBalance(1000.0);
+
+        given(accountRepository.findAll()).willReturn(Arrays.asList(acc));
+
+        mockMvc.perform(get("/api/accounts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].owner").value("Nikhil"));
+    }
+
+    @Test
+    void testGetAccountById() throws Exception {
+        Account acc = new Account();
+        acc.setId(1L);
+        acc.setOwner("Nikhil");
+        acc.setBalance(1000.0);
+
+        given(accountRepository.findById(1L)).willReturn(Optional.of(acc));
+
+        mockMvc.perform(get("/api/accounts/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.owner").value("Nikhil"));
+    }
+}
+```
+<hr></hr>
+2. Use of @MockBean in Integration Tests
+<br> Purpose: Replace a bean in the application context with a Mockito mock.
+<br> Example:
+
+```java
+@WebMvcTest(MyController.class)
+class MyControllerTest {
+    @MockBean
+    private MyService myService; // Replaces real MyService with a mock
+
+    @Autowired
+    private MockMvc mockMvc;
+}
+```
+<br> Diff between Mockito and MockBean:
+
+* The main difference between @MockBean (Spring Boot) and @Mock (plain Mockito) is how they integrate with the Spring context:
+
+* @Mock (Mockito):
+<br> Creates a mock object for unit tests, but does not register it in the Spring context. You must inject it manually if needed.
+
+* @MockBean (Spring Boot):
+<br> Creates a Mockito mock and replaces the real bean in the Spring context, so Spring injects the mock wherever that bean is used.
+
+Example:
+
+Suppose you have a UserService that depends on UserRepository.
+
+Using Mockito @Mock (no Spring context):
+```java
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+class UserServiceTest {
+    @Mock
+    UserRepository userRepository;
+
+    @Test
+    void testFindUser() {
+        MockitoAnnotations.openMocks(this);
+        UserService service = new UserService(userRepository); // manual injection
+        // define mock behavior and test
+    }
+}
+```
+Using Spring Boot @MockBean (with Spring context):
+```java
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@WebMvcTest(UserController.class)
+class UserControllerTest {
+    @Autowired
+    MockMvc mockMvc;
+
+    @MockBean
+    UserRepository userRepository; // automatically injected into UserController
+
+    // test methods using mockMvc
+}
+```
+
+* Use @Mock for plain unit tests (no Spring context).
+* Use @MockBean for Spring tests to mock and inject dependencies into the Spring context automatically.
+* You should not use @MockBean for plain unit tests because:
+  * @MockBean is designed for Spring tests; it replaces beans in the Spring application context. 
+  * It requires the Spring Test framework to run. 
+  * Plain unit tests do not load the Spring context, so @MockBean will not work and may cause errors. 
+  * For plain unit tests, use Mockito’s @Mock annotation, which is lightweight and does not depend on Spring.
+
+<hr></hr>
+3. Testing Controllers Using MockMvc
+<br> MockMvc simulates HTTP requests to controller endpoints without starting a real server.
+<br> Example:
+
+```java
+@WebMvcTest(MyController.class)
+class MyControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void testGetEndpoint() throws Exception {
+        mockMvc.perform(get("/api/hello"))
+               .andExpect(status().isOk())
+               .andExpect(content().string("Hello World"));
+    }
+}
+```
+<hr></hr>
+4. TestRestTemplate or WebTestClient (for REST APIs)
+<br> TestRestTemplate: For integration tests with a running server (non-reactive).
+
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class MyApiTest {
+@Autowired
+private TestRestTemplate restTemplate;
+
+    @Test
+    void testGet() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/hello", String.class);
+        assertEquals("Hello World", response.getBody());
+    }
+}
+```
+WebTestClient: For reactive applications or WebFlux.
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class MyReactiveApiTest {
+@Autowired
+private WebTestClient webTestClient;
+
+    @Test
+    void testGet() {
+        webTestClient.get().uri("/api/hello")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(String.class).isEqualTo("Hello World");
+    }
+}
+```
+<hr></hr>
+5. Use @DataJpaTest to Test Repository Layer
+<br> Loads only JPA components (repositories, entities, DataSource).
+<br> Uses in-memory DB by default.
+<br> Example:
+
+```java
+@DataJpaTest
+class UserRepositoryTest {
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    void testSaveAndFind() {
+        User user = new User("Nikhil");
+        userRepository.save(user);
+        Optional<User> found = userRepository.findByName("Nikhil");
+        assertTrue(found.isPresent());
+    }
+}
+```
+<hr></hr>
 
 ➡️ Hands-on:
 •	Write integration tests for a REST API (/api/accounts)
@@ -314,17 +673,33 @@ class MyClassTest {
 ⸻
 
 🔹 B. Functional Testing Concepts
-1.	End-to-end behavior testing of features
-      <!-- Tests the complete flow of a feature from start to finish. -->
+1. End-to-end behavior testing of features
+   Test the complete workflow as a user would interact with the system.
+   Example:
+   Test user registration, login, and fund transfer in a banking app.
 
-2.	Simulate real HTTP requests
-      <!-- Sends actual HTTP requests to test application behavior. -->
+2. Simulate real HTTP requests
+   Send actual HTTP requests to your application, just like a real client (browser or API consumer) would.
+   Example:
+   Use MockMvc, TestRestTemplate, or WebTestClient in Spring Boot tests.
 
-3.	Validate responses, status codes, and headers
-      <!-- Ensures the API returns correct responses, status codes, and headers. -->
+3. Validate responses, status codes, and headers
+   Check that the API returns the correct data, HTTP status codes, and headers.
+   Example:
+   Assert that a POST to /api/register returns 201 Created and the expected JSON body.
 
-4.	Use TestContainers for real DBs (optional)
-      <!-- TestContainers allows using real databases in Docker containers for testing. -->
+4. Use TestContainers for real DBs (optional)
+   Run a real database (like PostgreSQL or MySQL) in a Docker container during tests for realistic integration.
+   Example:
+   Use the TestContainers library to spin up a database container before tests and tear it down after.
+
+* Functional testing and integration testing differ mainly in scope and intent:
+
+  * Integration Testing checks if different components or layers of your application (e.g., service + repository, controller + service) work together as expected. It usually uses in-memory databases or mocks for external systems, and focuses on internal integration, not the full user flow.
+
+  * Functional Testing (end-to-end testing) validates complete business features as a user would experience them. It simulates real HTTP requests, often uses real databases (via TestContainers), and covers the entire workflow (e.g., register → login → transfer funds), including all layers and external integrations.
+
+
 
 ➡️ Hands-on:
 •	Test user flows like “Register → Login → Transfer Funds → Get Balance”
@@ -352,18 +727,3 @@ class MyClassTest {
 <!-- Practical exercise to apply mutation testing. -->
 •	Improve test quality to kill more mutants
 <!-- Refactor tests to achieve a higher mutation score. -->
-
-📍 PHASE 4: Service Virtualization (WireMock)
-
-🔥 Purpose:
-
-Simulate external services (APIs, third-party systems) for isolated testing.
-<!-- WireMock is used to mock external services for testing. -->
-*	stubFor(get(urlEqualTo("/path")).willReturn(aResponse().withBody(...)))
-     <!-- Defines a stubbed response for a specific HTTP GET request. -->
-*	verify(getRequestedFor(urlEqualTo("/path")))
-     <!-- Verifies that a specific HTTP GET request was made. -->
-*	withStatus(200), withBody("response")
-     <!-- Configures the status code and body of the stubbed response. -->
-*	Can simulate delays, errors, dynamic responses
-     <!-- WireMock can simulate various scenarios like delays, errors, and dynamic responses. -->
