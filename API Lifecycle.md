@@ -72,8 +72,6 @@ User → API Gateway → Firewall/WAF → Service Mesh → Microservice → Data
 
 ---
 
----
-
 # Follow-up Questions & Answers
 
 ## API Development & Spring Boot
