@@ -1,3 +1,5 @@
+package GreedyAlgorithms;
+
 import java.util.Arrays;
 
 /**
