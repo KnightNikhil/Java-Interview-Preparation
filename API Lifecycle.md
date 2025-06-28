@@ -69,7 +69,7 @@
 ```
 User → API Gateway → Firewall/WAF → Service Mesh → Microservice → Database → Response
 ```
-
+ 
 ---
 
 # Follow-up Questions & Answers
