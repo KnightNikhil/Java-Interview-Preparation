@@ -1,101 +1,239 @@
-✅ 1. Java Thread Basics
-* Creating threads: Thread, Runnable, Callable, Future
-* Thread lifecycle: NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED
-* Thread priorities and scheduling (cooperative vs preemptive)
+## ✅ 1. Java Thread Basics
 
-⸻
+### ✅ Creating Threads
 
-✅ 2. Synchronization & Locks
-* synchronized keyword (method-level and block-level)
-* Intrinsic locks (monitor locks)
-* Deadlocks: causes, detection, and prevention
-* Thread-safe classes: Vector, Hashtable, etc.
-* ReentrantLock and ReentrantReadWriteLock
-* Try-lock and lock fairness
+#### A. **Using `Thread` class**
 
-⸻
+```java
+class MyThread extends Thread {
+    public void run() {
+        System.out.println("Thread running: " + Thread.currentThread().getName());
+    }
+}
 
-✅ 3. Java Memory Model (JMM)
-* Happens-before relationship
-* Visibility and atomicity
-* Volatile keyword: when and how to use
-* False sharing and memory consistency
+public class Main {
+    public static void main(String[] args) {
+        MyThread t1 = new MyThread();
+        t1.start();  // calls run() in a new thread
+    }
+}
+```
 
-⸻
+#### B. **Using `Runnable` interface**
 
-✅ 4. Thread Communication
-* wait(), notify(), notifyAll() (object monitor methods)
-* Producer-consumer problem
-* Spurious wakeups and while loop usage
-* CountDownLatch, CyclicBarrier, Semaphore, Exchanger
+```java
+Runnable task = () -> System.out.println("Runnable thread: " + Thread.currentThread().getName());
+Thread thread = new Thread(task);
+thread.start();
+```
 
-⸻
+#### C. **Using `Callable` and `Future`**
 
-✅ 5. Executor Framework
-* Executor, ExecutorService, ScheduledExecutorService
-* ThreadPoolExecutor: corePoolSize, maxPoolSize, queue, rejection policy
-* Executors factory methods: newFixedThreadPool, newSingleThreadExecutor, newCachedThreadPool, etc.
-* Shutdown vs shutdownNow
+```java
+Callable<String> task = () -> {
+    Thread.sleep(1000);
+    return "Result from Callable";
+};
 
-⸻
+ExecutorService executor = Executors.newSingleThreadExecutor();
+Future<String> future = executor.submit(task);
+System.out.println(future.get());  // blocks until result is ready
+executor.shutdown();
+```
 
-✅ 6. Callable, Future, and FutureTask
-* Submitting tasks and retrieving results
-* Timeouts and cancellation
-* Limitations of Future (no chaining, hard to combine)
+#### Differences:
 
-⸻
+* `Runnable` → no result
+* `Callable` → returns result and can throw checked exceptions
+* `Future` → used to retrieve the result of `Callable`
 
-✅ 7. CompletableFuture (Java 8+)
-* Asynchronous computation and chaining: thenApply, thenCompose, thenCombine
-* handle, exceptionally, whenComplete for error handling
-* Running in custom thread pools
-* Combining multiple async tasks
-* Non-blocking alternatives to Future
+---
 
-⸻
+### ✅ Thread Lifecycle States
 
-✅ 8. ForkJoin Framework
-* ForkJoinPool, RecursiveTask, RecursiveAction
-* Work stealing and parallelism
-* Difference between ForkJoin and ThreadPoolExecutor
+| State              | Meaning                                            |
+| ------------------ | -------------------------------------------------- |
+| **NEW**            | Thread object created but not started              |
+| **RUNNABLE**       | Eligible to run but not necessarily running        |
+| **BLOCKED**        | Waiting to acquire monitor lock                    |
+| **WAITING**        | Waiting indefinitely (e.g. `wait()`)               |
+| **TIMED\_WAITING** | Waiting for a time (e.g. `sleep`, `join`, `await`) |
+| **TERMINATED**     | Completed execution or aborted                     |
 
-⸻
+**Diagram Tip:** Know transitions:
 
-✅ 9. Parallel Streams
-* How parallelism works internally
-* When to use and when to avoid
-* Thread-safety and shared resources
-* Comparison with CompletableFuture and executor services
+* `start()` ⇒ `NEW` → `RUNNABLE`
+* `wait()` ⇒ `WAITING`
+* `sleep()` ⇒ `TIMED_WAITING`
 
-⸻
+---
 
-✅ 10. ThreadLocal
-* Storing per-thread state (like user info, transactions)
-* Cleaning up to prevent memory leaks (especially in thread pools)
+### ✅ Thread Priorities
 
-⸻
+```java
+Thread t = new Thread(() -> {});
+t.setPriority(Thread.MAX_PRIORITY); // 10
+```
 
-✅ 11. Best Practices & Patterns
-* Immutable objects in concurrent code
-* Use thread-safe collections: ConcurrentHashMap, CopyOnWriteArrayList
-* Use atomic classes from java.util.concurrent.atomic package
-* Avoid shared mutable state
-* Prefer higher-level concurrency utilities
+* Ranges: 1 (MIN) to 10 (MAX), default = 5
+* JVM-dependent. Often ignored in practice.
 
-⸻
+---
 
-✅ 12. Common Issues
-* Race conditions
-* Deadlocks
-* Livelocks
-* Starvation
-* Thread leakage
+### ✅ Thread Scheduling
 
-⸻
+* **Preemptive**: OS decides which thread to run
+* **Cooperative**: Thread must yield control (`Thread.yield()`)
+* Java typically uses **preemptive**, but **no guarantees on order**.
 
-✅ 13. Testing & Debugging Concurrent Code
-* Thread dumps and stack traces
-* Using tools: VisualVM, JConsole, JFR
-* Testing multithreaded code deterministically
-* Using Awaitility for async test verification
+---
+
+### ✅ Interview Follow-up Questions
+
+1. **Q:** Difference between `Runnable` and `Callable`?
+   **A:** `Runnable` doesn't return a result or throw checked exceptions, `Callable` does both.
+
+2. **Q:** What are different thread states in Java?
+   **A:** NEW, RUNNABLE, BLOCKED, WAITING, TIMED\_WAITING, TERMINATED.
+
+3. **Q:** How to retrieve result from a thread?
+   **A:** Use `Callable` + `Future` + `ExecutorService`.
+
+4. **Q:** What is the lifecycle of a Java thread?
+   **A:** Starts in NEW, moves to RUNNABLE after `start()`, then transitions through various WAITING states, and finally TERMINATED.
+
+---
+
+## ✅ 2. Synchronization & Locks
+
+### ✅ `synchronized` keyword
+
+#### A. **Method-level**
+
+```java
+public synchronized void increment() {
+    count++;
+}
+```
+
+#### B. **Block-level**
+
+```java
+public void increment() {
+    synchronized (this) {
+        count++;
+    }
+}
+```
+
+* Locks on the object (`this`) or specified lock object.
+
+---
+
+### ✅ Intrinsic Locks (Monitor Locks)
+
+* Every object has an intrinsic lock.
+* `synchronized` acquires and releases this monitor lock.
+* Only one thread can hold the lock at a time.
+
+---
+
+### ✅ Deadlocks
+
+#### A. **Cause**
+
+1. Multiple threads hold locks and wait on each other
+2. No timeout or release
+
+#### B. **Example**
+
+```java
+class A { synchronized void method(B b) {
+    synchronized(b) {
+        System.out.println("Deadlock example");
+    }
+}}
+
+class B {}
+```
+
+#### C. **Prevention**
+
+* Always acquire locks in the same order
+* Use try-lock with timeout
+* Detect using thread dump (e.g., `jstack`)
+
+---
+
+### ✅ Thread-safe Collections
+
+| Collection             | Thread-safe | Mechanism       |
+| ---------------------- | ----------- | --------------- |
+| `Vector`               | ✅           | synchronized    |
+| `Hashtable`            | ✅           | synchronized    |
+| `ConcurrentHashMap`    | ✅           | Segment locking |
+| `CopyOnWriteArrayList` | ✅           | Snapshot copies |
+
+---
+
+### ✅ `ReentrantLock`
+
+```java
+ReentrantLock lock = new ReentrantLock();
+
+lock.lock();
+try {
+    // critical section
+} finally {
+    lock.unlock();
+}
+```
+
+* Explicit locking/unlocking
+* Can check if the lock is available with `tryLock()`
+* Reentrant = same thread can reacquire the lock
+
+---
+
+### ✅ `ReentrantReadWriteLock`
+
+```java
+ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+rwLock.readLock().lock();
+// or
+rwLock.writeLock().lock();
+```
+
+* Multiple readers allowed
+* Writers get exclusive access
+
+---
+
+### ✅ `tryLock()` and Fairness
+
+```java
+if (lock.tryLock(1, TimeUnit.SECONDS)) {
+    // acquired lock
+} else {
+    // timeout, couldn't acquire
+}
+```
+
+* `tryLock()` avoids deadlock
+* `new ReentrantLock(true)` → fair lock (FIFO), otherwise unfair by default (better performance)
+
+---
+
+### ✅ Interview Follow-up Questions
+
+1. **Q:** Difference between synchronized and ReentrantLock?
+   **A:** ReentrantLock gives more control: tryLock, timed lock, fairness, multiple condition variables.
+
+2. **Q:** How can you prevent deadlocks?
+   **A:** Lock ordering, timeout with tryLock, avoiding nested locks.
+
+3. **Q:** Is `ConcurrentHashMap` fully thread-safe?
+   **A:** Yes, it allows concurrent reads and segment-based writes (JDK 7) or CAS-based (JDK 8+).
+
+4. **Q:** Why prefer ReentrantReadWriteLock over synchronized?
+   **A:** For read-heavy applications; improves performance by allowing concurrent reads.
