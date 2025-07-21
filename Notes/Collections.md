@@ -94,6 +94,8 @@ Some useful classes which implement List interface are – **ArrayList**, **Copy
 **3. Set**
 
 Sets represents a collection of **sorted** elements. Sets do not allow the duplicate elements. Set interface does not provides no guarantee to return the elements in any predictable order; though some Set implementations store elements in their natural ordering and guarantee this order.
+<img width="986" height="368" alt="image" src="https://github.com/user-attachments/assets/392c14ee-1842-47f8-bfd9-687d537dc5f7" />
+
 
 Some useful classes which implement Set interface are – **ConcurrentSkipListSet**, **CopyOnWriteArraySet**, **EnumSet**, **HashSet**, **LinkedHashSet** and **TreeSet**.
 
