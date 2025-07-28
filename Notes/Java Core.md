@@ -1,162 +1,221 @@
-## Java OOP 
+## Java OOP
 
-Java Interview Prep Guide (Advanced Topics)
+### Java Interview Prep Guide (Advanced Topics)
 
-🔹 OOP Concepts (Detailed)
+### 🔹 OOP Concepts (Detailed)
 
-Class & Object:
-*    A class is a blueprint for creating objects. It defines fields (variables) and methods (functions) to represent behavior.
-*    An object is a runtime instance of a class.
-*    Example:
+### Class & Object:
+- A class is a blueprint for creating objects. It defines fields (variables) and methods (functions) to represent behavior.
+- An object is a runtime instance of a class.
 
+```java
 class Car {
-String model;
-void drive() { System.out.println("Driving " + model); }
+    String model;
+    void drive() { System.out.println("Driving " + model); }
 }
-Car c = new Car(); c.model = "Tesla"; c.drive();
+Car c = new Car(); 
+c.model = "Tesla"; 
+c.drive();
+```
 
+### Encapsulation:
+- Wrapping data and methods into a single unit and restricting access using access modifiers.
+- Promotes data hiding and control over data.
 
-
-Encapsulation:
-*    Wrapping data and methods into a single unit and restricting access using access modifiers.
-*    Promotes data hiding and control over data.
-*    Example:
-
+```java
 class Account {
-private double balance;
-public double getBalance() { return balance; }
-public void deposit(double amount) { if(amount > 0) balance += amount; }
+    private double balance;
+    public double getBalance() { return balance; }
+    public void deposit(double amount) { if(amount > 0) balance += amount; }
 }
+```
 
+### Abstraction:
+- Hides complex implementation details and shows only the necessary features.
+- Achieved via abstract classes and interfaces.
 
-
-Abstraction:
-*    Hides complex implementation details and shows only the necessary features.
-*    Achieved via abstract classes and interfaces.
-*    Example:
-
+```java
 abstract class Vehicle {
-abstract void start();
+    abstract void start();
 }
 class Car extends Vehicle {
-void start() { System.out.println("Car started"); }
+    void start() { System.out.println("Car started"); }
 }
+```
 
+### Inheritance:
+- Allows one class to acquire properties and behaviors of another class.
+- Promotes code reusability.
 
-
-Inheritance:
-*    Allows one class to acquire properties and behaviors of another class.
-*    Promotes code reusability.
-*    Example:
-
+```java
 class Animal {
-void eat() { System.out.println("Eating..."); }
+    void eat() { System.out.println("Eating..."); }
 }
 class Dog extends Animal {
-void bark() { System.out.println("Barking..."); }
+    void bark() { System.out.println("Barking..."); }
 }
+```
 
+### Polymorphism:
+- Ability to take many forms. Two types:
+  - Compile-time (method overloading)
+  - Runtime (method overriding)
 
-
-Polymorphism:
-*    Ability to take many forms. Two types:
-*    Compile-time (method overloading)
-*    Runtime (method overriding)
-*    Example:
-
+```java
 class Shape { void draw() { System.out.println("Drawing shape"); } }
 class Circle extends Shape { void draw() { System.out.println("Drawing circle"); } }
+```
 
-
-
-Object class methods:
-*    equals() – logical equality
-*    hashCode() – bucket placement in hashing
-*    toString() – string representation
-*    clone() – creates copy of object
-*    finalize() – called by GC before object removal (deprecated)
-
-⸻
-
-🔹 1. Java Memory Model & JVM Internals
-
-JVM Architecture:
-*    ClassLoader Subsystem: Loads class files (.class), follows parent delegation.
-*    Runtime Data Areas:
-*    Heap: Objects and class instances
-*    Stack: Method frames (method call stack)
-*    Program Counter Register: Keeps track of current instruction
-*    Metaspace: Stores class metadata (replaces PermGen)
-*    Native Method Stack: For native method execution
-*    Execution Engine:
-*    Interpreter: Executes bytecode line-by-line
-*    JIT Compiler: Optimizes bytecode to native code
-
-Garbage Collection (GC):
-*    Automatic memory management
-*    GC Algorithms:
-*    Serial GC: Single-threaded, for small apps
-*    Parallel GC: Multiple threads, throughput focus
-*    CMS (Concurrent Mark Sweep): Low pause, now deprecated
-*    G1 GC (Garbage First): Splits heap into regions, concurrent & parallel, default
-
-Parent Delegation Model:
-*    Custom class loaders delegate to parent first, ensuring security and avoiding class duplication.
-
-JVM Tuning Parameters:
-*    -Xms, -Xmx, -XX:+UseG1GC, etc. control heap size, GC behavior
-
-Memory Leaks / OOM:
-*    Memory leak: objects retained beyond usefulness
-*    OutOfMemoryError types:
-*    Java heap space
-*    GC overhead limit exceeded
-*    Metaspace
+### Object class methods:
+- `equals()` – logical equality
+- `hashCode()` – bucket placement in hashing
+- `toString()` – string representation
+- `clone()` – creates copy of object
+- `finalize()` – called by GC before object removal (deprecated)
 
 ⸻
 
-🔹 2. equals() & hashCode()
 
-Contract:
-*    Reflexive, Symmetric, Transitive, Consistent, Null-safe
-*    If a.equals(b) == true, then a.hashCode() == b.hashCode() must hold
+## 🔹 1. Java Memory Model & JVM Internals
 
-Best Practices:
-*    Don’t use mutable fields in equals/hashCode
-*    Use Objects.equals() and Objects.hash() from Java 7+
+### 🔸 JVM Architecture:
 
-HashMap/HashSet:
-*    Use hashCode() to find bucket, then equals() to compare within bucket
+#### 📦 ClassLoader Subsystem
+- Loads class files (`.class`) and follows the **Parent Delegation Model** to avoid class conflicts and ensure security.
 
-Comparable & Comparator:
-*    Comparable<T>: natural order
-*    Comparator<T>: custom order
+#### 🧠 Runtime Data Areas
+- **Heap:** Stores all objects and class instances.
+- **Stack:** Contains method call frames including local variables and operand stacks.
+- **Program Counter Register:** Holds the address of the current executing instruction for a thread.
+- **Metaspace:** Replaces PermGen to store class metadata.
+- **Native Method Stack:** Manages native (non-Java) method calls.
 
+#### ⚙️ Execution Engine
+- **Interpreter:** Reads and executes bytecode line-by-line.
+- **JIT Compiler (Just-In-Time):** Converts bytecode to native machine code for performance optimization.
+
+---
+
+### 🔸 Garbage Collection (GC)
+
+#### 🗑️ Purpose
+- Automates memory management by collecting and freeing unused objects.
+
+#### 🔄 GC Algorithms
+- **Serial GC:** Single-threaded, best for small applications.
+- **Parallel GC:** Multi-threaded, optimized for throughput.
+- **CMS (Concurrent Mark-Sweep):** Low-latency GC (deprecated).
+- **G1 GC (Garbage First):** Default collector; splits heap into regions, supports concurrent and parallel collection.
+
+---
+
+### 🔸 Parent Delegation Model
+- Class loaders delegate loading to parent loaders before attempting to load themselves.
+- Helps maintain consistency and avoids loading same class multiple times.
+
+---
+
+### 🔸 JVM Tuning Parameters
+- Control memory and GC behavior using flags:
+  - `-Xms`: Initial heap size
+  - `-Xmx`: Maximum heap size
+  - `-XX:+UseG1GC`: Enable G1 Garbage Collector
+
+---
+
+### 🔸 Memory Leaks / OutOfMemoryError (OOM)
+
+#### 🚨 Memory Leaks
+- Caused when references to unused objects are unintentionally retained.
+
+#### 💥 Types of OOM Errors
+- `java.lang.OutOfMemoryError: Java heap space`
+- `java.lang.OutOfMemoryError: GC overhead limit exceeded`
+- `java.lang.OutOfMemoryError: Metaspace`
+
+---
+
+### 🔸 Interview Follow-up Questions
+
+#### Q1: What are the major components of the JVM?
+**A:** ClassLoader, Runtime Data Areas (Heap, Stack, Metaspace, etc.), Execution Engine (Interpreter & JIT), and Garbage Collector.
+
+#### Q2: What is the Parent Delegation Model and why is it important?
+**A:** It ensures security and class consistency by allowing child classloaders to defer loading to parent loaders first.
+
+#### Q3: Difference between Heap and Stack memory?
+**A:** Heap stores objects and instances; Stack stores method calls and local variables. Stack is thread-specific, Heap is shared.
+
+#### Q4: What causes OutOfMemoryError in Java?
+**A:** It occurs when memory regions (Heap, Metaspace, etc.) are exhausted due to memory leaks or insufficient configuration.
+
+#### Q5: How does G1 GC work?
+**A:** G1 divides the heap into regions and collects them in parallel and concurrently, optimizing for predictable pause times.
+
+---
+
+⸻
+
+### 🔹 2. equals() & hashCode()
+
+#### Contract:
+
+- Must follow these properties:
+  - Reflexive: `a.equals(a)` must be true
+  - Symmetric: `a.equals(b)` ⇔ `b.equals(a)`
+  - Transitive: `a.equals(b)` & `b.equals(c)` ⇒ `a.equals(c)`
+  - Consistent: Repeated calls must return the same result
+  - Null-safe: `a.equals(null)` must return false
+- If `a.equals(b)` is true, then `a.hashCode() == b.hashCode()` must also hold
+
+#### Best Practices:
+
+- Avoid using mutable fields in `equals()` and `hashCode()`
+- Use `Objects.equals()` and `Objects.hash()` (Java 7+)
+
+#### HashMap/HashSet:
+
+- **hashCode()** determines the bucket
+- **equals()** determines object equality within the bucket
+
+#### Comparable & Comparator:
+
+- **Comparable**: Defines natural order
+
+```java
 class Person implements Comparable<Person> {
-int age;
-public int compareTo(Person p) { return Integer.compare(this.age, p.age); }
+    int age;
+    public int compareTo(Person p) {
+        return Integer.compare(this.age, p.age);
+    }
 }
+```
 
+- **Comparator**: Defines custom order
+
+```java
 Comparator<Person> byName = Comparator.comparing(p -> p.name);
+```
 
+---
 
 ⸻
 
-🔹 3. Immutability & Defensive Copying
+### 🔹 3. Immutability & Defensive Copying
 
-Steps for Immutable Class:
+#### Steps for Immutable Class:
 1.	Declare class as final
 2.	Make all fields private final
 3.	Initialize via constructor only
 4.	Return copies of mutable fields
 
-Benefits:
+#### Benefits:
 *    Thread-safe by default
 *    Makes reasoning about code easier
 *    Useful in caching and map keys
 
-Example:
-
+#### Example:
+```java
 final class Employee {
 private final String name;
 private final Date dob;
@@ -167,168 +226,136 @@ private final Date dob;
     }
     public Date getDob() { return new Date(dob.getTime()); }
 }
+```
 
 
 ⸻
 
-🔹 4. Serialization & Deserialization
+### 🔹 4. Serialization & Deserialization
 
-Serializable vs Externalizable:
-*    Serializable: JVM handles serialization
-*    Externalizable: You write writeExternal() and readExternal()
+#### Serializable vs Externalizable:
+*    **Serializable:** JVM handles serialization
+*    **Externalizable:** You write writeExternal() and readExternal()
 
 Custom Serialization:
-
+```java
 private void writeObject(ObjectOutputStream oos) throws IOException {
 oos.defaultWriteObject();
 oos.writeInt(age * 2); // custom
 }
+```
 
-readResolve():
+**readResolve():**
 *    Used to maintain Singleton during deserialization
 
-serialVersionUID:
+**serialVersionUID:**
 *    Explicit version ID avoids InvalidClassExceptions
 
 ⸻
 
-🔹 5. Annotations
+### 🔹 5. Annotations
 
-Built-in:
+**Built-in:**
 *    @Override, @Deprecated, @SuppressWarnings
 
-Custom Annotations:
-
+**Custom Annotations:**
+```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Loggable {}
+```
 
-Processing:
+**Processing:**
 *    Reflection (at runtime)
 *    APT (compile time)
 
 ⸻
 
-🔹 6. Reflection API
+### 🔹 6. Reflection API
 
-Accessing Metadata:
-
+#### Accessing Metadata:
+```java
 Class<?> clazz = Class.forName("Employee");
 Method method = clazz.getDeclaredMethod("getName");
 method.setAccessible(true);
 Object result = method.invoke(emp);
+```
 
-Use Cases: Frameworks, Test Automation, Serialization tools
+**Use Cases:** Frameworks, Test Automation, Serialization tools
 
-Drawbacks:
+**Drawbacks:**
 *    Slower than direct method calls
 *    Security manager can restrict access
 
 ⸻
 
-🔹 7. ClassLoaders
+### 🔹 7. ClassLoaders
 
-Types:
-*    Bootstrap: loads java.*
-*    Extension: loads ext/*
-*    Application: loads from classpath
+##### Types:
+*    **Bootstrap:** loads java.*
+*    **Extension:** loads ext/*
+*    **Application:** loads from classpath
 
 Custom ClassLoader:
-
+```java
 class MyClassLoader extends ClassLoader {
-protected Class<?> findClass(String name) throws ClassNotFoundException {
-byte[] data = loadClassData(name);
-return defineClass(name, data, 0, data.length);
+  protected Class<?> findClass(String name) throws ClassNotFoundException {
+    byte[] data = loadClassData(name);
+    return defineClass(name, data, 0, data.length);
+  }
 }
-}
+```
 
-Framework Use: Spring, Hibernate, Tomcat use ClassLoader for isolation
+**Framework Use:** Spring, Hibernate, Tomcat use ClassLoader for isolation
 
 ⸻
 
-🔹 8. Enums (Advanced Use)
+### 🔹 8. Enums (Advanced Use)
 
-Enums with Methods:
-
+**Enums with Methods:**
+```java
 public enum Operation {
 ADD { public int apply(int x, int y) { return x + y; } },
 SUB { public int apply(int x, int y) { return x - y; } };
 public abstract int apply(int x, int y);
 }
+```
 
-EnumSet/EnumMap:
+
+**EnumSet/EnumMap:**
 *    High-performance specialized collections for enums
 
-Strategy Pattern:
+**Strategy Pattern:**
 *    Enums encapsulate behaviors without if-else
-
-⸻
-
-🔹 9. Modules (Java 9+)
-
-JPMS Goals:
-*    Strong encapsulation, explicit dependencies
-
-module-info.java:
-
-module com.example.calc {
-requires java.base;
-exports com.example.calc.api;
-}
-
-Encapsulation:
-*    Only exported packages are visible
-
-⸻
-
-🔹 10. var, records, sealed classes
-
-var (Java 10):
-*    Type inference for local variables
-*    Improves readability, reduces boilerplate
-
-record (Java 14+):
-
-public record Person(String name, int age) {}
-// generates: constructor, getters, equals, hashCode, toString
-
-sealed (Java 15+):
-*    Restrict which classes can implement/extend
-
-sealed interface Shape permits Circle, Square {}
-final class Circle implements Shape {}
-final class Square implements Shape {}
 
 
 ⸻
 
 🧠 Follow-Up Interview Questions (Answered)
-1.	How does the JVM handle class unloading?
+1.	**How does the JVM handle class unloading?**
 *    Classes are unloaded when their classloader becomes unreachable and GC collects it. Mostly happens in dynamic environments (e.g., Tomcat).
-2.	Can you override equals() without hashCode()?
+2.	**Can you override equals() without hashCode()?**
 *    Yes, but violates contract. Hash-based collections (HashMap/HashSet) will misbehave—equal objects may go into different buckets.
-3.	How would you implement a cache using EnumMap?
+3.	**How would you implement a cache using EnumMap?**
 *    If keys are enums:
 ```java
 enum Status { ACTIVE, INACTIVE }
 EnumMap<Status, String> cache = new EnumMap<>(Status.class);
 ```
 *    Faster and memory-efficient vs HashMap.
-
-4.	Explain use cases of sealed classes in domain modeling.
+4.	**Explain use cases of sealed classes in domain modeling.**
 *    Domain boundaries (e.g., only Circle, Rectangle are valid Shape types). Prevents arbitrary extension and improves pattern matching.
-5.	What are the performance implications of Reflection?
+5.	**What are the performance implications of Reflection?**
 *    Slower than direct calls due to dynamic dispatch. Also breaks compiler optimizations and introduces security risks.
-6.	How does Java ensure backward compatibility in Serialization?
+6.	**How does Java ensure backward compatibility in Serialization?**
 *    Via serialVersionUID. If the UID matches between sender/receiver class, deserialization succeeds even if class evolved.
-7.	How is ClassLoader hierarchy useful for application isolation?
+7.	**How is ClassLoader hierarchy useful for application isolation?**
 *    Different classloaders load the same class name in isolated ways, allowing independent libraries/apps in the same JVM (e.g., servlet containers).
-8.	What is the difference between compile-time and runtime polymorphism?
+8.	**What is the difference between compile-time and runtime polymorphism?**
 *    Compile-time: Overloading; resolved at compile-time. Runtime: Overriding; resolved via dynamic dispatch.
-9.	How do records compare to traditional POJOs?
+9.	**How do records compare to traditional POJOs?**
 *    Records auto-generate boilerplate (constructor, getters, equals/hashCode, toString) and are immutable by default.
-10.	What are the trade-offs of immutability in large-scale systems?
-
+10.	**What are the trade-offs of immutability in large-scale systems?**
 *    Pros: Thread-safety, predictability, cache-safe. Cons: Object creation overhead, more GC pressure, harder modeling for certain mutable domains.
 
 ## 🔹 Functional Programming Concepts
@@ -545,4 +572,3 @@ public static void premain(String args, Instrumentation inst) {
 
 ---
 
-✅ Let me know if you'd like a downloadable `.md` version or want to go through mock Q\&A for these topics.
