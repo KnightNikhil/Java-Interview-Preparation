@@ -130,6 +130,226 @@ Collection interface is at the root of the hierarchy. Collection interface provi
 
 Generics allow us to provide the type of Object that a collection can contain, so if we try to add any element of other type it throws compile time error. This avoids ClassCastException at Runtime because we will get the error at compilation. Also Generics make code clean since we don’t need to use casting and instanceof operator.
 
+## Q. What is the difference between fail-fast and fail-safe iterator?
+
+**fail-fast Iterator**
+
+`Iterators` in java are used to iterate over the Collection objects.Fail-Fast iterators immediately throw `ConcurrentModificationException` if there is **structural modification** of the collection. Structural modification means adding, removing or updating any element from collection while a thread is iterating over that collection. Iterator on ArrayList, HashMap classes are some examples of fail-fast Iterator.
+
+```java
+import java.util.ArrayList;
+import java.util.Iterator;
+ 
+public class FailFastIteratorExample 
+{       
+    public static void main(String[] args) {
+
+        //Creating an ArrayList of integers
+        ArrayList<Integer> list = new ArrayList<Integer>();
+         
+        //Adding elements to list
+        list.add(1452);
+        list.add(6854);
+        list.add(8741);
+                 
+        //Getting an Iterator from list
+        Iterator<Integer> it = list.iterator();
+         
+        while (it.hasNext()) {
+            Integer integer = (Integer) it.next();
+            list.add(8457);      //This will throw ConcurrentModificationException
+        }
+    }   
+}
+```
+Output
+```
+Exception in thread "main" java.util.ConcurrentModificationException
+    at java.util.ArrayList$Itr.checkForComodification(Unknown Source)
+    at java.util.ArrayList$Itr.next(Unknown Source)
+    at pack1.MainClass.main(MainClass.java:32)
+```
+
+**fail-safe Iterator**
+
+Fail-Safe iterators don’t throw any exceptions if a collection is structurally modified while iterating over it. This is because, they operate on the clone of the collection, not on the original collection and that’s why they are called fail-safe iterators. Iterator on CopyOnWriteArrayList, ConcurrentHashMap classes are examples of fail-safe Iterator.
+
+```java
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+ 
+public class FailSafeIteratorExample 
+{       
+    public static void main(String[] args) {
+
+        //Creating a ConcurrentHashMap
+        ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<String, Integer>();
+         
+        //Adding elements to map
+        map.put("ONE", 1);
+        map.put("TWO", 2);
+        map.put("THREE", 3);
+         
+        //Getting an Iterator from map
+        Iterator<String> it = map.keySet().iterator();
+         
+        while (it.hasNext()) {
+            String key = (String) it.next();
+            System.out.println(key+" : "+map.get(key));
+            map.put("FOUR", 4); //This will not be reflected in the Iterator
+        }
+    }   
+}
+```
+Output
+```
+TWO : 2
+FOUR : 4
+ONE : 1
+THREE : 3
+```
+<div align="right">
+    <b><a href="#">↥ back to top</a></b>
+</div>
+
+## Q. What is difference between Enumeration and Iterator interface?
+
+Enumeration and Iterator are two interfaces in java.util package which are used to traverse over the elements of a Collection object.
+
+**Differences**
+
+| Feature                |Enumeration	             | Iterator                                                                                                                                                                                           |
+|------------------------|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Traversal              |Using Enumeration, you can only traverse the collection. You can’t do any modifications to collection while traversing it.    | Using Iterator, you can remove an element of the collection while traversing it.                                                                                                                   |
+| Introduction           |Enumeration is introduced in JDK 1.0| 	Iterator is introduced from JDK 1.2                                                                                                                                                               |
+| Usage                  |Enumeration is used to traverse the legacy classes like Vector, Stack and HashTable.| Iterator is used to iterate most of the classes in the collection framework like ArrayList, HashSet, HashMap, LinkedList etc.                                                                      |
+| Methods                | hasMoreElements() and nextElement()| 	Methods : hasNext(), next() and remove()                                                                                                                                                          |
+| fail-fast or fail safe |Enumeration is fail-safe in nature.	| Iterator is fail-fast in nature.                                                                                                                                                                   |
+| Safety                 |Enumeration is not safe and secured due to it’s fail-safe nature.| 	Iterator actively detects and prevents concurrent modifications during traversal, it is considered safer and more secure than Enumeration. |
+
+**Note:**
+- Enumeration is considered “fail-safe” because it does not throw exceptions if the underlying collection is modified while it is being traversed. However, this also makes it unsafe and unsecured because such concurrent modifications can lead to unpredictable results or data inconsistency without alerting the programmer.
+- Iterator, on the other hand, is fail-fast, meaning that if the collection is structurally modified by any thread while an iteration is in progress (except through Iterator’s own remove method), it immediately throws a ConcurrentModificationException. This behavior prevents unpredictable outcomes due to concurrent modifications.
+
+|Iterator	|Enumeration         |
+|-----------|--------------------|
+|hasNext()	|hasMoreElements()   |
+ |next()	    |nextElement()       |
+|remove()	|(Not Available)     |
+
+
+```java
+import java.util.*;
+public class PerformanceTest {
+
+    public static void main(String[] args) {
+
+        Vector v = new Vector();
+        Object element;
+        Enumeration enumeration;
+        Iterator iter;
+        long start;
+        
+        for(int i = 0; i < 100; i++) {
+            v.add(i);
+        }
+
+        enumeration = v.elements();
+        iter = v.iterator();
+        // ITERATOR
+        while(iter.hasNext()) {
+            element = iter.next();
+            if (element % 2 == 0) {
+                // Safely remove even numbers using Iterator's remove()
+                iterator.remove();
+            }
+        }
+        
+        System.gc();   //request to GC to free up some memory
+        
+        // ENUMERATION
+        while(enumeration.hasMoreElements()) {
+            element = enumeration.nextElement();
+        }
+    }
+}
+```
+<div align="right">
+    <b><a href="#">↥ back to top</a></b>
+</div>
+
+## Q. What is difference between Iterator and ListIterator?
+
+ListIterator is the child interface of Iterator interface. The major difference between Iterator and ListIterator is that Iterator can traverse the elements in the collection only in **forward direction** whereas, the ListIterator can traverse the elements in a collection in both the **forward as well as the backwards direction**.
+
+```java
+import java.io.*; 
+import java.util.*; 
+
+class IteratorExample
+{ 
+	public static void main(String[] args) {
+
+		ArrayList<Integer> list = new ArrayList<Integer>(); 
+
+		list.add(10); 
+		list.add(20); 
+		list.add(30); 
+		list.add(40); 
+		list.add(50); 
+
+		// Iterator 
+		Iterator itr = list.iterator(); 
+		System.out.println("Iterator:"); 
+		System.out.println("Forward traversal: "); 
+
+		while (itr.hasNext()) 
+			System.out.print(itr.next() + " "); 
+
+		// ListIterator 
+		ListIterator i = list.listIterator(); 
+		System.out.println("\nListIterator:"); 
+		System.out.println("Forward Traversal : "); 
+
+		while (i.hasNext()) 
+			System.out.print(i.next() + " "); 
+
+		System.out.println("\nBackward Traversal : "); 
+
+		while (i.hasPrevious()) 
+			System.out.print(i.previous() + " "); 
+	} 
+} 
+```
+Output
+```
+Iterator:
+Forward traversal: 
+10 20 30 40 50 
+
+ListIterator:
+Forward Traversal : 
+10 20 30 40 50 
+
+Backward Traversal : 
+50 40 30 20 10
+```
+
+**Methods of Iterator Interface**
+
+<table class="alt">
+<tbody><tr><th>No.</th><th>Method</th><th>Description</th></tr>
+<tr><td>1</td><td>public boolean hasNext()</td><td>It returns true if iterator has more elements.</td></tr>
+<tr><td>2</td><td>public Object next()</td><td>It returns the element and moves the cursor pointer to the next element.</td></tr>
+<tr><td>3</td><td>public void remove()</td><td>It removes the last elements returned by the iterator. It is rarely used.</td></tr>
+</tbody></table>
+
+<div align="right">
+    <b><a href="#">↥ back to top</a></b>
+</div>
+
+
+
 ## Q. What is difference between Array and ArrayList?
 
 ArrayList internally uses a dynamic array to store the elements. 
@@ -142,7 +362,6 @@ add() or get(): Adding an element to or retrieving an element from an array or A
 
 resize(): Automatic resize of ArrayList slows down the performance. ArrayList is internally backed by an Array. In resize() a temporary array is used to copy elements from old array to new array.
 
-
 | Feature              | Array                                                                 | ArrayList                                  |
 |----------------------|-----------------------------------------------------------------------|--------------------------------------------|
 | Size                 | Fixed after creation                                                  | Dynamic, grows automatically               |
@@ -154,6 +373,12 @@ resize(): Automatic resize of ArrayList slows down the performance. ArrayList is
 | Adding Elements      | Use assignment operator                                               | Use `add()` method                         |
 | Multi-dimension      | Can be multi-dimensional                                              | Always single dimension                    |
 
+
+## Q. What is Hierarchy of LinkedList Class in Java?
+<img src="assets/linkedlist-hierarchy-diagram.png" alt="linkedlist-hierarchy-diagram" width="600"/>
+
+LinkedList class internally uses a doubly linked list to store the elements. Each element is stored in a node, where each node contains three fields: data, pointer to the next node, and pointer to the previous node.
+<img src="assets/Java-LinkedList.png" alt="LinkedList" width="600"/>
 
 ## Q. What is difference between ArrayList and LinkedList?
 
@@ -183,6 +408,73 @@ Output
 ArrayList with duplicate elements: [1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 6, 7, 8]
 ArrayList without duplicate elements: [1, 2, 3, 4, 5, 6, 7, 8]
 ```
+## Q. What are the differences between ArrayList and Vector?
+
+| Feature        |ArrayList	                    |Vector                       |
+|----------------|-------------------------------|-------------------------------|
+| Synchronization |ArrayList is **not synchronized**. |Vector is **synchronized**.              |
+| Size           |ArrayList **increments 50%** of current array size if the number of elements exceeds from its capacity.|	Vector **increments 100%** means doubles the array size if the total number of elements exceeds than its capacity. |
+| Legacy Class   |ArrayList is not a legacy class. It is introduced in JDK 1.2. |	Vector is a legacy class.|
+| Performance    |ArrayList is **fast** because it is non-synchronized. | Vector is **slow** because it is synchronized, i.e., in a multithreading environment, it holds the other threads in runnable or non-runnable state until current thread releases the lock of the object.|
+| Traversal      |ArrayList uses the **Iterator** interface to traverse the elements. |A Vector can use the **Iterator** interface or **Enumeration** interface to traverse the elements.|
+
+**Example:**
+
+```java
+/**
+* Java Program to illustrate use of ArrayList 
+* and Vector in Java 
+*
+**/
+import java.io.*; 
+import java.util.*; 
+  
+class Example
+{ 
+    public static void main (String[] args) { 
+        // creating an ArrayList 
+        ArrayList<String> arrlist = new ArrayList<String>(); 
+  
+        // adding object to arraylist 
+        arrlist.add("One"); 
+        arrlist.add("Two"); 
+        arrlist.add("Three"); 
+          
+        // traversing elements using Iterator' 
+        System.out.println("ArrayList elements are:"); 
+        Iterator itr = arrlist.iterator(); 
+        while (itr.hasNext()) 
+            System.out.println(itr.next()); 
+  
+        // creating Vector 
+        Vector<String> vtr = new Vector<String>(); 
+        vtr.addElement("Four"); 
+        vtr.addElement("Five"); 
+        vtr.addElement("Six"); 
+  
+        // traversing elements using Enumeration 
+        System.out.println("\nVector elements are:"); 
+        Enumeration eum = vtr.elements(); 
+        while (eum.hasMoreElements()) 
+            System.out.println(eum.nextElement()); 
+    } 
+} 
+```
+Output:
+```
+ArrayList elements are:
+One
+Two
+Three
+
+Vector elements are:
+Four
+Five
+Six
+```
+<div align="right">
+    <b><a href="#">↥ back to top</a></b>
+</div>
 
 ## Q. What will be the problem if you do not override hashcode() method?
 
@@ -650,87 +942,6 @@ drawing line in color : BLUE
     <b><a href="#">↥ back to top</a></b>
 </div>
 
-## Q. What is the difference between fail-fast and fail-safe iterator?
-
-**fail-fast Iterator**
-
-`Iterators` in java are used to iterate over the Collection objects.Fail-Fast iterators immediately throw `ConcurrentModificationException` if there is **structural modification** of the collection. Structural modification means adding, removing or updating any element from collection while a thread is iterating over that collection. Iterator on ArrayList, HashMap classes are some examples of fail-fast Iterator.
-
-```java
-import java.util.ArrayList;
-import java.util.Iterator;
- 
-public class FailFastIteratorExample 
-{       
-    public static void main(String[] args) {
-
-        //Creating an ArrayList of integers
-        ArrayList<Integer> list = new ArrayList<Integer>();
-         
-        //Adding elements to list
-        list.add(1452);
-        list.add(6854);
-        list.add(8741);
-                 
-        //Getting an Iterator from list
-        Iterator<Integer> it = list.iterator();
-         
-        while (it.hasNext()) {
-            Integer integer = (Integer) it.next();
-            list.add(8457);      //This will throw ConcurrentModificationException
-        }
-    }   
-}
-```
-Output
-```
-Exception in thread "main" java.util.ConcurrentModificationException
-    at java.util.ArrayList$Itr.checkForComodification(Unknown Source)
-    at java.util.ArrayList$Itr.next(Unknown Source)
-    at pack1.MainClass.main(MainClass.java:32)
-```
-
-**fail-safe Iterator**
-
-Fail-Safe iterators don’t throw any exceptions if a collection is structurally modified while iterating over it. This is because, they operate on the clone of the collection, not on the original collection and that’s why they are called fail-safe iterators. Iterator on CopyOnWriteArrayList, ConcurrentHashMap classes are examples of fail-safe Iterator.
-
-```java
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
- 
-public class FailSafeIteratorExample 
-{       
-    public static void main(String[] args) {
-
-        //Creating a ConcurrentHashMap
-        ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<String, Integer>();
-         
-        //Adding elements to map
-        map.put("ONE", 1);
-        map.put("TWO", 2);
-        map.put("THREE", 3);
-         
-        //Getting an Iterator from map
-        Iterator<String> it = map.keySet().iterator();
-         
-        while (it.hasNext()) {
-            String key = (String) it.next();
-            System.out.println(key+" : "+map.get(key));
-            map.put("FOUR", 4); //This will not be reflected in the Iterator
-        }
-    }   
-}
-```
-Output
-```
-TWO : 2
-FOUR : 4
-ONE : 1
-THREE : 3
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 ## Q. What are concurrent collection classes?
 
@@ -819,137 +1030,6 @@ Producer 4
 Consumed 0
 ```
 Here, The Producer start producing objects and pushing it to the Queue. Once the queue is full, the producer will wait until consumer consumes it and it will start producing again. Similar behavior is displayed by consumer. where the consumer waits until there is a single element in queue. It will resume consumer once the queue has element.
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is difference between Enumeration and Iterator interface?
-
-Enumeration and Iterator are two interfaces in java.util package which are used to traverse over the elements of a Collection object.
-
-**Differences**
-
-|Iterator	|Enumeration         |
-|-----------|--------------------|
-|hasNext()	|hasMoreElements()   |
-|next()	    |nextElement()       |
-|remove()	|(Not Available)     |
-
-
-| Sl.No |Enumeration	             |Iterator                          |
-|-------|----------------------------|----------------------------------|
-| 01.  |Using Enumeration, you can only traverse the collection. You can’t do any modifications to collection while traversing it.    |Using Iterator, you can remove an element of the collection while traversing it.|
-| 02.  |Enumeration is introduced in JDK 1.0|	Iterator is introduced from JDK 1.2     |
-| 03.  |Enumeration is used to traverse the legacy classes like Vector, Stack and HashTable.|Iterator is used to iterate most of the classes in the collection framework like ArrayList, HashSet, HashMap, LinkedList etc.|
-| 04.  |Methods : hasMoreElements() and nextElement()|	Methods : hasNext(), next() and remove()|
-| 05.  |Enumeration is fail-safe in nature.	|Iterator is fail-fast in nature.|
-| 06.  |Enumeration is not safe and secured due to it’s fail-safe nature.|	Iterator is safer and secured than Enumeration.|
-
-```java
-import java.util.*;
-public class PerformanceTest {
-
-    public static void main(String[] args) {
-
-        Vector v = new Vector();
-        Object element;
-        Enumeration enum;
-        Iterator iter;
-        long start;
-        
-        for(int i = 0; i < 1000000; i++) {
-            v.add("New Element");
-        }
-        
-        enum = v.elements();
-        iter = v.iterator();
-        // ITERATOR
-        start = System.currentTimeMillis();
-        while(iter.hasNext()) {
-            element = iter.next();
-        }
-        System.out.println("Iterator took " + (System.currentTimeMillis() - start));
-        System.gc();   //request to GC to free up some memory
-        
-        // ENUMERATION
-        start = System.currentTimeMillis();
-        while(enum.hasMoreElements()) {
-            element = enum.nextElement();
-        }
-        System.out.println("Enumeration took " + (System.currentTimeMillis() - start));
-    }
-}
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is difference between Iterator and ListIterator?
-
-ListIterator is the child interface of Iterator interface. The major difference between Iterator and ListIterator is that Iterator can traverse the elements in the collection only in **forward direction** whereas, the ListIterator can traverse the elements in a collection in both the **forward as well as the backwards direction**.
-
-```java
-import java.io.*; 
-import java.util.*; 
-
-class IteratorExample
-{ 
-	public static void main(String[] args) {
-
-		ArrayList<Integer> list = new ArrayList<Integer>(); 
-
-		list.add(10); 
-		list.add(20); 
-		list.add(30); 
-		list.add(40); 
-		list.add(50); 
-
-		// Iterator 
-		Iterator itr = list.iterator(); 
-		System.out.println("Iterator:"); 
-		System.out.println("Forward traversal: "); 
-
-		while (itr.hasNext()) 
-			System.out.print(itr.next() + " "); 
-
-		// ListIterator 
-		ListIterator i = list.listIterator(); 
-		System.out.println("\nListIterator:"); 
-		System.out.println("Forward Traversal : "); 
-
-		while (i.hasNext()) 
-			System.out.print(i.next() + " "); 
-
-		System.out.println("\nBackward Traversal : "); 
-
-		while (i.hasPrevious()) 
-			System.out.print(i.previous() + " "); 
-	} 
-} 
-```
-Output
-```
-Iterator:
-Forward traversal: 
-10 20 30 40 50 
-
-ListIterator:
-Forward Traversal : 
-10 20 30 40 50 
-
-Backward Traversal : 
-50 40 30 20 10
-```
-
-**Methods of Iterator Interface**
-
-<table class="alt">
-<tbody><tr><th>No.</th><th>Method</th><th>Description</th></tr>
-<tr><td>1</td><td>public boolean hasNext()</td><td>It returns true if iterator has more elements.</td></tr>
-<tr><td>2</td><td>public Object next()</td><td>It returns the element and moves the cursor pointer to the next element.</td></tr>
-<tr><td>3</td><td>public void remove()</td><td>It removes the last elements returned by the iterator. It is rarely used.</td></tr>
-</tbody></table>
-
 <div align="right">
     <b><a href="#">↥ back to top</a></b>
 </div>
@@ -2034,73 +2114,6 @@ By definition, the `put` command replaces the previous value associated with the
 
 The map simply drops its reference to the value. If nothing else holds a reference to the object, that object becomes eligible for garbage collection. Additionally, Java returns any previous value associated with the given key (or `null` if none present), so you can determine what was there and maintain a reference if necessary.
 
-## Q. What are the differences between ArrayList and Vector?
-
-|ArrayList	                    |Vector                               |
-|-------------------------------|-------------------------------------|
-|ArrayList is **not synchronized**. |Vector is **synchronized**.              |
-|ArrayList **increments 50%** of current array size if the number of elements exceeds from its capacity.|	Vector **increments 100%** means doubles the array size if the total number of elements exceeds than its capacity. |
-|ArrayList is not a legacy class. It is introduced in JDK 1.2. |	Vector is a legacy class.|
-|ArrayList is **fast** because it is non-synchronized. | Vector is **slow** because it is synchronized, i.e., in a multithreading environment, it holds the other threads in runnable or non-runnable state until current thread releases the lock of the object.|
-|ArrayList uses the **Iterator** interface to traverse the elements. |A Vector can use the **Iterator** interface or **Enumeration** interface to traverse the elements.|
-
-**Example:**
-
-```java
-/**
-* Java Program to illustrate use of ArrayList 
-* and Vector in Java 
-*
-**/
-import java.io.*; 
-import java.util.*; 
-  
-class Example
-{ 
-    public static void main (String[] args) { 
-        // creating an ArrayList 
-        ArrayList<String> arrlist = new ArrayList<String>(); 
-  
-        // adding object to arraylist 
-        arrlist.add("One"); 
-        arrlist.add("Two"); 
-        arrlist.add("Three"); 
-          
-        // traversing elements using Iterator' 
-        System.out.println("ArrayList elements are:"); 
-        Iterator itr = arrlist.iterator(); 
-        while (itr.hasNext()) 
-            System.out.println(itr.next()); 
-  
-        // creating Vector 
-        Vector<String> vtr = new Vector<String>(); 
-        vtr.addElement("Four"); 
-        vtr.addElement("Five"); 
-        vtr.addElement("Six"); 
-  
-        // traversing elements using Enumeration 
-        System.out.println("\nVector elements are:"); 
-        Enumeration eum = vtr.elements(); 
-        while (eum.hasMoreElements()) 
-            System.out.println(eum.nextElement()); 
-    } 
-} 
-```
-Output:
-```
-ArrayList elements are:
-One
-Two
-Three
-
-Vector elements are:
-Four
-Five
-Six
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 ## Q. If you store Employee object as key say: Employee emp = new Employee(“name1”,20); store it in a HashMap as key, now if we add a new parameter emp.setMarriedStatus(true) and try to override it what will happen?
 
