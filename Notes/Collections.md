@@ -73,9 +73,9 @@ Understand the interface hierarchy and what each offers:
 
 ## Q. What is Java Collections Framework? List out some benefits of Collections framework?
 
-<p align="center">
-  <img src="assets/collection.png" alt="Java Collections" width="800px" />
-</p>
+
+<img src="assets/CollectionHierarchy.webp" alt="Java Collections Overview" width="600"/>
+
 
 The Collection in Java is a framework that provides an architecture to store and manipulate the group of objects. Java Collections can achieve all the operations that we perform on a data such as searching, sorting, insertion, manipulation, and deletion.
 
@@ -85,49 +85,7 @@ Java Collection means a single unit of objects. Java Collection framework provid
 
 Collection interface is at the root of the hierarchy. Collection interface provides all general purpose methods which all collections classes must support (or throw UnsupportedOperationException). It extends **Iterable** interface which adds support for iterating over collection elements using the “for-each loop” statement.
 
-**2. List**
-
-Lists represents an **ordered collection** of elements. Using lists, we can access elements by their integer index (position in the list), and search for elements in the list. index start with 0, just like an array.
-
-Some useful classes which implement List interface are – **ArrayList**, **CopyOnWriteArrayList**, **LinkedList**, **Stack** and **Vector**.
-
-**3. Set**
-
-Sets represents a collection of **sorted** elements. Sets do not allow the duplicate elements. Set interface does not provides no guarantee to return the elements in any predictable order; though some Set implementations store elements in their natural ordering and guarantee this order.
 <img width="986" height="368" alt="image" src="https://github.com/user-attachments/assets/392c14ee-1842-47f8-bfd9-687d537dc5f7" />
-
-
-Some useful classes which implement Set interface are – **ConcurrentSkipListSet**, **CopyOnWriteArraySet**, **EnumSet**, **HashSet**, **LinkedHashSet** and **TreeSet**.
-
-**4. Map**
-
-The Map interface enable us to store data in key-value pairs (keys should be immutable). A map cannot contain duplicate keys; each key can map to at most one value.
-
-The Map interface provides three collection views, which allow a map’s contents to be viewed as a set of keys, collection of values, or set of key-value mappings. Some map implementations, like the TreeMap class, make specific guarantees as to their order; others, like the HashMap class, do not.
-
-Some useful classes which implement Map interface are – **ConcurrentHashMap**, **ConcurrentSkipListMap**, **EnumMap**, **HashMap**, **Hashtable**, **IdentityHashMap**, **LinkedHashMap**, **Properties**, **TreeMap** and **WeakHashMap**.
-
-**5. Stack**
-
-The Java Stack interface represents a classical stack data structure, where elements can be pushed to last-in-first-out (LIFO) stack of objects. In Stack we push an element to the top of the stack, and popped off from the top of the stack again later.
-
-**6. Queue**
-
-A queue data structure is intended to hold the elements (put by producer threads) prior to processing by consumer thread(s). Besides basic Collection operations, queues provide additional insertion, extraction, and inspection operations.
-
-Some useful classes which implement Map interface are – **ArrayBlockingQueue, ArrayDeque, ConcurrentLinkedDeque, ConcurrentLinkedQueue, DelayQueue, LinkedBlockingDeque, LinkedBlockingQueue, LinkedList, LinkedTransferQueue, PriorityBlockingQueue, PriorityQueue and SynchronousQueue**.
-
-**7. Deque**
-
-A double ended queue (pronounced “deck“) that supports element insertion and removal at both ends. When a deque is used as a queue, FIFO (First-In-First-Out) behavior results. When a deque is used as a stack, LIFO (Last-In-First-Out) behavior results.
-
-Some common known classes implementing this interface are **ArrayDeque, ConcurrentLinkedDeque, LinkedBlockingDeque** and **LinkedList**.
-
-|           |List	|Set        |	Queue  |Map                             |
-|-----------|-------|-----------|----------|--------------------------------|
-|Order	    |Yes	|No	        |Yes	   |No                              |
-|Duplicates	|Yes	|No	        |Yes	   |No (Allow duplicate values not keys)|
-|Null Values|Yes	|Single Null|	Yes (LinkedList Queue). No (Priority Queue).|Single null key and many null values|
 
 **The Java Collections Framework provides the following benefits:**
 
@@ -158,13 +116,73 @@ Some common known classes implementing this interface are **ArrayDeque, Concurre
 <tr><td>14</td><td>public int hashCode()</td><td>returns the hashcode number for collection.</td></tr>
 </tbody></table>
 
+
+|           |List	|Set        |	Queue  |Map                             |
+|-----------|-------|-----------|----------|--------------------------------|
+|Order	    |Yes	|No	        |Yes	   |No                              |
+|Duplicates	|Yes	|No	        |Yes	   |No (Allow duplicate values not keys)|
+|Null Values|Yes	|Single Null|	Yes (LinkedList Queue). No (Priority Queue).|Single null key and many null values|
+
 **Collections Framework Implementation Classes Summary**
+<img src="assets/Collection_interfaces.png" alt="Java Collections Overview" width="600"/>
 
-![Collection Class](https://github.com/learning-zone/java-interview-questions/blob/master/assets/collection-class.png)
+## Q. What is the benefit of Generics in Collections Framework?
 
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
+Generics allow us to provide the type of Object that a collection can contain, so if we try to add any element of other type it throws compile time error. This avoids ClassCastException at Runtime because we will get the error at compilation. Also Generics make code clean since we don’t need to use casting and instanceof operator.
+
+## Q. What is difference between Array and ArrayList?
+
+ArrayList internally uses a dynamic array to store the elements. 
+<br>
+An ArrayList starts with an initial capacity (default is 10 if not specified). When elements are added and the number of elements (size) reaches the current capacity, internally, ArrayList increases its capacity by about 50% more than the current capacity when resizing. a temporary array is used to copy elements from old array to new array.
+
+In Java Array and ArrayList give different performance for different operations.
+
+add() or get(): Adding an element to or retrieving an element from an array or ArrayList object has similar performance. These are constant time operations.
+
+resize(): Automatic resize of ArrayList slows down the performance. ArrayList is internally backed by an Array. In resize() a temporary array is used to copy elements from old array to new array.
+
+
+| Feature              | Array                                                                 | ArrayList                                  |
+|----------------------|-----------------------------------------------------------------------|--------------------------------------------|
+| Size                 | Fixed after creation                                                  | Dynamic, grows automatically               |
+| Performance          | add/get are constant time; resize not applicable                      | add/get are constant time; resize is slower|
+| Primitives           | Can store primitives and objects                                      | Can store only objects                     |
+| Iteration            | Use for loop                                                          | Use Iterator object                        |
+| Type Safety          | Can contain objects of same type; ArrayStoreException for wrong type  | Generics ensure type safety                |
+| Length/Size          | Use `length` variable                                                 | Use `size()` method                        |
+| Adding Elements      | Use assignment operator                                               | Use `add()` method                         |
+| Multi-dimension      | Can be multi-dimensional                                              | Always single dimension                    |
+
+
+## Q. What is difference between ArrayList and LinkedList?
+
+ArrayList and LinkedList both implements List interface and maintains insertion order. Both are non synchronized classes.
+
+| Feature        |ArrayList               |LinkedList                                                                 |
+|----------------|------------------------|--------------------------------------------------------------------------|
+| Internal DS    |ArrayList internally uses a dynamic array to store the elements.|LinkedList internally uses a doubly linked list to store the elements.|
+| Performance    |Manipulation with ArrayList is slow because it internally uses an array. If any element is removed from the array, all the bits are shifted in memory.	|Manipulation with LinkedList is faster than ArrayList because it uses a doubly linked list, so no bit shifting is required in memory.|
+| Implementation |An ArrayList class can act as a list only because it implements List only.|	LinkedList class can act as a list and queue both because it implements List and Deque interfaces.|
+| Usage          | ArrayList is better for storing and accessing data.|LinkedList is better for manipulating data.|
+
+
+## Q. How to remove duplicates from ArrayList?
+
+The LinkedHashSet is the best approach for removing duplicate elements in an arraylist. LinkedHashSet does two things internally :
+
+* Remove duplicate elements
+* Maintain the order of elements added to it
+
+```java
+    LinkedHashSet<Integer> hashSet = new LinkedHashSet<>(numbersList); 
+    ArrayList<Integer> listWithoutDuplicates = new ArrayList<>(hashSet);
+```
+Output
+```
+ArrayList with duplicate elements: [1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 6, 7, 8]
+ArrayList without duplicate elements: [1, 2, 3, 4, 5, 6, 7, 8]
+```
 
 ## Q. What will be the problem if you do not override hashcode() method?
 
@@ -219,10 +237,6 @@ Checking equality between alex1 and alex2 = false
     <b><a href="#">↥ back to top</a></b>
 </div>
 
-## Q. What is the benefit of Generics in Collections Framework?
-
-Generics allow us to provide the type of Object that a collection can contain, so if we try to add any element of other type it throws compile time error. This avoids ClassCastException at Runtime because we will get the error at compilation. Also Generics make code clean since we don’t need to use casting and instanceof operator.
-
 ## Q. How do WeakHashMap works?
 
 WeakHashMap is a Hash table-based implementation of the Map interface with weak keys. An entry in a WeakHashMap will automatically be removed when its key is no longer in ordinary use. Both null values and the null key are supported. This class has performance characteristics similar to those of the HashMap class and has the same efficiency parameters of initial capacity and load factor.
@@ -275,152 +289,7 @@ INACTIVE   [project id : 200, project name : Employee Management System,
     <b><a href="#">↥ back to top</a></b>
 </div>
 
-## Q. What is difference between Array and ArrayList?
 
-**1. Size**: Array in Java is fixed in size. We can not change the size of array after creating it. ArrayList is dynamic in size. When we add elements to an ArrayList, its capacity increases automatically.
-
-**2. Performance**: In Java Array and ArrayList give different performance for different operations.
-
-add() or get(): Adding an element to or retrieving an element from an array or ArrayList object has similar performance. These are constant time operations.
-
-resize(): Automatic resize of ArrayList slows down the performance. ArrayList is internally backed by an Array. In resize() a temporary array is used to copy elements from old array to new array.
-
-**3. Primitives**: Array can contain both primitive data types as well as objects. But ArrayList can not contain primitive data types. It contains only objects.
-
-**4. Iterator**: In an ArrayList we use an Iterator object to traverse the elements. We use for loop for iterating elements in an array.
-
-**5. Type Safety**: Java helps in ensuring Type Safety of elements in an ArrayList by using Generics. An Array can contain objects of same type of classe. If we try to store a different data type object in an Array then it throws ArrayStoreException.
-
-**6. Length**: Size of ArrayList can be obtained by using size() method. Every array object has length variable that is same as the length/size of the array.
-
-**7. Adding elements**: In an ArrayList we can use add() method to add objects. In an Array assignment operator is used for adding elements.
-
-**8. Multi-dimension**: An Array can be multi-dimensional. An ArrayList is always of single dimension
-
-```java
-// A Java program to demonstrate differences between array 
-// and ArrayList 
-import java.util.ArrayList; 
-import java.util.Arrays; 
-  
-class Test 
-{ 
-    public static void main(String args[]) { 
-        /* ........... Normal Array............. */
-        int[] arr = new int[2]; 
-        arr[0] = 10; 
-        arr[1] = 20; 
-        System.out.println(arr[0]); 
-  
-        /*............ArrayList..............*/
-        // Create an arrayList with initial capacity 2 
-        ArrayList<Integer> arrL = new ArrayList<Integer>(2); 
-  
-        // Add elements to ArrayList 
-        arrL.add(30); 
-        arrL.add(40); 
-  
-        // Access elements of ArrayList 
-        System.out.println(arrL.get(0)); 
-    } 
-} 
-```
-Output
-```
-10
-30
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is difference between ArrayList and LinkedList?
-
-ArrayList and LinkedList both implements List interface and maintains insertion order. Both are non synchronized classes.
-
-|Sl.No |ArrayList               |LinkedList                                                                 |
-|------|------------------------|--------------------------------------------------------------------------|
-|  01. |ArrayList internally uses a dynamic array to store the elements.|LinkedList internally uses a doubly linked list to store the elements.|
-| 02. |Manipulation with ArrayList is slow because it internally uses an array. If any element is removed from the array, all the bits are shifted in memory.	|Manipulation with LinkedList is faster than ArrayList because it uses a doubly linked list, so no bit shifting is required in memory.|
-| 03. |An ArrayList class can act as a list only because it implements List only.|	LinkedList class can act as a list and queue both because it implements List and Deque interfaces.|
-| 04. | ArrayList is better for storing and accessing data.|LinkedList is better for manipulating data.|
-
-```java
-// Java program to demonstrate difference between ArrayList and 
-// LinkedList. 
-import java.util.ArrayList; 
-import java.util.LinkedList; 
-
-public class ArrayListLinkedListExample 
-{ 
-	public static void main(String[] args) {
-
-		ArrayList<String> arrlistobj = new ArrayList<String>(); 
-		arrlistobj.add("One"); 
-		arrlistobj.add("Two"); 
-		arrlistobj.add("Three"); 
-		arrlistobj.remove(1); // Remove value at index 2 
-		System.out.println("ArrayList object output: " + arrlistobj); 
-
-		// Checking if an element is present. 
-		if (arrlistobj.contains("Two")) 
-			System.out.println("Found"); 
-		else
-			System.out.println("Not found"); 
-
-
-		LinkedList llobj = new LinkedList(); 
-		llobj.add("Four"); 
-		llobj.add("Five"); 
-		llobj.add("Six"); 
-		llobj.remove("Five"); 
-		System.out.println("LinkedList object output: " + llobj); 
-
-		// Checking if an element is present. 
-		if (llobj.contains("Five")) 
-			System.out.println("Found"); 
-		else
-			System.out.println("Not found"); 
-	} 
-} 
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. How to remove duplicates from ArrayList?
-
-The LinkedHashSet is the best approach for removing duplicate elements in an arraylist. LinkedHashSet does two things internally :
-
-* Remove duplicate elements
-* Maintain the order of elements added to it
-
-```java
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
- 
-public class ArrayListExample 
-{
-    public static void main(String[] args) {
-
-        // ArrayList with duplicate elements
-        ArrayList<Integer> numbersList = new ArrayList<>(Arrays.asList(1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 6, 7, 8));
-         
-        System.out.println("ArrayList with duplicate elements: ", numbersList);
- 
-        LinkedHashSet<Integer> hashSet = new LinkedHashSet<>(numbersList); 
-        ArrayList<Integer> listWithoutDuplicates = new ArrayList<>(hashSet);
-         
-        System.out.println("ArrayList without duplicate elements: ", listWithoutDuplicates);
-    }
-}
-```
-Output
-```
-ArrayList with duplicate elements: [1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 6, 7, 8]
-ArrayList without duplicate elements: [1, 2, 3, 4, 5, 6, 7, 8]
-```
 ## Q. What is Java Priority Queue?
 
 A priority queue in Java is a special type of queue wherein all the elements are ordered as per their natural ordering or based on a custom Comparator supplied at the time of creation.
