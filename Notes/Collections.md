@@ -85,8 +85,6 @@ Java Collection means a single unit of objects. Java Collection framework provid
 
 Collection interface is at the root of the hierarchy. Collection interface provides all general purpose methods which all collections classes must support (or throw UnsupportedOperationException). It extends **Iterable** interface which adds support for iterating over collection elements using the “for-each loop” statement.
 
-<img width="986" height="368" alt="image" src="https://github.com/user-attachments/assets/392c14ee-1842-47f8-bfd9-687d537dc5f7" />
-
 **The Java Collections Framework provides the following benefits:**
 
 * Reduces programming effort
@@ -476,6 +474,33 @@ Six
     <b><a href="#">↥ back to top</a></b>
 </div>
 
+## Q. Can you explain stack's implementation and characteristics in detail?
+A stack is a linear data structure that follows the Last In First Out (LIFO) principle. This means that the last element added to the stack will be the first one to be removed. You can think of a stack like a collection of plates; you add and remove plates from the top of the stack.
+
+**Stack Operations:**
+- **push()**: This operation adds an element to the top of the stack.
+- **pop()**: This operation removes and returns the top element of the stack.
+- **peek()**: This operation returns the top element of the stack without removing it.
+- **isEmpty()**: This operation checks if the stack is empty.
+- **size()**: This operation returns the number of elements in the stack.
+- **search()**: This operation checks if a specific element is present in the stack and returns its position from the top.
+
+**Implementation**: Stacks can be implemented using arrays or linked lists. In Java, the `Stack` class is part of the Java Collections Framework and provides a built-in implementation of a stack.
+
+**Internal Working:**
+- Internally, Stack inherits from Vector, which uses a resizable array.
+- It maintains an index (`top`) for the current top of the stack.
+- When elements are pushed, they are placed at the top index and the top is incremented.
+- When elements are popped, the element at the top index is returned and the top is decremented.
+- Vector ensures dynamic resizing of the underlying array as needed.
+
+**Usage**
+- Stack is synchronized because it inherits from Vector; suitable for single-thread usage or when thread safety is required. 
+- For non-thread-safe stacks, ArrayDeque or other classes are often preferred for better performance. 
+  - The Stack class in Java is a legacy class that extends Vector, which is synchronized. This synchronization introduces unnecessary overhead in single-threaded or non-thread-safe scenarios, making Stack less efficient for such use cases. For example, every method in Stack inherits synchronization from Vector, even when thread safety is not required. 
+  - In contrast, ArrayDeque is part of the java.util package and provides a more modern and efficient implementation of a stack. It is not synchronized, making it faster in single-threaded environments. Additionally, ArrayDeque is implemented as a resizable array, which allows it to efficiently handle stack operations like push and pop.
+- Stack is a legacy class but still widely used for LIFO operations.
+
 ## Q. What will be the problem if you do not override hashcode() method?
 
 Some collections, like HashSet, HashMap or HashTable use the hashcode value of an object to find out how the object would be stored in the collection, and subsequently hashcode is used to help locate the object in the collection. Hashing retrieval involves:
@@ -528,6 +553,132 @@ Checking equality between alex1 and alex2 = false
 <div align="right">
     <b><a href="#">↥ back to top</a></b>
 </div>
+
+## Q. Set Interface
+
+<img width="986" height="368" alt="image" src="https://github.com/user-attachments/assets/392c14ee-1842-47f8-bfd9-687d537dc5f7" />
+
+## Q. How Set/HashSet implement unique values?
+
+Java HashSet class is used to create a collection that uses a hash table for storage. It inherits the AbstractSet class and implements Set interface.
+
+* HashSet stores the elements by using a mechanism called hashing.
+* HashSet contains unique elements only.
+* HashSet allows null value.
+* HashSet class is non synchronized.
+* HashSet doesn't maintain the insertion order. Here, elements are inserted on the basis of their hashcode.
+* HashSet is the best approach for search operations.
+* The initial default capacity of HashSet is 16, and the load factor is 0.75.
+
+## Q. How HashSet works internally to maintain uniqueness of elements?
+
+When we create a HashSet, it internally creates a HashMap and if we insert an element into this HashSet using add() method, it actually call put() method on internally created HashMap object with element you have specified as it’s key and constant Object called **PRESENT** as it’s value. So we can say that a Set achieves uniqueness internally through HashMap.
+When we try to add an element, HashSet first checks the hashcode of the element using hashCode() method. If there is no other element in the HashSet with the same hashcode, then the new element is added successfully. If there is already an element with the same hashcode, then it uses equals() method to check whether the two elements are actually equal. If they are equal, then the new element is not added (to maintain uniqueness). If they are not equal, then the new element is added successfully.
+
+## Q. What happens if two elements have same hashcode but are not equal?
+In this case, both elements will be stored in the same bucket (because they have the same hashcode), but they will be stored as separate entries in that bucket. This is known as a hash collision. The HashSet will use a linked list or a balanced tree (in case of many collisions) to store multiple elements in the same bucket. 
+
+If the number of elements in a bucket exceeds a certain threshold (default is 8), then the linked list is converted into a balanced tree (specifically, a Red-Black tree) to improve performance. This helps to keep the time complexity of operations like add, remove, and contains to O(log n) in case of many collisions, instead of O(n) if we were to use a linked list.
+
+## Q. Explain internal working of LinkedHashSet and how is insertion ordered maintained?
+In LinkedHashSet, the insertion order is maintained by using a doubly linked list in addition to the hash table used by HashSet. Each element in the LinkedHashSet is stored in a node that contains pointers to both the previous and next nodes, allowing for efficient traversal in both directions.
+
+When an element is added to a LinkedHashSet, it is first checked for uniqueness using the same mechanism as HashSet (i.e., checking hashcode and equals). If the element is unique, it is added to the hash table and also appended to the end of the doubly linked list. This way, the order of insertion is preserved.
+
+HashSet uses hashmap or hashtable?
+HashSet internally uses a HashMap to store its elements. When you add an element to a HashSet, it actually adds the element as a key in the underlying HashMap, with a constant value (usually a placeholder object) associated with that key. This allows the HashSet to leverage the efficient hashing and lookup capabilities of the HashMap while ensuring that all elements in the HashSet are unique.
+When does it use HashTable?
+HashSet does not use Hashtable internally. It uses HashMap, which is a more modern and efficient implementation of a hash table. Hashtable is a legacy class that was part of the original Java Collections Framework, but it has been largely replaced by HashMap due to its better performance and flexibility.
+What does LinkedHashSet use internally?
+
+
+
+## Q. What is the difference between HashSet and TreeSet?
+
+
+| Feature                                           | HashSet                       | LinkedHashSet                        | TreeSet                                |
+|---------------------------------------------------|------------------------------|--------------------------------------|----------------------------------------|
+| Performance for - add, remove, contains, size etc | Faster O(1)                | O(1)                              | Slower O(log n)                      |
+| Order                                             | No order guaranteed          | Maintains insertion order            | Elements sorted in ascending order     |
+
+
+```java
+import java.util.HashSet;
+class HashSetExample { 
+
+  public static void main(String[] args) {
+     // Create a HashSet
+     HashSet<String> hset = new HashSet<String>();
+ 
+     //add elements to HashSet
+     hset.add("Abhijeet");
+     hset.add("Ram");
+     hset.add("Kevin");
+     hset.add("Singh");
+     hset.add("Rick");
+     // Duplicate removed
+     hset.add("Ram"); 
+ 
+     // Displaying HashSet elements
+     System.out.println("HashSet contains: ");
+     for(String temp : hset){
+        System.out.println(temp);
+     }
+  }
+}
+```
+
+Output
+
+```
+HashSet contains: 
+
+Rick
+Singh
+Ram
+Kevin
+Abhijeet
+```
+
+```java
+import java.util.TreeSet;
+class TreeSetExample { 
+
+  public static void main(String[] args) {
+     // Create a TreeSet
+     TreeSet<String> tset = new TreeSet<String>();
+ 
+     //add elements to TreeSet
+     tset.add("Abhijeet");
+     tset.add("Ram");
+     tset.add("Kevin");
+     tset.add("Singh");
+     tset.add("Rick");
+     // Duplicate removed
+     tset.add("Ram"); 
+  
+     // Displaying TreeSet elements
+     System.out.println("TreeSet contains: ");
+     for(String temp : tset){
+        System.out.println(temp);
+     }
+  }
+}
+```
+**Output**: Elements are sorted in ascending order.
+```
+TreeSet contains: 
+
+Abhijeet
+Kevin
+Ram
+Rick
+Singh
+```
+<div align="right">
+    <b><a href="#">↥ back to top</a></b>
+</div>
+
 
 ## Q. How do WeakHashMap works?
 
@@ -1133,88 +1284,6 @@ Collections is an utility class in java.util package. It consists of only static
 |Collections.copy()	                  |This method copies all elements from one collection to another collectio|n.|
 |Collections.reverse()	              |This method reverses the order of elements in the specified collection.|
 
-## Q. What is the difference between HashSet and TreeSet?
-
-1) HashSet gives better performance (faster) than TreeSet for the operations like add, remove, contains, size etc. HashSet offers constant time cost while TreeSet offers log(n) time cost for such operations.
-
-2) HashSet does not maintain any order of elements while TreeSet elements are sorted in ascending order by default.
-
-```java
-import java.util.HashSet;
-class HashSetExample { 
-
-  public static void main(String[] args) {
-     // Create a HashSet
-     HashSet<String> hset = new HashSet<String>();
- 
-     //add elements to HashSet
-     hset.add("Abhijeet");
-     hset.add("Ram");
-     hset.add("Kevin");
-     hset.add("Singh");
-     hset.add("Rick");
-     // Duplicate removed
-     hset.add("Ram"); 
- 
-     // Displaying HashSet elements
-     System.out.println("HashSet contains: ");
-     for(String temp : hset){
-        System.out.println(temp);
-     }
-  }
-}
-```
-
-Output
-
-```java
-HashSet contains: 
-
-Rick
-Singh
-Ram
-Kevin
-Abhijeet
-```
-
-```java
-import java.util.TreeSet;
-class TreeSetExample { 
-
-  public static void main(String[] args) {
-     // Create a TreeSet
-     TreeSet<String> tset = new TreeSet<String>();
- 
-     //add elements to TreeSet
-     tset.add("Abhijeet");
-     tset.add("Ram");
-     tset.add("Kevin");
-     tset.add("Singh");
-     tset.add("Rick");
-     // Duplicate removed
-     tset.add("Ram"); 
-  
-     // Displaying TreeSet elements
-     System.out.println("TreeSet contains: ");
-     for(String temp : tset){
-        System.out.println(temp);
-     }
-  }
-}
-```
-**Output**: Elements are sorted in ascending order.
-```
-TreeSet contains: 
-
-Abhijeet
-Kevin
-Ram
-Rick
-Singh
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 ## Q. What is the difference between Set and Map?
 
@@ -1719,56 +1788,6 @@ public class MapToListExamples {
     <b><a href="#">↥ back to top</a></b>
 </div>
 
-## Q. What is difference between arrayList and linkedList?
-
-ArrayList and LinkedList both implements List interface and maintains insertion order. Both are non synchronized classes.
-
-|ArrayList	                                                          |LinkedList                                         |
-|--------------------------------------------------------------------|---------------------------------------------------
-| ArrayList internally uses a dynamic array to store the elements.  |	LinkedList internally uses a doubly linked list to                                                                           store the elements. |
-| Manipulation with ArrayList is slow because it internally uses an array. If any element is removed from the array, all the bits are shifted in memory.|Manipulation with LinkedList is faster than ArrayList because it uses a doubly linked list, so no bit shifting is required in memory.|
-| An ArrayList class can act as a list only because it implements List only.|	LinkedList class can act as a list and queue |both because it implements List and Deque interfaces.|
-| ArrayList is better for storing and accessing data. 	          |LinkedList is better for manipulating data.|
-
-## Q. How Set/HashSet implement unique values?
-
-Java HashSet class is used to create a collection that uses a hash table for storage. It inherits the AbstractSet class and implements Set interface.
-
-* HashSet stores the elements by using a mechanism called hashing.
-* HashSet contains unique elements only.
-* HashSet allows null value.
-* HashSet class is non synchronized.
-* HashSet doesn't maintain the insertion order. Here, elements are inserted on the basis of their hashcode.
-* HashSet is the best approach for search operations.
-* The initial default capacity of HashSet is 16, and the load factor is 0.75.
-
-**Example:**
-
-```java
-import java.util.*;  
-class HashSetExample {  
-
- public static void main(String args[]){  
-
-    // Creating HashSet and adding elements  
-    HashSet<String> set=new HashSet();  
-           set.add("10");    
-           set.add("20");    
-           set.add("30");   
-           set.add("40");  
-           set.add("50");  
-           Iterator<String> i=set.iterator();  
-           while(i.hasNext()) {  
-             System.out.println(i.next());  
-           }  
-    }  
-}  
-```
-
-When we create a HashSet, it internally creates a HashMap and if we insert an element into this HashSet using add() method, it actually call put() method on internally created HashMap object with element you have specified as it’s key and constant Object called **PRESENT** as it’s value. So we can say that a Set achieves uniqueness internally through HashMap.
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 ## Q. What is Comparable and Comparator Interface in java?
 
