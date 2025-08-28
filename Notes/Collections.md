@@ -4,21 +4,12 @@
 
 Understand the interface hierarchy and what each offers:
 * Collection
-* List → ArrayList, LinkedList, Vector, Stack
-* Set → HashSet, LinkedHashSet, TreeSet
 * Queue → PriorityQueue, Deque, ArrayDeque, LinkedList
-* Map (not part of Collection but crucial)
 * HashMap, LinkedHashMap, TreeMap, Hashtable, ConcurrentHashMap, WeakHashMap
 
 🧠 Interview Expectation: Be able to draw the hierarchy and explain use cases.
 
-✅ 2. Internal Working & Time Complexity
-* Table where all the collections are stored with their
-* * Internal Structure, 
-* * Time complexity of Internal Structure, 
-* * Insert
-, 
-* * Delete
+
 
 ✅ 3. Ordering and Duplicates
 * Table with following column
@@ -34,9 +25,6 @@ Understand the interface hierarchy and what each offers:
 * Modern: Collections.synchronizedList(), ConcurrentHashMap, CopyOnWriteArrayList
 * Use ConcurrentHashMap in high-concurrency apps.
 
-✅ 5. Fail-Fast vs Fail-Safe Iterators
-* Fail-Fast: ArrayList, HashMap — throws ConcurrentModificationException
-* Fail-Safe: ConcurrentHashMap, CopyOnWriteArrayList — safe but not real-time data
 
 ✅ 6. Java 8+ Enhancements
 * Streams API:
@@ -73,9 +61,8 @@ Understand the interface hierarchy and what each offers:
 
 ## Q. What is Java Collections Framework? List out some benefits of Collections framework?
 
-
-<img src="assets/CollectionHierarchy.webp" alt="Java Collections Overview" width="600"/>
-
+**Hierarchy of Java Collections Framework**
+<img src="assets/CollectionHierarchy.webp" alt="Java Collections Overview" />
 
 The Collection in Java is a framework that provides an architecture to store and manipulate the group of objects. Java Collections can achieve all the operations that we perform on a data such as searching, sorting, insertion, manipulation, and deletion.
 
@@ -115,14 +102,14 @@ Collection interface is at the root of the hierarchy. Collection interface provi
 </tbody></table>
 
 
-|           |List	|Set        |	Queue  |Map                             |
-|-----------|-------|-----------|----------|--------------------------------|
-|Order	    |Yes	|No	        |Yes	   |No                              |
-|Duplicates	|Yes	|No	        |Yes	   |No (Allow duplicate values not keys)|
-|Null Values|Yes	|Single Null|	Yes (LinkedList Queue). No (Priority Queue).|Single null key and many null values|
+| Feature       | List	 | Set            | 	Queue                                         | Map                                   |
+|---------------|-------|----------------|------------------------------------------------|---------------------------------------|
+| Order	        | Yes	  | No	            | Yes	                                           | No                                    |
+| Duplicates	   | Yes	  | No	            | Yes	                                           | No (Allow duplicate values not keys)  |
+| Null Values   | Yes	  | Single Null    | 	Yes (LinkedList Queue). No (Priority Queue).  | Single null key and many null values  |
 
 **Collections Framework Implementation Classes Summary**
-<img src="assets/Collection_interfaces.png" alt="Java Collections Overview" width="600"/>
+<img src="assets/Collection_interfaces.png" alt="Java Collections Overview"/>
 
 ## Q. What is the benefit of Generics in Collections Framework?
 
@@ -206,9 +193,7 @@ FOUR : 4
 ONE : 1
 THREE : 3
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
+
 
 ## Q. What is difference between Enumeration and Iterator interface?
 
@@ -272,9 +257,7 @@ public class PerformanceTest {
     }
 }
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
+
 
 ## Q. What is difference between Iterator and ListIterator?
 
@@ -342,16 +325,66 @@ Backward Traversal :
 <tr><td>3</td><td>public void remove()</td><td>It removes the last elements returned by the iterator. It is rarely used.</td></tr>
 </tbody></table>
 
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
+## Q. What will be the problem if you do not override hashcode() method?
 
-## Q. What are different Collection views provided by Map interface?
+Some collections, like HashSet, HashMap or HashTable use the hashcode value of an object to find out how the object would be stored in the collection, and subsequently hashcode is used to help locate the object in the collection. Hashing retrieval involves:
+
+* First, find out the right bucket using hashCode().
+* Secondly, search the bucket for the right element using equals()
+
+If hashcode() in not overridden then the default implementation in Object class will be used by collections. This implementation gives different values for different objects, even if they are equal according to the equals() method.
+
+**Example:**
+
+```java
+public class Student {
+    private int id;
+    private String name;
+    public Student(int id, String name) {
+        this.name = name;
+        this.id = id;
+    }
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+public class HashcodeEquals {
+    public static void main(String[] args) {
+        Student alex1 = new Student(1, "Alex");
+        Student alex2 = new Student(1, "Alex");
+        System.out.println("alex1 hashcode = " + alex1.hashCode());
+        System.out.println("alex2 hashcode = " + alex2.hashCode());
+        System.out.println("Checking equality between alex1 and alex2 = " + alex1.equals(alex2));
+    }
+}
+```
+Output
+```
+alex1 hashcode = 1852704110
+alex2 hashcode = 2032578917
+Checking equality between alex1 and alex2 = false
+```
+
+# Map Interface
 
 **Hierarchy of Map Interface**
 
-![Map Interface](https://github.com/learning-zone/java-interview-questions/blob/master/assets/map-interface.png)
+<img src="assets/map-interface.png" alt="Map Collections Overview" />
 
+
+## Q. What are different Collection views provided by Map interface?
+**Note:**
+Map does not extend Collection because its data model (key-value pairs) is fundamentally different from the single-element model of Collection.
 
 In the inheritance tree of the Map interface, there are several implementations but only 3 major, common, and general purpose implementations - they are HashMap and LinkedHashMap and TreeMap.
 
@@ -448,6 +481,17 @@ Output
 | Legacy Class     |No                     |No                            |No                             |Yes                            |
 | Traversal        |Iterator               |Iterator                      |Iterator                       |Enumerator and Iterator        |
 
+## Q. How are exceptions handled in all the map implementations?
+
+| Exception                  | HashMap | LinkedHashMap | TreeMap | Hashtable |
+|----------------------------|---------|---------------|---------|-----------|
+| Null key/value handling    | Allows one null key and multiple null values | Allows one null key and multiple null values | Does not allow null keys or values | Does not allow null keys or values |
+| Concurrent modification  | Fail-fast (throws ConcurrentModificationException) | Fail-fast (throws ConcurrentModificationException) | Fail-fast (throws ConcurrentModificationException) | Synchronized (throws ConcurrentModificationException) |
+| Unsupported operations     | Throws UnsupportedOperationException for unsupported operations | Throws UnsupportedOperationException for unsupported operations | Throws UnsupportedOperationException for unsupported operations | Throws UnsupportedOperationException for unsupported operations |
+
+
+The ConcurrentModificationException is typically thrown for non-thread-safe collections like HashMap, ArrayList, etc., when they are modified concurrently by multiple threads. In contrast, thread-safe collections like ConcurrentHashMap are designed to handle concurrent modifications without throwing this exception.
+
 ## Q. Internal working for HashMap vs LinkedHashMAp?
 
 **HashMap**
@@ -484,16 +528,16 @@ null <- Node(key1) <-> Node(key3) <-> Node(key5) -> null
 
 HashMap and Hashtable both are used to store data in key and value form. Both are using hashing technique to store unique keys.
 
-|Sl.No|HashMap	              |Hashtable                                         |
-|-----|-----------------------|--------------------------------------------------|
-| 01. |HashMap is **non synchronized**. It is not-thread safe and can't be shared between many threads without proper synchronization code.|Hashtable is **synchronized**. It is thread-safe and can be shared with many threads.|
-| 02. |HashMap allows one null key and multiple null values.|Hashtable doesn't allow any null key or value.|
-| 03. |HashMap is a new class introduced in JDK 1.2.|Hashtable is a legacy class.|
-| 04. |HashMap is fast.       |Hashtable is slow.|
-| 05. |We can make the HashMap as synchronized by calling this code Map m = Collections.synchronizedMap(hashMap);|Hashtable is internally synchronized and can't be unsynchronized.|
-| 06. |HashMap is traversed by Iterator.	|Hashtable is traversed by Enumerator and Iterator.|
-| 07. |Iterator in HashMap is fail-fast.	|Enumerator in Hashtable is not fail-fast.         |
-| 08. |HashMap inherits AbstractMap class.	|Hashtable inherits Dictionary class.              |
+| Features             | HashMap	                                                                                                                                | Hashtable                                                                             |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| Synchronization      | HashMap is **non synchronized**. It is not-thread safe and can't be shared between many threads without proper synchronization code.    | Hashtable is **synchronized**. It is thread-safe and can be shared with many threads. |
+| Null element         | HashMap allows one null key and multiple null values.                                                                                   | Hashtable doesn't allow any null key or value.                                        |
+| JDK version          | HashMap is a new class introduced in JDK 1.2.                                                                                           | Hashtable is a legacy class.                                                          |
+| Performance          | HashMap is fast.                                                                                                                        | Hashtable is slow.                                                                    |
+| Synchronization      | We can make the HashMap as synchronized by calling this code Map m = Collections.synchronizedMap(hashMap);                              | Hashtable is internally synchronized and can't be unsynchronized.                     |
+| Iterator/ Enumerator | HashMap is traversed by Iterator.	                                                                                                      | Hashtable is traversed by Enumerator and Iterator.                                    |
+| fail-fast            | Iterator in HashMap is fail-fast.	                                                                                                      | Enumerator in Hashtable is not fail-fast.                                             |
+| Inheritance          | HashMap inherits AbstractMap class.	                                                                                                    | Hashtable inherits Dictionary class.                                                  |
 
 ```java
 /**
@@ -546,6 +590,134 @@ Hash map:
 104 Amit
 ```
 
+## Q. Difference between containsKey(), keySet() and values() in HashMap.
+
+* **The keySet() method**:
+  This method returns a Set view of all the keys in the map. The set is backed by the map, so changes to the map are reflected in the set, and vice-versa.
+
+* **The containsKey() method**:
+  It returns true if this map maps one or more keys to the specified value.
+
+* **The values() methods**:
+  It returns a Collection view of the values contained in this map. The collection is backed by the map, so changes to the map are reflected in the collection, and vice-versa.
+
+**Example:**
+
+```java
+/**
+* Java program illustrating usage of HashMap class methods 
+* keySet(), values(), containsKey() 
+*
+**/
+import java.util.*; 
+public class HashMapExample {
+
+    public static void main(String args[]) {
+
+        // Creation of HashMap 
+        HashMap<String, String> map = new HashMap<>(); 
+  
+        // Adding values to HashMap as ("keys", "values") 
+        map.put("Language", "Java"); 
+        map.put("Platform", "Window"); 
+        map.put("Code", "HashMap"); 
+        map.put("Learn", "More"); 
+  
+        // containsKey() method is to check the presence of a particluar key
+        if (map.containsKey("Code")) 
+            System.out.println("Testing .containsKey : " + map.get("Code")); 
+  
+        // keySet() method returns all the keys in HashMap 
+        Set<String> mapKeys = map.keySet(); 
+        System.out.println("Initial keys  : " + mapKeys); 
+  
+  
+        // values() method return all the values in HashMap 
+        Collection<String> mapValues = map.values(); 
+        System.out.println("Initial values : " + mapValues); 
+  
+        // Adding new set of key-value 
+        map.put("Search", "JavaArticle"); 
+  
+        // Again using .keySet() and .values() methods 
+        System.out.println("New Keys : " + mapKeys); 
+        System.out.println("New Values: " + mapValues); 
+    } 
+} 
+```
+
+## Q. If you store Employee object as key say: Employee emp = new Employee(“name1”,20); store it in a HashMap as key, now if we add a new parameter emp.setMarriedStatus(true) and try to override it what will happen?
+Ans. New instance of Employee will be inserted to HashMap
+Because the hashCode of the object has changed after modifying the state of the object, the HashMap will treat it as a new key and insert a new entry instead of updating the existing one.
+When we use an object as a key in a HashMap, the HashMap uses the hashCode() and equals() methods of that object to determine where to store the key-value pair. If we modify the state of the object in such a way that it affects the hashCode() or equals() methods, it can lead to unexpected behavior.
+
+
+## Q. How do WeakHashMap works?
+
+WeakHashMap is a Hash table-based implementation of the Map interface with weak keys. An entry in a WeakHashMap will automatically be removed when its key is no longer in ordinary use. Both null values and the null key are supported. This class has performance characteristics similar to those of the HashMap class and has the same efficiency parameters of initial capacity and load factor.
+
+**Example:**
+
+```java
+// Java program to illustrate  
+// WeakHashmap  
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.WeakHashMap;
+public class WeakHashMapExample {
+
+    public static void main(final String[] args) {
+
+        final Map<Key, Project> map = new WeakHashMap<>();
+        Key key1 = new Key("ACTIVE");
+        final Key key2 = new Key("INACTIVE");
+        map.put(key1, new Project(100, "Customer Management System", "Customer Management System"));
+        map.put(key2, new Project(200, "Employee Management System", "Employee Management System"));
+        key1 = null;
+        System.gc();
+        for (final Entry<Key, Project> entry : map.entrySet()) {
+            System.out.println(entry.getKey().getKey() + "   " + entry.getValue());
+        }
+    }
+}
+class Key {
+    private String key;
+    public Key(final String key) {
+        super();
+        this.key = key;
+    }
+    public String getKey() {
+        return key;
+    }
+    public void setKey(final String key) {
+        this.key = key;
+    }
+}
+
+```
+Output
+```
+INACTIVE   [project id : 200, project name : Employee Management System, 
+           project desc : Employee Management System ]
+```
+## Q. What is the difference between HashMap and TreeMap?
+
+Java **HashMap** and **TreeMap** both are the classes of the Java Collections framework. Java Map implementation usually acts as a bucketed hash table. When buckets get too large, they get transformed into nodes of **TreeNodes**, each structured similarly to those in java.util.TreeMap.
+
+|HashMap	                       |TreeMap                           |
+|----------------------------------|----------------------------------|
+|Java HashMap is a hashtable based implementation of Map interface.|Java TreeMap is a Tree structure-based implementation of Map interface.|
+|HashMap implements Map, Cloneable, and Serializable interface.|TreeMap implements NavigableMap, Cloneable, and Serializable interface.|
+|HashMap allows a **single** null key and multiple null values.|TreeMap does not allow **null** keys but can have multiple null values.|
+|HashMap allows heterogeneous elements because it does not perform sorting on keys.|TreeMap allows homogeneous values as a key because of sorting.|
+|HashMap is **faster** than TreeMap because it provides constant-time performance that is O(1) for the basic operations like get() and put().|TreeMap is **slow** in comparison to HashMap because it provides the performance of O(log(n)) for most operations like add(), remove() and contains().|
+|The HashMap class uses the **hash table**.	|TreeMap internally uses a **Red-Black** tree, which is a self-balancing Binary Search Tree.|
+|It uses **equals()** method of the Object class to compare keys. The equals() method of Map class overrides it.|It uses the **compareTo()** method to compare keys.|
+|HashMap class contains only basic functions like get(), put(), KeySet(), etc. .|TreeMap class is rich in functionality, because it contains functions like: tailMap(), firstKey(), lastKey(), pollFirstEntry(), pollLastEntry().|
+|Order of elements	HashMap does not maintain any order.|The elements are sorted in natural order (ascending).|
+|The HashMap should be used when we do not require key-value pair in sorted order.|	The TreeMap should be used when we require key-value pair in sorted (ascending) order.|
+
+# List Interface
 
 ## Q. What is difference between Array and ArrayList?
 
@@ -559,34 +731,34 @@ add() or get(): Adding an element to or retrieving an element from an array or A
 
 resize(): Automatic resize of ArrayList slows down the performance. ArrayList is internally backed by an Array. In resize() a temporary array is used to copy elements from old array to new array.
 
-| Feature              | Array                                                                 | ArrayList                                  |
-|----------------------|-----------------------------------------------------------------------|--------------------------------------------|
-| Size                 | Fixed after creation                                                  | Dynamic, grows automatically               |
-| Performance          | add/get are constant time; resize not applicable                      | add/get are constant time; resize is slower|
-| Primitives           | Can store primitives and objects                                      | Can store only objects                     |
-| Iteration            | Use for loop                                                          | Use Iterator object                        |
-| Type Safety          | Can contain objects of same type; ArrayStoreException for wrong type  | Generics ensure type safety                |
-| Length/Size          | Use `length` variable                                                 | Use `size()` method                        |
-| Adding Elements      | Use assignment operator                                               | Use `add()` method                         |
-| Multi-dimension      | Can be multi-dimensional                                              | Always single dimension                    |
+| Feature              | Array                                                                 | ArrayList                                    |
+|----------------------|-----------------------------------------------------------------------|----------------------------------------------|
+| Size                 | Fixed after creation                                                  | Dynamic, grows automatically                 |
+| Performance          | add/get are constant time; resize not applicable                      | add/get are constant time; resize is slower  |
+| Primitives           | Can store primitives and objects                                      | Can store only objects                       |
+| Iteration            | Use for loop                                                          | Use Iterator object                          |
+| Type Safety          | Can contain objects of same type; ArrayStoreException for wrong type  | Generics ensure type safety                  |
+| Length/Size          | Use `length` variable                                                 | Use `size()` method                          |
+| Adding Elements      | Use assignment operator                                               | Use `add()` method                           |
+| Multi-dimension      | Can be multi-dimensional                                              | Always single dimension                      |
 
 
 ## Q. What is Hierarchy of LinkedList Class in Java?
-<img src="assets/linkedlist-hierarchy-diagram.png" alt="linkedlist-hierarchy-diagram" width="600"/>
+<img src="assets/linkedlist-hierarchy-diagram.png" alt="linkedlist-hierarchy-diagram" />
 
 LinkedList class internally uses a doubly linked list to store the elements. Each element is stored in a node, where each node contains three fields: data, pointer to the next node, and pointer to the previous node.
-<img src="assets/Java-LinkedList.png" alt="LinkedList" width="600"/>
+<img src="assets/Java-LinkedList.png" alt="LinkedList" />
 
 ## Q. What is difference between ArrayList and LinkedList?
 
 ArrayList and LinkedList both implements List interface and maintains insertion order. Both are non synchronized classes.
 
-| Feature        |ArrayList               |LinkedList                                                                 |
-|----------------|------------------------|--------------------------------------------------------------------------|
-| Internal DS    |ArrayList internally uses a dynamic array to store the elements.|LinkedList internally uses a doubly linked list to store the elements.|
-| Performance    |Manipulation with ArrayList is slow because it internally uses an array. If any element is removed from the array, all the bits are shifted in memory.	|Manipulation with LinkedList is faster than ArrayList because it uses a doubly linked list, so no bit shifting is required in memory.|
-| Implementation |An ArrayList class can act as a list only because it implements List only.|	LinkedList class can act as a list and queue both because it implements List and Deque interfaces.|
-| Usage          | ArrayList is better for storing and accessing data.|LinkedList is better for manipulating data.|
+| Feature        | ArrayList                                                                                                                                               | LinkedList                                                                                                                            |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| Internal DS    | ArrayList internally uses a dynamic array to store the elements.                                                                                        | LinkedList internally uses a doubly linked list to store the elements.                                                                |
+| Performance    | Manipulation with ArrayList is slow because it internally uses an array. If any element is removed from the array, all the bits are shifted in memory.	 | Manipulation with LinkedList is faster than ArrayList because it uses a doubly linked list, so no bit shifting is required in memory. |
+| Implementation | An ArrayList class can act as a list only because it implements List only.                                                                              | 	LinkedList class can act as a list and queue both because it implements List and Deque interfaces.                                   |
+| Usage          | ArrayList is better for storing and accessing data.                                                                                                     | LinkedList is better for manipulating data.                                                                                           |
 
 
 ## Q. How to remove duplicates from ArrayList?
@@ -607,13 +779,13 @@ ArrayList without duplicate elements: [1, 2, 3, 4, 5, 6, 7, 8]
 ```
 ## Q. What are the differences between ArrayList and Vector?
 
-| Feature        |ArrayList	                    |Vector                       |
-|----------------|-------------------------------|-------------------------------|
-| Synchronization |ArrayList is **not synchronized**. |Vector is **synchronized**.              |
-| Size           |ArrayList **increments 50%** of current array size if the number of elements exceeds from its capacity.|	Vector **increments 100%** means doubles the array size if the total number of elements exceeds than its capacity. |
-| Legacy Class   |ArrayList is not a legacy class. It is introduced in JDK 1.2. |	Vector is a legacy class.|
-| Performance    |ArrayList is **fast** because it is non-synchronized. | Vector is **slow** because it is synchronized, i.e., in a multithreading environment, it holds the other threads in runnable or non-runnable state until current thread releases the lock of the object.|
-| Traversal      |ArrayList uses the **Iterator** interface to traverse the elements. |A Vector can use the **Iterator** interface or **Enumeration** interface to traverse the elements.|
+| Feature          | ArrayList	                                                                                                | Vector                                                                                                                                                                                                    |
+|------------------|-----------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Synchronization  | ArrayList is **not synchronized**.                                                                        | Vector is **synchronized**.                                                                                                                                                                               |
+| Size             | ArrayList **increments 50%** of current array size if the number of elements exceeds from its capacity.   | Vector **increments 100%** means doubles the array size if the total number of elements exceeds than its capacity.                                                                                        |
+| Legacy Class     | ArrayList is not a legacy class. It is introduced in JDK 1.2.                                             | 	Vector is a legacy class.                                                                                                                                                                                |
+| Performance      | ArrayList is **fast** because it is non-synchronized.                                                     | Vector is **slow** because it is synchronized, i.e., in a multithreading environment, it holds the other threads in runnable or non-runnable state until current thread releases the lock of the object.  |
+| Traversal        | ArrayList uses the **Iterator** interface to traverse the elements.                                       | A Vector can use the **Iterator** interface or **Enumeration** interface to traverse the elements.                                                                                                        |
 
 **Example:**
 
@@ -669,9 +841,6 @@ Four
 Five
 Six
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 ## Q. Can you explain stack's implementation and characteristics in detail?
 A stack is a linear data structure that follows the Last In First Out (LIFO) principle. This means that the last element added to the stack will be the first one to be removed. You can think of a stack like a collection of plates; you add and remove plates from the top of the stack.
@@ -700,60 +869,9 @@ A stack is a linear data structure that follows the Last In First Out (LIFO) pri
   - In contrast, ArrayDeque is part of the java.util package and provides a more modern and efficient implementation of a stack. It is not synchronized, making it faster in single-threaded environments. Additionally, ArrayDeque is implemented as a resizable array, which allows it to efficiently handle stack operations like push and pop.
 - Stack is a legacy class but still widely used for LIFO operations.
 
-## Q. What will be the problem if you do not override hashcode() method?
 
-Some collections, like HashSet, HashMap or HashTable use the hashcode value of an object to find out how the object would be stored in the collection, and subsequently hashcode is used to help locate the object in the collection. Hashing retrieval involves:
 
-* First, find out the right bucket using hashCode().
-* Secondly, search the bucket for the right element using equals()
-
-If hashcode() in not overridden then the default implementation in Object class will be used by collections. This implementation gives different values for different objects, even if they are equal according to the equals() method.
-
-**Example:**
-
-```java
-public class Student {
-    private int id;
-    private String name;
-    public Student(int id, String name) {
-        this.name = name;
-        this.id = id;
-    }
-    public int getId() {
-        return id;
-    }
-    public void setId(int id) {
-        this.id = id;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-}
-
-public class HashcodeEquals {
-    public static void main(String[] args) {
-        Student alex1 = new Student(1, "Alex");
-        Student alex2 = new Student(1, "Alex");
-        System.out.println("alex1 hashcode = " + alex1.hashCode());
-        System.out.println("alex2 hashcode = " + alex2.hashCode());
-        System.out.println("Checking equality between alex1 and alex2 = " + alex1.equals(alex2));
-    }
-}
-```
-Output
-```
-alex1 hashcode = 1852704110
-alex2 hashcode = 2032578917
-Checking equality between alex1 and alex2 = false
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. Set Interface
+# Q. Set Interface
 
 <img width="986" height="368" alt="image" src="https://github.com/user-attachments/assets/392c14ee-1842-47f8-bfd9-687d537dc5f7" />
 
@@ -795,10 +913,10 @@ What does LinkedHashSet use internally?
 ## Q. What is the difference between HashSet and TreeSet?
 
 
-| Feature                                           | HashSet                       | LinkedHashSet                        | TreeSet                                |
-|---------------------------------------------------|------------------------------|--------------------------------------|----------------------------------------|
-| Performance for - add, remove, contains, size etc | Faster O(1)                | O(1)                              | Slower O(log n)                      |
-| Order                                             | No order guaranteed          | Maintains insertion order            | Elements sorted in ascending order     |
+| Feature                                           | HashSet                       | LinkedHashSet                  | TreeSet                              |
+|---------------------------------------------------|-------------------------------|--------------------------------|--------------------------------------|
+| Performance for - add, remove, contains, size etc | Faster O(1)                   | O(1)                           | Slower O(log n)                      |
+| Order                                             | No order guaranteed           | Maintains insertion order      | Elements sorted in ascending order   |
 
 
 ```java
@@ -874,130 +992,6 @@ Ram
 Rick
 Singh
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-
-## Q. How do WeakHashMap works?
-
-WeakHashMap is a Hash table-based implementation of the Map interface with weak keys. An entry in a WeakHashMap will automatically be removed when its key is no longer in ordinary use. Both null values and the null key are supported. This class has performance characteristics similar to those of the HashMap class and has the same efficiency parameters of initial capacity and load factor.
-
-**Example:**
-
-```java
-// Java program to illustrate  
-// WeakHashmap  
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.WeakHashMap;
-public class WeakHashMapExample {
-
-    public static void main(final String[] args) {
-
-        final Map<Key, Project> map = new WeakHashMap<>();
-        Key key1 = new Key("ACTIVE");
-        final Key key2 = new Key("INACTIVE");
-        map.put(key1, new Project(100, "Customer Management System", "Customer Management System"));
-        map.put(key2, new Project(200, "Employee Management System", "Employee Management System"));
-        key1 = null;
-        System.gc();
-        for (final Entry<Key, Project> entry : map.entrySet()) {
-            System.out.println(entry.getKey().getKey() + "   " + entry.getValue());
-        }
-    }
-}
-class Key {
-    private String key;
-    public Key(final String key) {
-        super();
-        this.key = key;
-    }
-    public String getKey() {
-        return key;
-    }
-    public void setKey(final String key) {
-        this.key = key;
-    }
-}
-
-```
-Output
-```
-INACTIVE   [project id : 200, project name : Employee Management System, 
-           project desc : Employee Management System ]
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-
-## Q. What is Java Priority Queue?
-
-A priority queue in Java is a special type of queue wherein all the elements are ordered as per their natural ordering or based on a custom Comparator supplied at the time of creation.
-
-The front of the priority queue contains the least element according to the specified ordering, and the rear of the priority queue contains the greatest element. So when we remove an element from the priority queue, the least element according to the specified ordering is removed first. The Priority Queue class is part of Java’s collections framework and implements the Queue interface.
-
-**features**
-
-* PriorityQueue is an unbounded queue and grows dynamically.
-* It does not allow NULL objects.
-* Objects added to PriorityQueue MUST be comparable.
-* The objects of the priority queue are ordered **by default in natural order**.
-* A Comparator can be used for custom ordering of objects in the queue.
-* The **head** of the priority queue is the **least** element based on the natural ordering or comparator based ordering. When we poll the queue, it returns the head object from the queue.
-* If multiple objects are present of same priority the it can poll any one of them randomly.
-* PriorityQueue is **not thread safe**. Use `PriorityBlockingQueue` in concurrent environment.
-* It provides **O(log(n))** time for add and poll methods.
-
-```java
-import java.util.*;
-
-public class CreatePriorityQueueStringExample {
-
-    public static void main(String args[]) {  
-
-        PriorityQueue<String> queue = new PriorityQueue<String>();  
-        queue.add("Amit");  
-        queue.add("Vijay");  
-        queue.add("Karan");  
-        queue.add("Jai");  
-        queue.add("Rahul");  
-        System.out.println("head: "+queue.element());  
-        System.out.println("head: "+queue.peek());  
-        System.out.println("Iterating the queue elements: ");  
-
-        Iterator itr = queue.iterator();  
-        while(itr.hasNext()) {  
-            System.out.println(itr.next());  
-        }  
-        queue.remove();  
-        queue.poll();  
-        System.out.println("after removing two elements: ");  
-
-        Iterator<String> itr2 = queue.iterator();  
-        while(itr2.hasNext()) {  
-            System.out.println(itr2.next());  
-        }  
-    }
-}
-```
-Output
-```
-head: Amit
-head: Amit
-iterating the queue elements:
-Amit
-Jai
-Karan
-Vijay
-Rahul
-after removing two elements:
-Karan
-Rahul
-Vijay 
-```
-
 
 ## Q. What is EnumSet?
 
@@ -1074,495 +1068,37 @@ Requested Colors to draw lines : [RED, BLUE]
 drawing line in color : RED 
 drawing line in color : BLUE
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-
-## Q. What are concurrent collection classes?
-
-The concurrent collection APIs of Java provide a range of classes that are specifically designed to deal with concurrent operations. These classes are alternatives to the Java Collection Framework and provide similar functionality except with the additional support of concurrency.
-
-**Java Concurrent Collection Classes**
-
-* BlockingQueue
-* ArrayBlockingQueue
-* SynchronousQueue
-* PriorityBlockingQueue
-* LinkedBlockingQueue
-* DelayQueue
-* BlockingDeque
-* LinkedBlockingDeque
-* TransferQueue
-* LinkedTransferQueue
-* ConcurrentMap
-* ConcurrentHashMap
-* ConcurrentNavigableMap
-* ConcurrentSkipListMap
-
-## Q. What is BlockingQueue? How to implement producer-consumer problem by using BlockingQueue?
-
-**BlockingQueue**: When a thread try to dequeue from an empty queue is blocked until some other thread inserts an item into the queue. Also, when a thread try to enqueue an item in a full queue is blocked until some other thread makes space in the queue, either by dequeuing one or more items or clearing the queue completely.
-
-**Producter-Consumer Problem**
-
-Producer and Consumer are two separate threads which share a same bounded Queue. The role of producer to produce elements and push to the queue. The producer halts producing if the queue is full and resumes producing when the size of queue is not full. The consumer consumes the element from the queue. The consumers halt consuming if the size of queue is 0 (empty) and resumes consuming once the queue has an element.
-
-The problem can be approached using various techniques
-
-* Using wait() and notifyAll()
-* Using BlockingQueue
-* Using sempahores
-
-```java
-public class ProducerConsumerBlockingQueue {
-
-  static int MAX_SIZE = 5;
-  static BlockingQueue queue = new LinkedBlockingQueue(MAX_SIZE);
-
-  public static void main(String[] args) {
-
-    Producer producer = new Producer();
-    Consumer consumer = new Consumer();
-    producer.start();
-    consumer.start();
-  }
-
-  static class Producer extends Thread {
-    Random random = new Random();
-
-    public void run() {
-      while (true) {
-        int element = random.nextInt(MAX_SIZE);
-        try {
-          queue.put(element);
-        } catch (InterruptedException e) {
-        }
-      }
-    }
-  }
-
-  static class Consumer extends Thread {
-    public void run() {
-      while (true) {
-        try {
-          System.out.println("Consumed " + queue.take());
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-  }
-}
-```
-Output
-```
-Producer 2
-Producer 3
-Consumed 2
-Consumed 3
-Producer 0
-Producer 4
-Consumed 0
-```
-Here, The Producer start producing objects and pushing it to the Queue. Once the queue is full, the producer will wait until consumer consumes it and it will start producing again. Similar behavior is displayed by consumer. where the consumer waits until there is a single element in queue. It will resume consumer once the queue has element.
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. How can we create a synchronized collection from given collection?
-
-In Java, normally collections aren't synchronized, which leads to fast performance. However, in multi-threaded situations, it can be very useful for collections to be synchronized. The Java Collections class has several static methods on it that provide synchronized collections. These methods are:
-
-* Synchronized Collection Methods of Collections class
-* Collections.synchronizedCollection(Collection<T> c)
-* Collections.synchronizedList(List<T> list)
-* Collections.synchronizedMap(Map<K,V> m)
-* Collections.synchronizedSet(Set<T> s)
-* Collections.synchronizedSortedMap(SortedMap<K,V> m)
-* Collections.synchronizedSortedSet(SortedSet<T> s)
-
-```java
-/**
-* Java program to demonstrate synchronizedCollection() 
-*
-**/
-import java.util.*; 
-
-public class synchronizedCollectionExample 
-{ 
-
-	public static void main(String[] argv) { 
-
-		try { 
-
-			// creating object of List<String> 
-			List<Integer> list = new ArrayList<Integer>(); 
-
-			// populate the list 
-			list.add(10); 
-			list.add(20); 
-			list.add(30); 
-			list.add(40); 
-			list.add(50); 
-
-			// printing the Collection 
-			System.out.println("Collection : " + list); 
-
-			// getting the syncronised view of Collection 
-			Collection<Integer> c = Collections.synchronizedCollection(list); 
-
-			// printing the Collection 
-			System.out.println("Synchronized view is: " + c); 
-
-		} catch (IllegalArgumentException e) { 
-			System.out.println("Exception thrown: " + e); 
-		} 
-	} 
-} 
-```
-Output
-```
-Collection : [10, 20, 30, 40, 50]
-Synchronized view is : [10, 20, 30, 40, 50]
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is a default capacity of ArrayList, Vector, HashMap, Hashtable and Hashset?
-
-|Collections | Capacity |
-|------------|----------|
-|ArrayList   | 10       |
-|Vector      | 10       |
-|HashSet     | 16       |
-|HashMap     | 16       |
-|HashTable   | 11       |
-|HashSet     | 16       |
-
-* **ArrayList**: Constructs an empty list with an initial capacity of 10.
-* **Vector**: Constructs an empty vector so that its internal data array has size 10 and its standard capacity increment is zero.
-* **HashMap**: Constructs an empty HashMap with the default initial capacity (16) and the default load factor (0.75).
-* **Hashtable**: Constructs a new, empty hashtable with a default initial capacity (11) and load factor (0.75).
-* **Hashset**: Constructs a new, empty set; the backing HashMap instance has default initial capacity (16) and load factor (0.75).
-
-## Q. What is the difference between Collection and Collections?
-
-**Collection Interface**
-
-Collection is a root level interface of the Java Collection Framework. Most of the classes in Java Collection Framework inherit from this interface. **List, Set and Queue** are main sub interfaces of this interface. JDK provides direct implementations of it’s sub interfaces. **ArrayList, Vector, HashSet, LinkedHashSet, PriorityQueue** are some indirect implementations of Collection interface.
-
-**Collections Class**
-
-Collections is an utility class in java.util package. It consists of only static methods which are used to operate on objects of type Collection.
-
-|Collections Methods                  | Description  |
-|-------------------------------------|-------------------------------------------------------------|
-|Collections.max()	                  |This method returns maximum element in the specified collection.|
-|Collections.min()	                  |This method returns minimum element in the given collection.|
-|Collections.sort()	                  |This method sorts the specified collection.|
-|Collections.shuffle()	              |This method randomly shuffles the elements in the specified collection.|
-|Collections.synchronizedCollection() |This method returns synchronized collection backed by the specified collection.|
-|Collections.binarySearch()	          |This method searches the specified collection for the specified object using binary search algorithm.|
-|Collections.disjoint()	              |This method returns true if two specified collections have no elements in c|ommon.|
-|Collections.copy()	                  |This method copies all elements from one collection to another collectio|n.|
-|Collections.reverse()	              |This method reverses the order of elements in the specified collection.|
-
 
 ## Q. What is the difference between Set and Map?
 
-**Sets**:-
+| Feature                        | Set                                                                 | Map                                                                 |
+|--------------------------------|---------------------------------------------------------------------|---------------------------------------------------------------------|
+| Duplicates                     | Does **not** allow duplicates; all elements must be unique          | Keys must be unique; values can be duplicated                       |
+| Null Handling                  | Allows a single null value at most                                  | Allows a single null key at most and any number of null values      |
+| Order                          | Does **not** maintain order (except some, e.g., LinkedHashSet)      | Does **not** maintain order (except some, e.g., LinkedHashMap)      |
+| Data Structure Classes         | HashSet, LinkedHashSet, TreeSet, SortedSet, etc.                    | HashMap, TreeMap, WeakHashMap, LinkedHashMap, IdentityHashMap, etc. |
 
-1. Set does not  allow duplicates. Set and all of the classes which implements Set interface should have unique elements.
-2. Set allows single null value at most.
-3. Set does not  maintain any order; still few of its classes sort the elements in an order such as LinkedHashSet maintains the elements in insertion order.
-4. Classes used in sets are Set: HashSet, Linked HashSet, TreeSet, SortedSet etc.
-
-**Maps**:-
-
-1. Map stored the elements as key & value pair. Map doesn’t allow duplicate keys while it allows duplicate values.
-2. Map can have single null key at most and any number of null values.
-3. Set Map also doesn’t stores the elements in an order, however few of its classes does the same.
-4. Classes in Maps HashMap, TreeMap, WeakHashMap, LinkedHashMap, IdentityHashMap etc.
 
 ## Q. What is the difference between HashSet and HashMap?
 
-**HashSet**:-
-
-1. HashSet class implements the Set interface
-2. In HashSet, we store objects(elements or values) e.g. If we have a HashSet of string elements then it could depict a set of HashSet elements: {“Hello”, “Hi”, “Bye”, “Run”}
-3. HashSet does not allow duplicate elements that mean you can not store duplicate values in HashSet.
-4. HashSet permits to have a single null value.
-5. HashSet is not synchronized which means they are not suitable for thread-safe operations until unless synchronized explicitly.
-
-
-**HashMap**:-
-
-1. HashMap class implements the Map interface
-2. HashMap is used for storing key & value pairs. In short, it maintains the mapping of key & value (The HashMap class is roughly equivalent to Hashtable, except that it is unsynchronized and permits nulls.) This is how you could represent HashMap elements if it has integer key and value of String type: e.g. {1->”Hello”, 2->”Hi”, 3->”Bye”, 4->”Run”}
-3. HashMap does not allow duplicate keys however it allows having duplicate values.
-4. HashMap permits single null key and any number of null values.
-5. HashMap is not synchronized which means they are not suitable for thread-safe operations until unless synchronized explicitly.
-
-## Q. What is the difference between HashMap and TreeMap?
-
-Java **HashMap** and **TreeMap** both are the classes of the Java Collections framework. Java Map implementation usually acts as a bucketed hash table. When buckets get too large, they get transformed into nodes of **TreeNodes**, each structured similarly to those in java.util.TreeMap.
-
-|HashMap	                       |TreeMap                           |
-|----------------------------------|----------------------------------|
-|Java HashMap is a hashtable based implementation of Map interface.|Java TreeMap is a Tree structure-based implementation of Map interface.|
-|HashMap implements Map, Cloneable, and Serializable interface.|TreeMap implements NavigableMap, Cloneable, and Serializable interface.|
-|HashMap allows a **single** null key and multiple null values.|TreeMap does not allow **null** keys but can have multiple null values.|
-|HashMap allows heterogeneous elements because it does not perform sorting on keys.|TreeMap allows homogeneous values as a key because of sorting.|
-|HashMap is **faster** than TreeMap because it provides constant-time performance that is O(1) for the basic operations like get() and put().|TreeMap is **slow** in comparison to HashMap because it provides the performance of O(log(n)) for most operations like add(), remove() and contains().|
-|The HashMap class uses the **hash table**.	|TreeMap internally uses a **Red-Black** tree, which is a self-balancing Binary Search Tree.|
-|It uses **equals()** method of the Object class to compare keys. The equals() method of Map class overrides it.|It uses the **compareTo()** method to compare keys.|
-|HashMap class contains only basic functions like get(), put(), KeySet(), etc. .|TreeMap class is rich in functionality, because it contains functions like: tailMap(), firstKey(), lastKey(), pollFirstEntry(), pollLastEntry().|
-|Order of elements	HashMap does not maintain any order.|The elements are sorted in natural order (ascending).|
-|The HashMap should be used when we do not require key-value pair in sorted order.|	The TreeMap should be used when we require key-value pair in sorted (ascending) order.|
-
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is the Dictionary class?
-
-**util.Dictionary** is an abstract class, representing a key-value relation and works similiar to a map. Both keys and values can be objects of any type but not null. An attempt to insert either a null key or a null value to a dictionary causes a NullPointerException exception.
-
-```java
-/** 
-* Dictionary class Example using  
-* put(), elements(), get(), isEmpty(), keys() remove(), size() 
-* Methods
-*
-**/
-import java.util.*; 
-public class DictionaryExample 
-{ 
-	public static void main(String[] args) { 
-
-		// Initializing a Dictionary 
-		Dictionary dictionary = new Hashtable(); 
-
-		// put() method 
-		dictionary.put("10", "Code"); 
-		dictionary.put("20", "Program"); 
-
-		// elements() method : 
-		for (Enumeration i = dictionary.elements(); i.hasMoreElements();) { 
-			System.out.println("Value in Dictionary : " + i.nextElement()); 
-		} 
-
-		// get() method : 
-		System.out.println("\nValue at key = 6 : " + dictionary.get("6")); 
-		System.out.println("Value at key = 20 : " + dictionary.get("10")); 
-
-		// isEmpty() method : 
-		System.out.println("\nThere is no key-value pair : " + dictionary.isEmpty() + "\n"); 
-
-		// keys() method : 
-		for (Enumeration k = dictionary.keys(); k.hasMoreElements();) { 
-			System.out.println("Keys in Dictionary : " + k.nextElement()); 
-		} 
-
-		// remove() method : 
-		System.out.println("\nRemove : " + dictionary.remove("10")); 
-		System.out.println("Check the value of removed key : " + dictionary.get("10")); 
-		System.out.println("\nSize of Dictionary : " + dictionary.size()); 
-	} 
-} 
-```
-Output
-```
-Value in Dictionary : Code
-Value in Dictionary : Program
-
-Value at key = 6 : null
-Value at key = 20 : Code
-
-There is no key-value pair : false
-
-Keys in Dictionary : 10
-Keys in Dictionary : 20
-
-Remove : Code
-Check the value of removed key : null
-
-Size of Dictionary : 1
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What are all the Classes and Interfaces that are available in the collections?
-
-**Java Collections Interfaces**
-
-* Collection Interface
-* Iterator Interface
-* Set Interface
-* List Interface
-* Queue Interface
-* Dequeue Interface
-* Map Interface
-* ListIterator Interface
-* SortedSet Interface
-* SortedMap Interface
-
-**Java Collections Classes**
-
-* HashSet Class
-* TreeSet Class
-* ArrayList Class
-* LinkedList Class
-* HashMap Class
-* TreeMap Class
-* PriorityQueue Class
-
-## Q. What is the difference between HashMap and ConcurrentHashMap?
+| Feature            | HashSet                                         | HashMap                                         |
+|--------------------|-------------------------------------------------|-------------------------------------------------|
+| Interface          | Implements Set interface                        | Implements Map interface                        |
+| Storage            | Stores only elements (values)                   | Stores key-value pairs                          |
+| Duplicates         | Does not allow duplicate elements               | Does not allow duplicate keys, allows duplicate values |
+| Null Values        | Allows a single null value                      | Allows a single null key and multiple null values |
+| Synchronization    | Not synchronized                               | Not synchronized                               |
+| Order              | Does not maintain any order                     | Does not maintain any order                     |
+| Use Case           | Used when you need a collection of unique elements | Used when you need to associate keys with values |
+| Performance        | Generally faster for operations like add, remove, contains | Generally slower due to key-value mapping      |
+| Internal Mechanism | Uses a HashMap internally to store elements    | Uses a hash table to store key-value pairs     |
 
 
-|HashMap	                   |ConcurrentHashMap                                     |
-|------------------------------|------------------------------------------------------|
-|HashMap is not synchronized.  |ConcurrentHashMap is synchronized.|
-|HashMap is not thread safe.   |ConcurrentHashMap is thread safe.|
-|HashMap iterator is fail-fast and ArrayList throws ConcurrentModificationException if concurrent modification happens during iteration. |ConcurrentHashMap is fail-safe and it will never throw ConcurrentModificationException during iteration.|
-|HashMap allows key and value to be null.|ConcurrentHashMap does not allow null key/value. It will throw NullPointerException.|
-|HashMap is faster.     	   |ConcurrentHashMap is slower than HashMap.|
+# Queue Interface
 
-## Q. What is CopyOnWriteArrayList? How it is different from ArrayList in Java?
+**Hierarchy of Queue Interface**
 
-CopyOnWriteArrayList class is introduced in JDK 1.5, which implements List interface. It is enhanced version of ArrayList in which all modifications (add, set, remove, etc) are implemented by making a fresh copy.
-
-```java
-/**
-* Java program to illustrate 
-* CopyOnWriteArrayList class 
-*
-**/
-import java.util.concurrent.CopyOnWriteArrayList; 
-import java.util.*; 
-
-class ConcurrentDemo extends Thread { 
-
-	static CopyOnWriteArrayList arrList = new CopyOnWriteArrayList(); 
-
-	public void run() { 
-		// Child thread trying to 
-		// add new element in the 
-		// Collection object 
-		arrList.add("D"); 
-	} 
-
-	public static void main(String[] args) 
-		throws InterruptedException { 
-		arrList.add("A"); 
-		arrList.add("B"); 
-		arrList.add("c"); 
-
-		// We create a child thread 
-		// that is going to modify 
-		// ArrayList. 
-		ConcurrentDemo t = new ConcurrentDemo(); 
-		t.run(); 
-
-		Thread.sleep(1000); 
-
-		// Now we iterate through 
-		// the ArrayList and get 
-		// exception. 
-		Iterator itr = arrList.iterator(); 
-		while (itr.hasNext()) { 
-			String s = (String)itr.next(); 
-			System.out.println(s); 
-			Thread.sleep(1000); 
-		} 
-		System.out.println(arrList); 
-	} 
-} 
-```
-Output
-```
-A
-B
-c
-D
-[A, B, c, D]
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. How to make an ArrayList read only in Java?
-
-An ArrayList can be made read-only easily with the help of **Collections.unmodifiableList()** method. This method takes the modifiable ArrayList as a parameter and returns the read-only unmodifiable view of this ArrayList.
-
-```java
-/**
-* Java program to demonstrate 
-* unmodifiableList() method 
-*
-**/
-
-import java.util.*; 
-
-public class ReadOnlyArrayListExample 
-{ 
-	public static void main(String[] argv) 
-		throws Exception {
-
-		try { 
-
-			// creating object of ArrayList<Character> 
-			List<Character> list = new ArrayList<Character>(); 
-
-			// populate the list 
-			list.add('X'); 
-			list.add('Y'); 
-			list.add('Z'); 
-
-			// printing the list 
-			System.out.println("Initial list: "+ list); 
-
-			// getting readonly list using unmodifiableList() method 
-			List<Character> immutablelist = Collections.unmodifiableList(list); 
-
-			// printing the list 
-			System.out.println("ReadOnly ArrayList: "+ immutablelist); 
-
-			// Adding element to new Collection 
-			System.out.println("\nTrying to modify the ReadOnly ArrayList."); 
-			immutablelist.add('A'); 
-		} catch (UnsupportedOperationException e) { 
-			System.out.println("Exception thrown : " + e); 
-		} 
-	} 
-} 
-```
-Output
-```
-Initial list: [X, Y, Z]
-ReadOnly ArrayList: [X, Y, Z]
-
-Trying to modify the ReadOnly ArrayList.
-Exception thrown : java.lang.UnsupportedOperationException
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. Why Collection doesn’t extend Cloneable and Serializable interfaces?
-
-Collection is an interface that specifies a group of objects known as elements. The details of how the group of elements is maintained is left up to the concrete implementations of `Collection`. For example, some Collection implementations like `List` allow duplicate elements whereas other implementations like `Set` don't.
-
-Collection is the root interface for all the collection classes ( like ArrayList, LinkedList ). If collection interface extends Cloneable/Serializable interfaces, then it is mandating all the concrete implementations of this interface to implement cloneable and serializable interfaces. To give freedom to concrete implementation classes, Collection interface don’t extended Cloneable or Serializable interfaces.
-
-## Q. Why ConcurrentHashMap is faster than Hashtable in Java?
-
-ConcurrentHashMap uses multiple buckets to store data. This avoids read locks and greatly improves performance over a HashTable. Both are thread safe, but there are obvious performance wins with ConcurrentHashMap.
-
-When we read from a ConcurrentHashMap using get(), there are no locks, contrary to the HashTable for which all operations are simply synchronized. HashTable was released in old versions of Java whereas ConcurrentHashMap is added in java 1.5 version.
+<img src="assets/queue-interface.png" alt="Queue interface" />
 
 ## Q. What is the difference between peek(), poll() and remove() method of the Queue interface?
 
@@ -1649,142 +1185,535 @@ HBase
 Both **poll()** and **remove()** method is used to remove head object of the Queue.
 
 The main difference lies when the Queue is empty(). If Queue is empty then poll() method will return **null**. While in similar case, remove() method will throw **NoSuchElementException**. peek() method retrieves but does not remove the head of the Queue. If queue is empty then peek() method also returns null.
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
-## Q. How HashMap works in Java?
+## Q. What is Java Priority Queue?
 
-HashMap in Java works on **hashing** principle. It is a data structure which allow to store object and retrieve it in constant time O(1). In hashing, hash functions are used to link key and value in HashMap. Objects are stored by calling **put(key, value)** method of HashMap and retrieved by calling **get(key)** method. When we call put method, **hashcode()** method of the key object is called so that hash function of the map can find a bucket location to store value object, which is actually an index of the internal array, known as the table. HashMap internally stores mapping in the form of **Map.Entry** object which contains both key and value object.
+A priority queue in Java is a special type of queue wherein all the elements are ordered as per their natural ordering or based on a custom Comparator supplied at the time of creation.
 
-Since the internal array of HashMap is of fixed size, and if you keep storing objects, at some point of time hash function will return same bucket location for two different keys, this is called **collision** in HashMap. In this case, a linked list is formed at that bucket location and a new entry is stored as next node.
+The front of the priority queue contains the least element according to the specified ordering, and the rear of the priority queue contains the greatest element. So when we remove an element from the priority queue, the least element according to the specified ordering is removed first. The Priority Queue class is part of Java’s collections framework and implements the Queue interface.
 
-If we try to retrieve an object from this linked list, we need an extra check to search correct value, this is done by **equals()** method. Since each node contains an entry, HashMap keeps comparing entry's key object with the passed key using equals() and when it return true, Map returns the corresponding value.
+**Features of Priority Queue**
+* PriorityQueue is an unbounded queue and grows dynamically.
+* It does not allow NULL objects.
+* Objects added to PriorityQueue MUST be comparable.
+* The objects of the priority queue are ordered **by default in natural order**.
+* A Comparator can be used for custom ordering of objects in the queue.
+* The **head** of the priority queue is the **least** element based on the natural ordering or comparator based ordering. When we poll the queue, it returns the head object from the queue.
+* If multiple objects are present of same priority then it can poll any one of them randomly.
+* PriorityQueue is **not thread safe**. Use `PriorityBlockingQueue` in concurrent environment.
+* It provides **O(log(n))** time for add and poll methods.
 
+```java
+import java.util.*;
 
+public class CreatePriorityQueueStringExample {
+
+    public static void main(String args[]) {  
+
+        PriorityQueue<String> queue = new PriorityQueue<String>();  
+        queue.add("Amit");  
+        queue.add("Vijay");  
+        queue.add("Karan");  
+        queue.add("Jai");  
+        queue.add("Rahul");  
+        System.out.println("head: "+queue.element());  
+        System.out.println("head: "+queue.peek());  
+        System.out.println("Iterating the queue elements: ");  
+
+        Iterator itr = queue.iterator();  
+        while(itr.hasNext()) {  
+            System.out.println(itr.next());  
+        }  
+        queue.remove();  
+        queue.poll();  
+        System.out.println("after removing two elements: ");  
+
+        Iterator<String> itr2 = queue.iterator();  
+        while(itr2.hasNext()) {  
+            System.out.println(itr2.next());  
+        }  
+    }
+}
+```
+Output
+```
+head: Amit
+head: Amit
+iterating the queue elements:
+Amit
+Jai
+Karan
+Vijay
+Rahul
+after removing two elements:
+Karan
+Rahul
+Vijay 
+```
+
+## Q. What is Deque Interface?
+Deque (Double Ended Queue) is a linear collection that supports the insertion and removal of elements from both ends. It is a subtype of the Queue interface and provides additional methods to manipulate elements at both ends of the queue.
+Deque can be used as a stack (LIFO) or as a queue (FIFO) depending on the methods used. It is implemented by classes like ArrayDeque and LinkedList.
+
+**Features of Deque Interface:**
+* Allows insertion and removal of elements from both ends (front and rear).
+* Supports null elements.
+* Can be used as a stack (LIFO) or as a queue (FIFO).
+* Provides methods for adding, removing, and accessing elements from both ends.
+* Not thread-safe, so external synchronization is needed in concurrent environments.
+* Common implementations include ArrayDeque and LinkedList.
+* Provides better performance than Stack and LinkedList when used as a stack or queue.
+* Supports bulk operations like addAll, removeAll, and retainAll.
+* Provides methods for iterating over elements in both forward and reverse order.
+* Can be used in various applications like task scheduling, undo/redo functionality, and more.
+* Common methods include addFirst, addLast, removeFirst, removeLast, peekFirst, peekLast, etc.
+* Deque is part of the Java Collections Framework and is available in the java.util package.
+* Deque is a versatile data structure that can be used in various scenarios where elements need to be processed from both ends.
+* Deque is a powerful and flexible data structure that can be used in various applications where elements need to be processed from both ends. It provides efficient methods for adding, removing, and accessing elements, making it suitable for a wide range of use cases.
+
+## Q. Classes that implement Deque interface?
+
+| Feature                                   | ArrayDeque                                             | LinkedList                                              |
+|-------------------------------------------|--------------------------------------------------------|---------------------------------------------------------|
+| Internal Structure                        | Resizable array                                        | Doubly-linked list                                      |
+| Thread Safety                             | Not thread-safe                                        | Not thread-safe                                         |
+| Performance (add/remove)                  | Amortized constant time                                | Constant time (ends)                                    |
+| Order Maintained                          | No                                                     | Yes (insertion order)                                   |
+| Stack/Queue Support                       | Both (LIFO/FIFO)                                       | Both (LIFO/FIFO)                                        |
+| Common Methods                            | addFirst, addLast, removeFirst, removeLast, peek*      | addFirst, addLast, removeFirst, removeLast, peek*       |
+| Bulk Operations                           | addAll, removeAll, retainAll                           | addAll, removeAll, retainAll                            |
+| Iteration                                 | Forward and reverse                                    | Forward and reverse                                     |
+| Null Elements                             | Not allowed                                            | Allowed                                                 |
+| Java Version                              | 1.6+                                                   | 1.2+                                                    |
+
+## Q. How are Queue and LinkedList related?
+LinkedList implements the Deque interface, which means that a LinkedList can be used as a Deque. 
+The Deque interface defines methods for adding, removing, and accessing elements in a FIFO (First-In-First-Out) manner. Since LinkedList implements these methods, it can be used to create a Deque data structure.
+When you use a LinkedList as a Deque, you typically add elements to the end of the list using the `offer()` or `add()` method and remove elements from the front of the list using the `poll()` or `remove()` method. This allows you to maintain the order of elements as they are added and removed from the queue.
+
+**Does LinkedList implements both List and Queue interface?**
+Yes, LinkedList implements both the List and Queue interfaces in Java. This means that a LinkedList can be used as both a list (which allows for indexed access to elements) and a queue (which follows the FIFO - First In, First Out - principle).
+
+## Q. What is BlockingQueue? How to implement producer-consumer problem by using BlockingQueue?
+
+**BlockingQueue**: When a thread try to dequeue from an empty queue is blocked until some other thread inserts an item into the queue. Also, when a thread try to enqueue an item in a full queue is blocked until some other thread makes space in the queue, either by dequeuing one or more items or clearing the queue completely.
+
+**Producter-Consumer Problem**
+
+Producer and Consumer are two separate threads which share a same bounded Queue. The role of producer to produce elements and push to the queue. The producer halts producing if the queue is full and resumes producing when the size of queue is not full. The consumer consumes the element from the queue. The consumers halt consuming if the size of queue is 0 (empty) and resumes consuming once the queue has an element.
+
+The problem can be approached using various techniques
+
+* Using wait() and notifyAll()
+* Using BlockingQueue
+* Using sempahores
+
+```java
+public class ProducerConsumerBlockingQueue {
+
+  static int MAX_SIZE = 5;
+  static BlockingQueue queue = new LinkedBlockingQueue(MAX_SIZE);
+
+  public static void main(String[] args) {
+
+    Producer producer = new Producer();
+    Consumer consumer = new Consumer();
+    producer.start();
+    consumer.start();
+  }
+
+  static class Producer extends Thread {
+    Random random = new Random();
+
+    public void run() {
+      while (true) {
+        int element = random.nextInt(MAX_SIZE);
+        try {
+          queue.put(element);
+        } catch (InterruptedException e) {
+        }
+      }
+    }
+  }
+
+  static class Consumer extends Thread {
+    public void run() {
+      while (true) {
+        try {
+          System.out.println("Consumed " + queue.take());
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+}
+```
+Output
+```
+Producer 2
+Producer 3
+Consumed 2
+Consumed 3
+Producer 0
+Producer 4
+Consumed 0
+```
+Here, The Producer start producing objects and pushing it to the Queue. Once the queue is full, the producer will wait until consumer consumes it and it will start producing again. Similar behavior is displayed by consumer. where the consumer waits until there is a single element in queue. It will resume consumer once the queue has element.
+
+## Q. What are concurrent collection classes?
+
+The concurrent collection APIs of Java provide a range of classes that are specifically designed to deal with concurrent operations. These classes are alternatives to the Java Collection Framework and provide similar functionality except with the additional support of concurrency.
+
+**Java Concurrent Collection Classes**
+
+* BlockingQueue
+* ArrayBlockingQueue
+* SynchronousQueue
+* PriorityBlockingQueue
+* LinkedBlockingQueue
+* DelayQueue
+* BlockingDeque
+* LinkedBlockingDeque
+* TransferQueue
+* LinkedTransferQueue
+* ConcurrentMap
+* ConcurrentHashMap
+* ConcurrentNavigableMap
+* ConcurrentSkipListMap
+
+## Q. How can we create a synchronized collection from given collection?
+
+In Java, normally collections aren't synchronized, which leads to fast performance. However, in multi-threaded situations, it can be very useful for collections to be synchronized. The Java Collections class has several static methods on it that provide synchronized collections. These methods are:
+
+* Synchronized Collection Methods of Collections class
+* Collections.synchronizedCollection(Collection<T> c)
+* Collections.synchronizedList(List<T> list)
+* Collections.synchronizedMap(Map<K,V> m)
+* Collections.synchronizedSet(Set<T> s)
+* Collections.synchronizedSortedMap(SortedMap<K,V> m)
+* Collections.synchronizedSortedSet(SortedSet<T> s)
 
 ```java
 /**
-* Java program to illustrate internal working of HashMap 
+* Java program to demonstrate synchronizedCollection() 
 *
 **/
-import java.util.HashMap; 
-  
-class Key { 
-    String key; 
-    Key(String key) { 
-        this.key = key; 
-    } 
-  
-    @Override
-    public int hashCode() { 
-        int hash = (int)key.charAt(0); 
-        System.out.println("hashCode for key: "
-                           + key + " = " + hash); 
-        return hash; 
-    } 
-  
-    @Override
-    public boolean equals(Object obj) { 
-        return key.equals(((Key)obj).key); 
-    } 
-} 
- 
-public class HashMapExample { 
-    public static void main(String[] args) { 
-        HashMap map = new HashMap(); 
-        map.put(new Key("Hello"), 20); 
-        map.put(new Key("World"), 30); 
-        map.put(new Key("Java"), 40); 
-  
-        System.out.println(); 
-        System.out.println("Value for key World: " + map.get(new Key("World"))); //hashCode for key: World = 118
-        System.out.println("Value for key Java: " + map.get(new Key("Java")));   //hashCode for key: Java = 115
-    } 
+import java.util.*; 
+
+public class synchronizedCollectionExample 
+{ 
+
+	public static void main(String[] argv) { 
+
+		try { 
+
+			// creating object of List<String> 
+			List<Integer> list = new ArrayList<Integer>(); 
+
+			// populate the list 
+			list.add(10); 
+			list.add(20); 
+			list.add(30); 
+			list.add(40); 
+			list.add(50); 
+
+			// printing the Collection 
+			System.out.println("Collection : " + list); 
+
+			// getting the syncronised view of Collection 
+			Collection<Integer> c = Collections.synchronizedCollection(list); 
+
+			// printing the Collection 
+			System.out.println("Synchronized view is: " + c); 
+
+		} catch (IllegalArgumentException e) { 
+			System.out.println("Exception thrown: " + e); 
+		} 
+	} 
 } 
 ```
-## Q. How does HashMap handle collisions in java?
+Output
+```
+Collection : [10, 20, 30, 40, 50]
+Synchronized view is : [10, 20, 30, 40, 50]
+```
 
-Prior to Java 8, HashMap and all other hash table based Map implementation classes in Java handle collision by chaining, i.e. they use linked list to store map entries which ended in the same bucket due to a collision. If a key end up in same bucket location where an entry is already stored then this entry is just added at the head of the linked list there. In the worst case this degrades the performance of the `get()` method of HashMap to `O(n)` from `O(1)`. In order to address this issue in the case of frequent HashMap collisions, Java 8 has started using a **balanced tree** instead of linked list for storing collided entries. This also means that in the worst case you will get a performance boost from `O(n)` to `O(log n)`.
 
-The threshold of switching to the balanced tree is defined as TREEIFY_THRESHOLD constant in java.util.HashMap JDK 8 code.  Currently, it's value is 8, which means if there are more than 8 elements in the same bucket than HashMap will use a tree instead of linked list to hold them in the same bucket.
+## Q. What is a default capacity of ArrayList, Vector, HashMap, Hashtable and Hashset?
 
-## Q. Write a code to convert HashMap to ArrayList.
+|Collections | Initial Capacity | Load Factor |
+|------------|------------------|-------------|
+|ArrayList   | 10               | 0.5         |
+|Vector      | 10               | 1.0         |
+|HashSet     | 16               | 0.75        |
+|HashMap     | 16               | 0.75        |
+|HashTable   | 11               | 0.75        |
+
+Load factor is a measure that decides when to increase the capacity of the HashMap/Hashtable/HashSet to maintain the get/put operation complexity of O(1). When the number of entries in the hash table exceeds the product of the load factor and the current capacity, the hash table is rehashed (that is, internal data structures are rebuilt) so that the hash table has approximately twice the number of buckets.
+
+## Q. What is the difference between Collection and Collections?
+
+**Collection Interface**
+
+Collection is a root level interface of the Java Collection Framework. Most of the classes in Java Collection Framework inherit from this interface. **List, Set and Queue** are main sub interfaces of this interface. JDK provides direct implementations of it’s sub interfaces. **ArrayList, Vector, HashSet, LinkedHashSet, PriorityQueue** are some indirect implementations of Collection interface.
+
+**Collections Class**
+
+Collections is an utility class in java.util package. It consists of only static methods which are used to operate on objects of type Collection.
+
+|Collections Methods                  | Description  |
+|-------------------------------------|-------------------------------------------------------------|
+|Collections.max()	                  |This method returns maximum element in the specified collection.|
+|Collections.min()	                  |This method returns minimum element in the given collection.|
+|Collections.sort()	                  |This method sorts the specified collection.|
+|Collections.shuffle()	              |This method randomly shuffles the elements in the specified collection.|
+|Collections.synchronizedCollection() |This method returns synchronized collection backed by the specified collection.|
+|Collections.binarySearch()	          |This method searches the specified collection for the specified object using binary search algorithm.|
+|Collections.disjoint()	              |This method returns true if two specified collections have no elements in c|ommon.|
+|Collections.copy()	                  |This method copies all elements from one collection to another collectio|n.|
+|Collections.reverse()	              |This method reverses the order of elements in the specified collection.|
+
+
+
+
+
+## Q. What is the Dictionary class?
+
+**util.Dictionary** is an abstract class, representing a key-value relation and works similiar to a map. Both keys and values can be objects of any type but not null. An attempt to insert either a null key or a null value to a dictionary causes a NullPointerException exception.
 
 ```java
-import java.util.ArrayList; 
-import java.util.Collection; 
-import java.util.HashMap; 
-import java.util.Map.Entry; 
-import java.util.Set; 
-public class MapToListExamples {
+/** 
+* Dictionary class Example using  
+* put(), elements(), get(), isEmpty(), keys() remove(), size() 
+* Methods
+*
+**/
+import java.util.*; 
+public class DictionaryExample 
+{ 
+	public static void main(String[] args) { 
 
-    public static void main(String[] args) {
+		// Initializing a Dictionary 
+		Dictionary dictionary = new Hashtable(); 
 
-        // Creating a HashMap object 
-        HashMap<String, String> performanceMap = new HashMap<String, String>(); 
-         
-        // Adding elements to HashMap 
-        performanceMap.put("John Kevin", "Average");  
-        performanceMap.put("Ladarious Fernandez", "Very Good"); 
-        performanceMap.put("Ivan Jose", "Very Bad"); 
-        performanceMap.put("Smith Jacob", "Very Good"); 
-        performanceMap.put("Athena Stiltner", "Bad"); 
-         
-        // Getting Set of keys 
-        Set<String> keySet = performanceMap.keySet(); 
-         
-        // Creating an ArrayList of keys 
-        ArrayList<String> listOfKeys = new ArrayList<String>(keySet); 
-         
-        System.out.println("ArrayList Of Keys :"); 
-         
-        for (String key : listOfKeys) {
-            System.out.println(key); 
-        }
-                  
-        // Getting Collection of values 
-        Collection<String> values = performanceMap.values(); 
-         
-        // Creating an ArrayList of values 
-        ArrayList<String> listOfValues = new ArrayList<String>(values); 
-         
-        System.out.println("ArrayList Of Values :"); 
-         
-        for (String value : listOfValues) { 
-            System.out.println(value); 
-        } 
-                  
-        // Getting the Set of entries 
-        Set<Entry<String, String>> entrySet = performanceMap.entrySet(); 
-         
-        // Creating an ArrayList Of Entry objects 
-        ArrayList<Entry<String, String>> listOfEntry = new ArrayList<Entry<String,String>>(entrySet); 
-         
-        System.out.println("ArrayList of Key-Values :"); 
-         
-        for (Entry<String, String> entry : listOfEntry) { 
-            System.out.println(entry.getKey()+" : "+entry.getValue()); 
-        } 
-    } 
-}
+		// put() method 
+		dictionary.put("10", "Code"); 
+		dictionary.put("20", "Program"); 
+
+		// elements() method : 
+		for (Enumeration i = dictionary.elements(); i.hasMoreElements();) { 
+			System.out.println("Value in Dictionary : " + i.nextElement()); 
+		} 
+
+		// get() method : 
+		System.out.println("\nValue at key = 6 : " + dictionary.get("6")); 
+		System.out.println("Value at key = 20 : " + dictionary.get("10")); 
+
+		// isEmpty() method : 
+		System.out.println("\nThere is no key-value pair : " + dictionary.isEmpty() + "\n"); 
+
+		// keys() method : 
+		for (Enumeration k = dictionary.keys(); k.hasMoreElements();) { 
+			System.out.println("Keys in Dictionary : " + k.nextElement()); 
+		} 
+
+		// remove() method : 
+		System.out.println("\nRemove : " + dictionary.remove("10")); 
+		System.out.println("Check the value of removed key : " + dictionary.get("10")); 
+		System.out.println("\nSize of Dictionary : " + dictionary.size()); 
+	} 
+} 
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
+Output
+```
+Value in Dictionary : Code
+Value in Dictionary : Program
+
+Value at key = 6 : null
+Value at key = 20 : Code
+
+There is no key-value pair : false
+
+Keys in Dictionary : 10
+Keys in Dictionary : 20
+
+Remove : Code
+Check the value of removed key : null
+
+Size of Dictionary : 1
+```
+
+## Q. What are all the Classes and Interfaces that are available in the collections?
+
+**Java Collections Interfaces**
+
+* Collection Interface
+* Iterator Interface
+* Set Interface
+* List Interface
+* Queue Interface
+* Dequeue Interface
+* Map Interface
+* ListIterator Interface
+* SortedSet Interface
+* SortedMap Interface
+
+**Java Collections Classes**
+
+* HashSet Class
+* TreeSet Class
+* ArrayList Class
+* LinkedList Class
+* HashMap Class
+* TreeMap Class
+* PriorityQueue Class
+
+## Q. What is the difference between HashMap and ConcurrentHashMap?
+
+
+## Q. What is CopyOnWriteArrayList? How it is different from ArrayList in Java?
+
+CopyOnWriteArrayList class is introduced in JDK 1.5, which implements List interface. It is enhanced version of ArrayList in which all modifications (add, set, remove, etc) are implemented by making a fresh copy.
+
+```java
+/**
+* Java program to illustrate 
+* CopyOnWriteArrayList class 
+*
+**/
+import java.util.concurrent.CopyOnWriteArrayList; 
+import java.util.*; 
+
+class ConcurrentDemo extends Thread { 
+
+	static CopyOnWriteArrayList arrList = new CopyOnWriteArrayList(); 
+
+	public void run() { 
+		// Child thread trying to 
+		// add new element in the 
+		// Collection object 
+		arrList.add("D"); 
+	} 
+
+	public static void main(String[] args) 
+		throws InterruptedException { 
+		arrList.add("A"); 
+		arrList.add("B"); 
+		arrList.add("c"); 
+
+		// We create a child thread 
+		// that is going to modify 
+		// ArrayList. 
+		ConcurrentDemo t = new ConcurrentDemo(); 
+		t.run(); 
+
+		Thread.sleep(1000); 
+
+		// Now we iterate through 
+		// the ArrayList and get 
+		// exception. 
+		Iterator itr = arrList.iterator(); 
+		while (itr.hasNext()) { 
+			String s = (String)itr.next(); 
+			System.out.println(s); 
+			Thread.sleep(1000); 
+		} 
+		System.out.println(arrList); 
+	} 
+} 
+```
+Output
+```
+A
+B
+c
+D
+[A, B, c, D]
+```
+
+## Q. How to make an ArrayList read only in Java?
+
+An ArrayList can be made read-only easily with the help of **Collections.unmodifiableList()** method. This method takes the modifiable ArrayList as a parameter and returns the read-only unmodifiable view of this ArrayList.
+
+```java
+/**
+* Java program to demonstrate 
+* unmodifiableList() method 
+*
+**/
+
+import java.util.*; 
+
+public class ReadOnlyArrayListExample 
+{ 
+	public static void main(String[] argv) 
+		throws Exception {
+
+		try { 
+
+			// creating object of ArrayList<Character> 
+			List<Character> list = new ArrayList<Character>(); 
+
+			// populate the list 
+			list.add('X'); 
+			list.add('Y'); 
+			list.add('Z'); 
+
+			// printing the list 
+			System.out.println("Initial list: "+ list); 
+
+			// getting readonly list using unmodifiableList() method 
+			List<Character> immutablelist = Collections.unmodifiableList(list); 
+
+			// printing the list 
+			System.out.println("ReadOnly ArrayList: "+ immutablelist); 
+
+			// Adding element to new Collection 
+			System.out.println("\nTrying to modify the ReadOnly ArrayList."); 
+			immutablelist.add('A'); 
+		} catch (UnsupportedOperationException e) { 
+			System.out.println("Exception thrown : " + e); 
+		} 
+	} 
+} 
+```
+Output
+```
+Initial list: [X, Y, Z]
+ReadOnly ArrayList: [X, Y, Z]
+
+Trying to modify the ReadOnly ArrayList.
+Exception thrown : java.lang.UnsupportedOperationException
+```
+
+## Q. Why Collection doesn’t extend Cloneable and Serializable interfaces?
+
+Collection is an interface that specifies a group of objects known as elements. The details of how the group of elements is maintained is left up to the concrete implementations of `Collection`. For example, some Collection implementations like `List` allow duplicate elements whereas other implementations like `Set` don't.
+
+Collection is the root interface for all the collection classes ( like ArrayList, LinkedList ). If collection interface extends Cloneable/Serializable interfaces, then it is mandating all the concrete implementations of this interface to implement cloneable and serializable interfaces. To give freedom to concrete implementation classes, Collection interface don’t extended Cloneable or Serializable interfaces.
+
+## Q. Why ConcurrentHashMap is faster than Hashtable in Java?
+
+ConcurrentHashMap uses multiple buckets to store data. This avoids read locks and greatly improves performance over a HashTable. Both are thread safe, but there are obvious performance wins with ConcurrentHashMap.
+
+When we read from a ConcurrentHashMap using get(), there are no locks, contrary to the HashTable for which all operations are simply synchronized. HashTable was released in old versions of Java whereas ConcurrentHashMap is added in java 1.5 version.
+
+
+
 
 
 ## Q. What is Comparable and Comparator Interface in java?
 
 Comparable and Comparator both are interfaces and can be used to sort collection elements.
 
-|Comparable	                |Comparator                                                                                |
-|---------------------------|------------------------------------------------------------------------------------------|
-|1) Comparable provides a single sorting sequence. In other words, we can sort the collection on the basis of a single element such as id, name, and price. |The Comparator provides multiple sorting sequences. In other words, we can sort the collection on the basis of multiple elements such as id, name, and price etc.|
-|2) Comparable affects the original class, i.e., the actual class is modified.|Comparator doesn't affect the original class, i.e., the actual class is not modified.|
-|3) Comparable provides compareTo() method to sort elements. | Comparator provides compare() method to sort elements.
-|4) Comparable is present in java.lang package.|A Comparator is present in the java.util package.|
-5) We can sort the list elements of Comparable type by Collections.sort(List) method.|We can sort the list elements of Comparator type by Collections.sort(List, Comparator) method.|
+| Comparable	                                                                                                                                             | Comparator                                                                                                                                                        |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Comparable provides a single sorting sequence. In other words, we can sort the collection on the basis of a single element such as id, name, and price. | The Comparator provides multiple sorting sequences. In other words, we can sort the collection on the basis of multiple elements such as id, name, and price etc. |
+| Comparable affects the original class, i.e., the actual class is modified.                                                                              | Comparator doesn't affect the original class, i.e., the actual class is not modified.                                                                             |
+| Comparable provides compareTo() method to sort elements.                                                                                                | Comparator provides compare() method to sort elements.                                                                                                            |
+| Comparable is present in java.lang package.                                                                                                             | A Comparator is present in the java.util package.                                                                                                                 |
+| We can sort the list elements of Comparable type by Collections.sort(List) method.                                                                      | We can sort the list elements of Comparator type by Collections.sort(List, Comparator) method.                                                                    |
 
 **Example:**
 
@@ -1927,208 +1856,8 @@ Sorting by Age
 106 Olivea Gold 27
 ```
 
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. Difference between containsKey(), keySet() and values() in HashMap.
-
-* **The keySet() method**:
-  This method returns a Set view of all the keys in the map. The set is backed by the map, so changes to the map are reflected in the set, and vice-versa.
-
-* **The containsKey() method**:
-  It returns true if this map maps one or more keys to the specified value.
-
-* **The values() methods**:
-  It returns a Collection view of the values contained in this map. The collection is backed by the map, so changes to the map are reflected in the collection, and vice-versa.
-
-**Example:**
-
-```java
-/**
-* Java program illustrating usage of HashMap class methods 
-* keySet(), values(), containsKey() 
-*
-**/
-import java.util.*; 
-public class HashMapExample {
-
-    public static void main(String args[]) {
-
-        // Creation of HashMap 
-        HashMap<String, String> map = new HashMap<>(); 
-  
-        // Adding values to HashMap as ("keys", "values") 
-        map.put("Language", "Java"); 
-        map.put("Platform", "Window"); 
-        map.put("Code", "HashMap"); 
-        map.put("Learn", "More"); 
-  
-        // containsKey() method is to check the presence of a particluar key
-        if (map.containsKey("Code")) 
-            System.out.println("Testing .containsKey : " + map.get("Code")); 
-  
-        // keySet() method returns all the keys in HashMap 
-        Set<String> mapKeys = map.keySet(); 
-        System.out.println("Initial keys  : " + mapKeys); 
-  
-  
-        // values() method return all the values in HashMap 
-        Collection<String> mapValues = map.values(); 
-        System.out.println("Initial values : " + mapValues); 
-  
-        // Adding new set of key-value 
-        map.put("Search", "JavaArticle"); 
-  
-        // Again using .keySet() and .values() methods 
-        System.out.println("New Keys : " + mapKeys); 
-        System.out.println("New Values: " + mapValues); 
-    } 
-} 
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is the difference between Array and ArrayList data-structure?
-
-* **Resizable**: Implementation of array is simple fixed sized array but Implementation of ArrayList is dynamic sized array.
-* **Primitives**: Array can contain both primitives and objects but ArrayList can contain only object elements
-* **Generics**: We can’t use generics along with array but ArrayList allows us to use generics to ensure type safety.
-* **Length**: We can use length variable to calculate length of an array but size() method to calculate size of ArrayList.
-* **Store**: Array use assignment operator to store elements but ArrayList use add() to insert elements.
-
-**Example:**
-
-```java
-/*
-* A Java program to demonstrate differences between array 
-* and ArrayList 
-*
-**/
-import java.util.ArrayList; 
-import java.util.Arrays; 
-
-class ArrayExample {
-
-    public static void main(String args[]) { 
-        
-        /* ........... Normal Array............. */
-        // Need to specify the size for array  
-        int[] arr = new int[3]; 
-        arr[0] = 10; 
-        arr[1] = 20; 
-        arr[2] = 30; 
-        // We cannot add more elements to array arr[] 
-  
-        /*............ArrayList..............*/
-        // Need not to specify size  
-        ArrayList<Integer> arrL = new ArrayList<Integer>(); 
-        arrL.add(10); 
-        arrL.add(20); 
-        arrL.add(30); 
-        arrL.add(40); 
-        // We can add more elements to arrL 
-  
-        System.out.println(arrL); 
-        System.out.println(Arrays.toString(arr)); 
-    } 
-} 
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. Array or ArrayList which one is faster?
-
-* Array is faster
-
-## Q. What is difference between HashSet and LinkedHashSet?
-
-A HashSet is unordered and unsorted Set. LinkedHashSet is the ordered version of HashSet. The only difference between HashSet and LinkedHashSet is that LinkedHashSet maintains the **insertion order**. When we iterate through a HashSet, the order is unpredictable while it is predictable in case of LinkedHashSet. The reason why LinkedHashSet maintains insertion order is because the underlying data structure is a doubly-linked list.
-
-## Q. What is the difference between HashTable and HashMap?
-
-|HashMap	                                           |Hashtable                                               |
-|------------------------------------------------------|--------------------------------------------------------|
-|HashMap is **non synchronized**. It is not-thread safe and can't be shared between many threads without proper synchronization code. |	Hashtable is **synchronized**. It is thread-safe and can be shared with many threads.|
-|HashMap allows one null key and multiple null values. |Hashtable doesn't allow any null key or value.|
-|HashMap is a new class introduced in JDK 1.2. |Hashtable is a legacy class.|
-|HashMap is fast.	                           |Hashtable is slow.|
-|We can make the HashMap as synchronized by calling this code
- Map m = Collections.synchronizedMap(hashMap); | Hashtable is internally synchronized and can't be unsynchronized.|
-|HashMap is traversed by Iterator.             |Hashtable is traversed by Enumerator and Iterator.|
-|Iterator in HashMap is fail-fast.             |Enumerator in Hashtable is not fail-fast.|
-|HashMap inherits AbstractMap class.           |	Hashtable inherits Dictionary class.|
-
-**Example:**
-
-```java
-/**
-* A sample Java program to demonstrate HashMap and HashTable 
-*
-**/
-import java.util.*; 
-import java.lang.*; 
-import java.io.*; 
-
-class Example 
-{ 
-    public static void main(String args[]) { 
-        // HashTable  
-        Hashtable<Integer,String> ht = new Hashtable<Integer,String>(); 
-        ht.put(101,"One"); 
-        ht.put(101,"Two"); 
-        ht.put(102,"Three");  
-        System.out.println("Hash Table Values"); 
-        for (Map.Entry m:ht.entrySet()) { 
-            System.out.println(m.getKey() + " " + m.getValue()); 
-        } 
-  
-        // HashMap
-        HashMap<Integer,String> hm = new HashMap<Integer,String>(); 
-        hm.put(100,"Four"); 
-        hm.put(104,"Four");  // hash map allows duplicate values 
-        hm.put(101,"Five");
-        System.out.println("Hash Map Values"); 
-        for (Map.Entry m:hm.entrySet()) { 
-            System.out.println(m.getKey() + " " + m.getValue()); 
-        } 
-    } 
-} 
-```
-Output:
-```
-Hash Table Values
-102 Three
-101 One
-
-Hash Map Values
-100 Four
-101 Five
-104 Four
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What happens when a duplicate key is put into a HashMap?
-
-By definition, the `put` command replaces the previous value associated with the given key in the map (conceptually like an array indexing operation for primitive types).
-
-The map simply drops its reference to the value. If nothing else holds a reference to the object, that object becomes eligible for garbage collection. Additionally, Java returns any previous value associated with the given key (or `null` if none present), so you can determine what was there and maintain a reference if necessary.
-
-
-## Q. If you store Employee object as key say: Employee emp = new Employee(“name1”,20); store it in a HashMap as key, now if we add a new parameter emp.setMarriedStatus(true) and try to override it what will happen?
-
-new instance of Employee will be inserted to HashMap
-
-### Q. Why Map interface does not extend Collection interface?
 ### Q. What is CompareAndSwap approach?
+Compare and Swap (CAS) is an atomic instruction used in multithreading to achieve synchronization. It is a lock-free algorithm that allows multiple threads to update a shared variable without using traditional locking mechanisms like mutexes or semaphores.
 
-
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 
