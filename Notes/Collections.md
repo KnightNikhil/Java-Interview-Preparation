@@ -346,6 +346,205 @@ Backward Traversal :
     <b><a href="#">↥ back to top</a></b>
 </div>
 
+## Q. What are different Collection views provided by Map interface?
+
+**Hierarchy of Map Interface**
+
+![Map Interface](https://github.com/learning-zone/java-interview-questions/blob/master/assets/map-interface.png)
+
+
+In the inheritance tree of the Map interface, there are several implementations but only 3 major, common, and general purpose implementations - they are HashMap and LinkedHashMap and TreeMap.
+
+**1. HashMap**
+
+This implementation uses a hash table as the underlying data structure. It implements all of the Map operations and allows null values and one null key. This class is roughly equivalent to Hashtable - a legacy data structure before Java Collections Framework, but it is not synchronized and permits nulls. HashMap does not guarantee the order of its key-value elements. Therefore, consider to use a HashMap when order does not matter and nulls are acceptable.
+
+HashMap maps a key to a value, and each key is unique. If you insert a duplicate key, it replaces the old value.
+
+```java
+Map<Integer, String> mapHttpErrors = new HashMap<>();
+ 
+mapHttpErrors.put(200, "OK");
+mapHttpErrors.put(303, "See Other");
+mapHttpErrors.put(404, "Not Found");
+mapHttpErrors.put(500, "Internal Server Error");
+ 
+System.out.println(mapHttpErrors);
+```
+Output
+```
+{404=Not Found, 500=Internal Server Error, 200=OK, 303=See Other}
+```
+**2. LinkedHashMap**
+
+This implementation uses a hash table and a linked list as the underlying data structures, thus the order of a LinkedHashMap is predictable, with insertion-order as the default order. This implementation also allows nulls like HashMap. So consider using a LinkedHashMap when you want a Map with its key-value pairs are sorted by their insertion order.
+
+```java
+Map<String, String> mapContacts = new LinkedHashMap<>();
+ 
+mapContacts.put("0169238175", "Tom");
+mapContacts.put("0904891321", "Peter");
+mapContacts.put("0945678912", "Mary");
+mapContacts.put("0981127421", "John");
+ 
+System.out.println(mapContacts);
+```
+Output
+```
+{0169238175=Tom, 0904891321=Peter, 0945678912=Mary, 0981127421=John}
+```
+**3. TreeMap**
+
+This implementation uses a red-black tree as the underlying data structure. A TreeMap is sorted according to the natural ordering of its keys, or by a Comparator provided at creation time. This implementation does not allow nulls. So consider using a TreeMap when you want a Map sorts its key-value pairs by the natural order of the keys (e.g. alphabetic order or numeric order), or by a custom order you specify.
+
+```java
+Map<String, String> mapLang = new TreeMap<>();
+ 
+mapLang.put(".c", "C");
+mapLang.put(".java", "Java");
+mapLang.put(".pl", "Perl");
+mapLang.put(".cs", "C#");
+mapLang.put(".php", "PHP");
+mapLang.put(".cpp", "C++");
+mapLang.put(".xml", "XML");
+ 
+System.out.println(mapLang);
+```
+Output
+```
+{.c=C, .cpp=C++, .cs=C#, .java=Java, .php=PHP, .pl=Perl, .xml=XML}
+```
+
+**Useful Methods of Map Interface**
+
+<table class="alt">
+<tbody><tr><th>Method</th><th>Description</th></tr>
+<tr><td> Object put(Object key, Object value)</td><td>It is used to insert an entry in this map.</td></tr>
+<tr><td>void putAll(Map map)</td><td>It is used to insert the specified map in this map.</td></tr>
+<tr><td>Object remove(Object key)</td><td>It is used to delete an entry for the specified key.</td></tr>
+<tr><td>Object get(Object key)</td><td>It is used to return the value for the specified key.</td></tr>
+<tr><td>boolean containsKey(Object key)</td><td>It is used to search the specified key from this map.</td></tr>
+<tr><td>Set keySet()</td><td>It is used to return the Set view containing all the keys.</td></tr>
+<tr><td>Set entrySet()</td><td>It is used to return the Set view containing all the keys and values.</td></tr>
+</tbody></table>
+
+**Methods of Map.Entry Interface**
+
+<table class="alt">
+<tbody><tr><th>Method</th><th>Description</th></tr>
+<tr><td> Object getKey()</td><td>It is used to obtain key.</td></tr>
+<tr><td>Object getValue()</td><td>It is used to obtain value.</td></tr>
+</tbody></table>
+
+
+| Feature          |HashMap	               |LinkedHashMap	               |TreeMap                        |Hashtable                     |
+|------------------|-----------------------|------------------------------|-------------------------------|-------------------------------|
+| Internal DS      |Hash table             |Hash table and linked list    |Red-Black tree                 |Hash table                     |
+| Order            |No                     |Yes, insertion order          |Yes, sorted by keys            |No                             |
+| Performance      |Fast                   |Slightly slower than HashMap  |Slower due to sorting          |Slow                           |
+| Null keys/values |One null key, many null values|One null key, many null values |No null keys or values         |No null keys or values         |
+| Synchronization  |No                     |No                            |No                             |Yes                            |
+| Performance      |Fast                   |Slightly slower than HashMap  |Slower due to sorting          |Slow                           |
+| Legacy Class     |No                     |No                            |No                             |Yes                            |
+| Traversal        |Iterator               |Iterator                      |Iterator                       |Enumerator and Iterator        |
+
+## Q. Internal working for HashMap vs LinkedHashMAp?
+
+**HashMap**
+```
++----------------------+
+| Array (bucket table)  |
++----------------------+
+| 0: null              |
+| 1: Node(key1,value1) -> Node(key5,value5) -> null  (collision chain) |
+| 2: null              |
+| 3: Node(key3,value3) -> null                       |
+| ...                  |
++----------------------+
+```
+**LinkedHashMap**
+
+```
+Hash buckets (same as HashMap):
++----------------------+
+| Array (bucket table)  |
++----------------------+
+| 0: null              |
+| 1: Node(key1,value1) -> Node(key5,value5) -> null  |
+| 2: null              |
+| 3: Node(key3,value3) -> null                       |
+| ...                  |
++----------------------+
+
+Doubly linked list of entries preserving order:
+null <- Node(key1) <-> Node(key3) <-> Node(key5) -> null
+```
+
+## Q. What is difference between HashMap and Hashtable?
+
+HashMap and Hashtable both are used to store data in key and value form. Both are using hashing technique to store unique keys.
+
+|Sl.No|HashMap	              |Hashtable                                         |
+|-----|-----------------------|--------------------------------------------------|
+| 01. |HashMap is **non synchronized**. It is not-thread safe and can't be shared between many threads without proper synchronization code.|Hashtable is **synchronized**. It is thread-safe and can be shared with many threads.|
+| 02. |HashMap allows one null key and multiple null values.|Hashtable doesn't allow any null key or value.|
+| 03. |HashMap is a new class introduced in JDK 1.2.|Hashtable is a legacy class.|
+| 04. |HashMap is fast.       |Hashtable is slow.|
+| 05. |We can make the HashMap as synchronized by calling this code Map m = Collections.synchronizedMap(hashMap);|Hashtable is internally synchronized and can't be unsynchronized.|
+| 06. |HashMap is traversed by Iterator.	|Hashtable is traversed by Enumerator and Iterator.|
+| 07. |Iterator in HashMap is fail-fast.	|Enumerator in Hashtable is not fail-fast.         |
+| 08. |HashMap inherits AbstractMap class.	|Hashtable inherits Dictionary class.              |
+
+```java
+/**
+   A sample Java program to demonstrate HashMap and HashTable 
+**/
+import java.util.*; 
+import java.lang.*; 
+import java.io.*; 
+
+class HashMapHashtableExample  
+{ 
+    public static void main(String args[]) {
+
+        // hashtable  
+        Hashtable<Integer,String> ht = new Hashtable<Integer,String>(); 
+        ht.put(101," ajay"); 
+        ht.put(101,"Vijay"); 
+        ht.put(102,"Ravi"); 
+        ht.put(103,"Rahul"); 
+
+        System.out.println("Hash table: "); 
+        for (Map.Entry m:ht.entrySet()) { 
+            System.out.println(m.getKey()+" "+m.getValue()); 
+        } 
+  
+        // hashmap 
+        HashMap<Integer,String> hm = new HashMap<Integer,String>(); 
+        hm.put(100,"Amit"); 
+        hm.put(104,"Amit");  // hash map allows duplicate values 
+        hm.put(101,"Vijay"); 
+        hm.put(102,"Rahul"); 
+        System.out.println("Hash map: "); 
+        for (Map.Entry m:hm.entrySet()) { 
+            System.out.println(m.getKey()+" "+m.getValue()); 
+        } 
+    } 
+} 
+```
+Output
+```
+Hash table:
+103 Rahul
+102 Ravi
+101 Vijay
+
+Hash map:
+100 Amit
+101 Vijay
+102 Rahul
+104 Amit
+```
 
 
 ## Q. What is difference between Array and ArrayList?
@@ -798,221 +997,7 @@ Karan
 Rahul
 Vijay 
 ```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
-## Q. What is LinkedHashMap in Java?
-
-LinkedHashMap is just like HashMap with an additional feature of maintaining an order of elements inserted into it. Java LinkedHashMap class is Hashtable and Linked list implementation of the Map interface, with predictable iteration order. It inherits HashMap class and implements the Map interface.
-
-**Features**
-
-* Java LinkedHashMap contains values based on the key.
-* Java LinkedHashMap contains unique elements.
-* Java LinkedHashMap may have one null key and multiple null values.
-* Java LinkedHashMap is non synchronized.
-* Java LinkedHashMap maintains insertion order.
-* The initial default capacity of Java HashMap class is 16 with a load factor of 0.75.
-
-```java
-import java.util.LinkedHashMap;
-import java.util.Set;
-import java.util.Iterator;
-import java.util.Map;
-public class LinkedHashMapDemo {
-    public static void main(String args[]) {
-        // HashMap Declaration
-        LinkedHashMap<Integer, String> lhmap = 
-                new LinkedHashMap<Integer, String>();
-        //Adding elements to LinkedHashMap
-        lhmap.put(22, "Abey");
-        lhmap.put(33, "Dawn");
-        lhmap.put(1, "Sherry");
-        lhmap.put(2, "Karon");
-        lhmap.put(100, "Jim");
-
-        // Generating a Set of entries
-        Set set = lhmap.entrySet();
-
-        // Displaying elements of LinkedHashMap
-        Iterator iterator = set.iterator();
-        while(iterator.hasNext()) {
-           Map.Entry me = (Map.Entry)iterator.next();
-           System.out.print("Key is: "+ me.getKey() + 
-                   "& Value is: "+me.getValue()+"\n");
-        }
-    }
-}
-```
-Output
-```
-Key is: 22  & Value is: Abey
-Key is: 33  & Value is: Dawn
-Key is: 1   & Value is: Sherry
-Key is: 2   & Value is: Karon
-Key is: 100 & Value is: Jim
-```
-## Q. What are different Collection views provided by Map interface?
-
-**Hierarchy of Map Interface**
-
-![Map Interface](https://github.com/learning-zone/java-interview-questions/blob/master/assets/map-interface.png)
-
-
-In the inheritance tree of the Map interface, there are several implementations but only 3 major, common, and general purpose implementations - they are HashMap and LinkedHashMap and TreeMap.
-
-**1. HashMap**
-
-This implementation uses a hash table as the underlying data structure. It implements all of the Map operations and allows null values and one null key. This class is roughly equivalent to Hashtable - a legacy data structure before Java Collections Framework, but it is not synchronized and permits nulls. HashMap does not guarantee the order of its key-value elements. Therefore, consider to use a HashMap when order does not matter and nulls are acceptable.
-
-```java
-Map<Integer, String> mapHttpErrors = new HashMap<>();
- 
-mapHttpErrors.put(200, "OK");
-mapHttpErrors.put(303, "See Other");
-mapHttpErrors.put(404, "Not Found");
-mapHttpErrors.put(500, "Internal Server Error");
- 
-System.out.println(mapHttpErrors);
-```
-Output
-```
-{404=Not Found, 500=Internal Server Error, 200=OK, 303=See Other}
-```
-**2. LinkedHashMap**
-
-This implementation uses a hash table and a linked list as the underlying data structures, thus the order of a LinkedHashMap is predictable, with insertion-order as the default order. This implementation also allows nulls like HashMap. So consider using a LinkedHashMap when you want a Map with its key-value pairs are sorted by their insertion order.
-
-```java
-Map<String, String> mapContacts = new LinkedHashMap<>();
- 
-mapContacts.put("0169238175", "Tom");
-mapContacts.put("0904891321", "Peter");
-mapContacts.put("0945678912", "Mary");
-mapContacts.put("0981127421", "John");
- 
-System.out.println(mapContacts);
-```
-Output
-```
-{0169238175=Tom, 0904891321=Peter, 0945678912=Mary, 0981127421=John}
-```
-**3. TreeMap**
-
-This implementation uses a red-black tree as the underlying data structure. A TreeMap is sorted according to the natural ordering of its keys, or by a Comparator provided at creation time. This implementation does not allow nulls. So consider using a TreeMap when you want a Map sorts its key-value pairs by the natural order of the keys (e.g. alphabetic order or numeric order), or by a custom order you specify.
-
-```java
-Map<String, String> mapLang = new TreeMap<>();
- 
-mapLang.put(".c", "C");
-mapLang.put(".java", "Java");
-mapLang.put(".pl", "Perl");
-mapLang.put(".cs", "C#");
-mapLang.put(".php", "PHP");
-mapLang.put(".cpp", "C++");
-mapLang.put(".xml", "XML");
- 
-System.out.println(mapLang);
-```
-Output
-```
-{.c=C, .cpp=C++, .cs=C#, .java=Java, .php=PHP, .pl=Perl, .xml=XML}
-```
-
-**Useful Methods of Map Interface**
-
-<table class="alt">
-<tbody><tr><th>Method</th><th>Description</th></tr>
-<tr><td> Object put(Object key, Object value)</td><td>It is used to insert an entry in this map.</td></tr>
-<tr><td>void putAll(Map map)</td><td>It is used to insert the specified map in this map.</td></tr>
-<tr><td>Object remove(Object key)</td><td>It is used to delete an entry for the specified key.</td></tr>
-<tr><td>Object get(Object key)</td><td>It is used to return the value for the specified key.</td></tr>
-<tr><td>boolean containsKey(Object key)</td><td>It is used to search the specified key from this map.</td></tr>
-<tr><td>Set keySet()</td><td>It is used to return the Set view containing all the keys.</td></tr>
-<tr><td>Set entrySet()</td><td>It is used to return the Set view containing all the keys and values.</td></tr>
-</tbody></table>
-
-**Methods of Map.Entry Interface**
-
-<table class="alt">
-<tbody><tr><th>Method</th><th>Description</th></tr>
-<tr><td> Object getKey()</td><td>It is used to obtain key.</td></tr>
-<tr><td>Object getValue()</td><td>It is used to obtain value.</td></tr>
-</tbody></table>
-
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
-
-## Q. What is difference between HashMap and Hashtable?
-
-HashMap and Hashtable both are used to store data in key and value form. Both are using hashing technique to store unique keys.
-
-|Sl.No|HashMap	              |Hashtable                                         |
-|-----|-----------------------|--------------------------------------------------|
-| 01. |HashMap is **non synchronized**. It is not-thread safe and can't be shared between many threads without proper synchronization code.|Hashtable is **synchronized**. It is thread-safe and can be shared with many threads.|
-| 02. |HashMap allows one null key and multiple null values.|Hashtable doesn't allow any null key or value.|
-| 03. |HashMap is a new class introduced in JDK 1.2.|Hashtable is a legacy class.|
-| 04. |HashMap is fast.       |Hashtable is slow.|
-| 05. |We can make the HashMap as synchronized by calling this code Map m = Collections.synchronizedMap(hashMap);|Hashtable is internally synchronized and can't be unsynchronized.|
-| 06. |HashMap is traversed by Iterator.	|Hashtable is traversed by Enumerator and Iterator.|
-| 07. |Iterator in HashMap is fail-fast.	|Enumerator in Hashtable is not fail-fast.         |
-| 08. |HashMap inherits AbstractMap class.	|Hashtable inherits Dictionary class.              |
-
-```java
-/**
-   A sample Java program to demonstrate HashMap and HashTable 
-**/
-import java.util.*; 
-import java.lang.*; 
-import java.io.*; 
-
-class HashMapHashtableExample  
-{ 
-    public static void main(String args[]) {
-
-        // hashtable  
-        Hashtable<Integer,String> ht = new Hashtable<Integer,String>(); 
-        ht.put(101," ajay"); 
-        ht.put(101,"Vijay"); 
-        ht.put(102,"Ravi"); 
-        ht.put(103,"Rahul"); 
-
-        System.out.println("Hash table: "); 
-        for (Map.Entry m:ht.entrySet()) { 
-            System.out.println(m.getKey()+" "+m.getValue()); 
-        } 
-  
-        // hashmap 
-        HashMap<Integer,String> hm = new HashMap<Integer,String>(); 
-        hm.put(100,"Amit"); 
-        hm.put(104,"Amit");  // hash map allows duplicate values 
-        hm.put(101,"Vijay"); 
-        hm.put(102,"Rahul"); 
-        System.out.println("Hash map: "); 
-        for (Map.Entry m:hm.entrySet()) { 
-            System.out.println(m.getKey()+" "+m.getValue()); 
-        } 
-    } 
-} 
-```
-Output
-```
-Hash table:
-103 Rahul
-102 Ravi
-101 Vijay
-
-Hash map:
-100 Amit
-101 Vijay
-102 Rahul
-104 Amit
-```
-<div align="right">
-    <b><a href="#">↥ back to top</a></b>
-</div>
 
 ## Q. What is EnumSet?
 
