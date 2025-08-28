@@ -1294,6 +1294,149 @@ When you use a LinkedList as a Deque, you typically add elements to the end of t
 **Does LinkedList implements both List and Queue interface?**
 Yes, LinkedList implements both the List and Queue interfaces in Java. This means that a LinkedList can be used as both a list (which allows for indexed access to elements) and a queue (which follows the FIFO - First In, First Out - principle).
 
+## Q. What are concurrent collection classes?
+
+The concurrent collection APIs of Java provide a range of classes that are specifically designed to deal with concurrent operations. These classes are alternatives to the Java Collection Framework and provide similar functionality except with the additional support of concurrency.
+
+**Java Concurrent Collection Classes**
+
+* **Map**
+  * ConcurrentMap
+  * ConcurrentHashMap
+  * ConcurrentNavigableMap
+  * ConcurrentSkipListMap
+* **List**
+  * CopyOnWriteArrayList
+  * CopyOnWriteArraySet
+  * ConcurrentLinkedDeque
+  * ConcurrentLinkedQueue
+* **Queue**
+  * BlockingQueue
+  * ArrayBlockingQueue
+  * SynchronousQueue
+  * PriorityBlockingQueue
+  * LinkedBlockingQueue
+  * DelayQueue
+  * BlockingDeque
+  * LinkedBlockingDeque
+  * TransferQueue
+  * LinkedTransferQueue
+
+
+
+## Q. What is CopyOnWriteArrayList? How it is different from ArrayList in Java?
+
+
+CopyOnWriteArrayList is a thread-safe variant of ArrayList in Java, designed for scenarios where reads greatly outnumber writes. Its internal working is based on the "copy-on-write" principle:
+
+
+* On every write operation (such as add, set, or remove), it creates a new copy of the underlying array, applies the modification to this new array, and then updates the reference to point to the new array.
+* Read operations (like get or iteration) work directly on the current array without locking, so they are very fast and never block.
+* Iterators returned by CopyOnWriteArrayList operate on a snapshot of the array at the time the iterator was created. This means they are immune to ConcurrentModificationException and see a consistent view, even if the list is modified after the iterator is created.
+
+**Key points:**
+* Excellent for use cases with many reads and few writes.
+* Write operations are expensive due to array copying.
+* Safe for concurrent iteration and modification, but not suitable for high-frequency writes.
+
+```java
+import java.util.concurrent.CopyOnWriteArrayList; 
+import java.util.*; 
+
+class ConcurrentDemo extends Thread { 
+
+	static CopyOnWriteArrayList arrList = new CopyOnWriteArrayList(); 
+
+	public void run() { 
+		// Child thread trying to 
+		// add new element in the 
+		// Collection object 
+		arrList.add("D"); 
+	} 
+
+	public static void main(String[] args) 
+		throws InterruptedException { 
+		arrList.add("A"); 
+		arrList.add("B"); 
+		arrList.add("c"); 
+
+		// We create a child thread 
+		// that is going to modify 
+		// ArrayList. 
+		ConcurrentDemo t = new ConcurrentDemo(); 
+		t.run(); 
+
+		Thread.sleep(1000); 
+
+		// Now we iterate through 
+		// the ArrayList and get 
+		// exception. 
+		Iterator itr = arrList.iterator(); 
+		while (itr.hasNext()) { 
+			String s = (String)itr.next(); 
+			System.out.println(s); 
+			Thread.sleep(1000); 
+		} 
+		System.out.println(arrList); 
+	} 
+} 
+```
+Output
+```
+A
+B
+c
+D
+[A, B, c, D]
+```
+
+
+## Q. Explain Concurrency in Map Interface.
+
+```
+java.util.Map
+   └── java.util.concurrent.ConcurrentMap<K,V> (interface)
+          ├── java.util.concurrent.ConcurrentHashMap<K,V> (class)
+          └── java.util.concurrent.ConcurrentNavigableMap<K,V> (interface extends ConcurrentMap)
+                 └── java.util.concurrent.ConcurrentSkipListMap<K,V> (class)
+```
+
+**What does segment mean in ConcurrentHashMap?**
+* In the context of ConcurrentHashMap, a segment refers to a portion or partition of the entire map that is independently lockable. The idea behind segments is to divide the map into smaller sections, each of which can be accessed and modified by different threads concurrently without interfering with each other.
+* When a key-value pair is added to the ConcurrentHashMap, the key's hash code is used to determine which segment it belongs to. Each segment has its own lock, allowing multiple threads to operate on different segments simultaneously. This segmentation helps to reduce contention and improve performance in multi-threaded environments.
+
+
+**Internal Working of ConcurrentHashMap?**
+* ConcurrentHashMap is a thread-safe variant of HashMap that allows concurrent access and modification by multiple threads without the need for external synchronization. It achieves this by dividing the map into segments, each of which can be locked independently, allowing multiple threads to operate on different segments simultaneously.
+* When a thread wants to read or write to the map, it first determines which segment the key belongs to based on its hash code. It then acquires a lock on that segment, allowing it to safely read or modify the entries within that segment. Other threads can still access and modify entries in other segments without being blocked.
+* This segmentation approach allows for high concurrency and scalability, as multiple threads can operate on different segments of the map simultaneously without interfering with each other. Additionally, ConcurrentHashMap uses a technique called lock striping, which further reduces contention by allowing multiple threads to acquire locks on different segments at the same time.
+* This design makes ConcurrentHashMap a highly efficient and scalable data structure for concurrent applications, as it minimizes the need for locking and allows for high levels of parallelism.
+
+**Internal Working of ConcurrentSkipListMap?**
+* ConcurrentSkipListMap is a thread-safe variant of SkipList that allows concurrent access and modification by multiple threads without the need for external synchronization. It achieves this by using a probabilistic data structure called a skip list, which consists of multiple levels of linked lists that allow for efficient searching, insertion, and deletion of elements.
+* When a thread wants to read or write to the map, it first traverses the skip list to find the appropriate position for the key. It then acquires a lock on the node containing the key, allowing it to safely read or modify the entry. Other threads can still access and modify other nodes in the skip list without being blocked.
+* This design allows for high concurrency and scalability, as multiple threads can operate on different parts of the skip list simultaneously without interfering with each other. Additionally, ConcurrentSkipListMap uses a technique called lock-free reads, which allows threads to read entries without acquiring locks, further improving performance.
+* This design makes ConcurrentSkipListMap a highly efficient and scalable data structure for concurrent applications, as it minimizes the need for locking and allows for high levels of parallelism.
+* ConcurrentSkipListMap is particularly useful in scenarios where there are frequent read operations and occasional write operations, as it provides fast access to elements while still allowing for concurrent modifications.
+
+
+## Q. What is the difference between HashMap and ConcurrentHashMap?
+| Feature                        | HashMap                                         | ConcurrentHashMap                              |
+|--------------------------------|-------------------------------------------------|------------------------------------------------|
+| Thread Safety                  | Not thread-safe                                 | Thread-safe                                    |
+| Synchronization                | Requires external synchronization for thread safety | Internally synchronized using segments         |
+| Performance                    | Slower in multi-threaded environments due to locking | Faster in multi-threaded environments due to reduced contention |
+| Null Keys/Values               | Allows one null key and multiple null values    | Does not allow null keys or values             |
+| Iterators                      | Fail-fast (throws ConcurrentModificationException) | Weakly consistent (does not throw ConcurrentModificationException) |
+| Locking Mechanism              | Uses a single lock for the entire map           | Uses multiple locks (segments) for better concurrency |
+| Use Case                       | Suitable for single-threaded or low-concurrency scenarios | Suitable for high-concurrency scenarios        |
+| Internal Structure             | Uses a single array of buckets                  | Divides the map into segments (default 16)     |
+| Read Operations                | May block if another thread is writing          | Non-blocking reads                             |
+| Write Operations               | Blocks other threads during write operations    | Allows concurrent writes to different segments |
+| Memory Overhead                | Lower memory overhead                           | Higher memory overhead due to segments         |
+| Java Version                   | Available since JDK 1.2                         | Available since JDK 1.5                        |
+
+
 ## Q. What is BlockingQueue? How to implement producer-consumer problem by using BlockingQueue?
 
 **BlockingQueue**: When a thread try to dequeue from an empty queue is blocked until some other thread inserts an item into the queue. Also, when a thread try to enqueue an item in a full queue is blocked until some other thread makes space in the queue, either by dequeuing one or more items or clearing the queue completely.
@@ -1361,26 +1504,6 @@ Consumed 0
 ```
 Here, The Producer start producing objects and pushing it to the Queue. Once the queue is full, the producer will wait until consumer consumes it and it will start producing again. Similar behavior is displayed by consumer. where the consumer waits until there is a single element in queue. It will resume consumer once the queue has element.
 
-## Q. What are concurrent collection classes?
-
-The concurrent collection APIs of Java provide a range of classes that are specifically designed to deal with concurrent operations. These classes are alternatives to the Java Collection Framework and provide similar functionality except with the additional support of concurrency.
-
-**Java Concurrent Collection Classes**
-
-* BlockingQueue
-* ArrayBlockingQueue
-* SynchronousQueue
-* PriorityBlockingQueue
-* LinkedBlockingQueue
-* DelayQueue
-* BlockingDeque
-* LinkedBlockingDeque
-* TransferQueue
-* LinkedTransferQueue
-* ConcurrentMap
-* ConcurrentHashMap
-* ConcurrentNavigableMap
-* ConcurrentSkipListMap
 
 ## Q. How can we create a synchronized collection from given collection?
 
@@ -1569,68 +1692,6 @@ Size of Dictionary : 1
 * TreeMap Class
 * PriorityQueue Class
 
-## Q. What is the difference between HashMap and ConcurrentHashMap?
-
-
-## Q. What is CopyOnWriteArrayList? How it is different from ArrayList in Java?
-
-CopyOnWriteArrayList class is introduced in JDK 1.5, which implements List interface. It is enhanced version of ArrayList in which all modifications (add, set, remove, etc) are implemented by making a fresh copy.
-
-```java
-/**
-* Java program to illustrate 
-* CopyOnWriteArrayList class 
-*
-**/
-import java.util.concurrent.CopyOnWriteArrayList; 
-import java.util.*; 
-
-class ConcurrentDemo extends Thread { 
-
-	static CopyOnWriteArrayList arrList = new CopyOnWriteArrayList(); 
-
-	public void run() { 
-		// Child thread trying to 
-		// add new element in the 
-		// Collection object 
-		arrList.add("D"); 
-	} 
-
-	public static void main(String[] args) 
-		throws InterruptedException { 
-		arrList.add("A"); 
-		arrList.add("B"); 
-		arrList.add("c"); 
-
-		// We create a child thread 
-		// that is going to modify 
-		// ArrayList. 
-		ConcurrentDemo t = new ConcurrentDemo(); 
-		t.run(); 
-
-		Thread.sleep(1000); 
-
-		// Now we iterate through 
-		// the ArrayList and get 
-		// exception. 
-		Iterator itr = arrList.iterator(); 
-		while (itr.hasNext()) { 
-			String s = (String)itr.next(); 
-			System.out.println(s); 
-			Thread.sleep(1000); 
-		} 
-		System.out.println(arrList); 
-	} 
-} 
-```
-Output
-```
-A
-B
-c
-D
-[A, B, c, D]
-```
 
 ## Q. How to make an ArrayList read only in Java?
 
