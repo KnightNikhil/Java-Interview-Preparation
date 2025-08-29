@@ -1,29 +1,6 @@
 `ROADMAP`
 
-✅ 1. Core Interfaces and Hierarchy
 
-Understand the interface hierarchy and what each offers:
-* Collection
-* Queue → PriorityQueue, Deque, ArrayDeque, LinkedList
-* HashMap, LinkedHashMap, TreeMap, Hashtable, ConcurrentHashMap, WeakHashMap
-
-🧠 Interview Expectation: Be able to draw the hierarchy and explain use cases.
-
-
-
-✅ 3. Ordering and Duplicates
-* Table with following column
-* * Maintains Order?
-* * Allows Duplicates?
-* * Null value allowed
-* * Throws exception?
-
-✅ 4. Thread-Safety
-* Not thread-safe: ArrayList, HashMap, HashSet
-* Thread-safe:
-* Legacy: Vector, Hashtable
-* Modern: Collections.synchronizedList(), ConcurrentHashMap, CopyOnWriteArrayList
-* Use ConcurrentHashMap in high-concurrency apps.
 
 
 ✅ 6. Java 8+ Enhancements
@@ -45,7 +22,6 @@ Understand the interface hierarchy and what each offers:
 * WeakHashMap and its use with garbage collection
 * EnumMap, EnumSet for performance with Enums
 * Deque vs Queue, Stack deprecation
-
 
 ✅ 9. Real-World Scenarios & Design
 * Which collection to use when?
@@ -601,6 +577,27 @@ Output
 INACTIVE   [project id : 200, project name : Employee Management System, 
            project desc : Employee Management System ]
 ```
+
+## Q. Difference between identity-based and equals-based maps: HashMap vs IdentityHashMap?
+
+| Feature               | HashMap                                                                                         | IdentityHashMap                                                                                   |
+|-----------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| Key Comparison        | Uses `equals()` and `hashCode()` methods of the key objects for comparison.                     | Uses reference equality (`==`) for key comparison, meaning it checks if both references point to the same object in memory. |
+| Null Keys/Values      | Allows one null key and multiple null values.                                                   | Allows one null key and multiple null values.                                                    |
+| Use Case              | General-purpose map when logical equality of keys is desired.                                   | When identity (reference equality) of keys is required, such as in certain caching scenarios or when using proxy objects. |
+| Performance           | Generally efficient for most use cases, with average O(1) time complexity for get/put operations. | Similar performance characteristics to HashMap, but may have different performance in scenarios where identity comparison is more efficient than logical equality checks. |
+| Iteration Order       | Does not guarantee any specific order of iteration.                                              | Does not guarantee any specific order of iteration.                                               |
+| Synchronization       | Not synchronized.                                                                               | Not synchronized.                                                                               |
+| Inheritance           | Extends AbstractMap and implements Map, Cloneable, Serializable.                                | Extends AbstractMap and implements Map, Cloneable, Serializable.                               |
+| JDK Version           | Introduced in JDK 1.2.                                                                          | Introduced in JDK 1.4.                                                                          |
+| Legacy Class          | No                                                                                              | No                                                                                               |
+| Fail-Fast             | Fail-fast (throws ConcurrentModificationException)                                              | Fail-fast (throws ConcurrentModificationException)                                               |
+| Traversal             | Iterator                                                                                         | Iterator                                                                                         |
+| Functionality         | Basic map functions: get(), put(), keySet(), etc.                                               | Basic map functions: get(), put(), keySet(), etc.                                               |
+| Example               | `map.put(new String("key"), "value1"); map.put(new String("key"), "value2"); // Only one entry` | `map.put(new String("key"), "value1"); map.put(new String("key"), "value2"); // Two separate entries` |
+| Use Case Example      | Caching user sessions where logical equality of user IDs is important.                           | Caching proxy objects where identity of the proxy instances matters.                            |
+| Key Type              | Heterogeneous elements allowed because it does not perform sorting on keys, use:  Map<Object, String> map = new HashMap<>(); | Heterogeneous elements allowed because it does not perform sorting on keys, use:  Map<Object, String> map = new IdentityHashMap<>(); |
+
 
 # List Interface
 
@@ -1447,7 +1444,6 @@ Collection : [10, 20, 30, 40, 50]
 Synchronized view is : [10, 20, 30, 40, 50]
 ```
 
-
 ## Q. What is a default capacity of ArrayList, Vector, HashMap, Hashtable and Hashset?
 
 |Collections | Initial Capacity | Load Factor |
@@ -1459,6 +1455,12 @@ Synchronized view is : [10, 20, 30, 40, 50]
 |HashTable   | 11               | 0.75        |
 
 Load factor is a measure that decides when to increase the capacity of the HashMap/Hashtable/HashSet to maintain the get/put operation complexity of O(1). When the number of entries in the hash table exceeds the product of the load factor and the current capacity, the hash table is rehashed (that is, internal data structures are rebuilt) so that the hash table has approximately twice the number of buckets.
+
+**Explain the Resize / Rehash logic**
+* When the number of entries in a hash table exceeds the product of the load factor and the current capacity, the hash table is resized (or rehashed) to maintain efficient performance. The resizing process involves creating a new array with a larger capacity and rehashing all existing entries into this new array.
+* The default load factor is 0.75, which provides a good trade-off between time and space cost. Higher values decrease the space overhead but increase the lookup cost (reflected in most of the operations of the hash table, including get and put). The expected number of entries in the map is (capacity * load factor).
+* When resizing, the new capacity is typically double the current capacity. Each entry from the old array is rehashed and placed into the new array based on its hash code. This process helps to distribute the entries more evenly across the new array, reducing collisions and maintaining efficient access times.
+
 
 ## Q. What is the difference between Collection and Collections?
 
