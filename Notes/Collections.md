@@ -428,17 +428,21 @@ This implementation uses a red-black tree as the underlying data structure. A Tr
 </tbody></table>
 
 
-| Feature          |HashMap	               |LinkedHashMap	               |TreeMap                        |Hashtable                     |
-|------------------|-----------------------|------------------------------|-------------------------------|-------------------------------|
-| Internal DS      |Hash table             |Hash table and linked list    |Red-Black tree                 |Hash table                     |
-| Order            |No                     |Yes, insertion order          |Yes, sorted by keys            |No                             |
-| Performance      |Fast                   |Slightly slower than HashMap  |Slower due to sorting          |Slow                           |
-| Null keys/values |One null key, many null values|One null key, many null values |No null keys or values         |No null keys or values         |
-| Synchronization  |No                     |No                            |No                             |Yes                            |
-| Performance      |Fast                   |Slightly slower than HashMap  |Slower due to sorting          |Slow                           |
-| Legacy Class     |No                     |No                            |No                             |Yes                            |
-| Traversal        |Iterator               |Iterator                      |Iterator                       |Enumerator and Iterator        |
-
+| Feature              | HashMap	                                                                  | LinkedHashMap	                                                                 | TreeMap                                                                            |Hashtable                     |
+|----------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------|-------------------------------|
+| Internal DS          | Hash table                                                                | Hash table and linked list                                                     | Red-Black tree                                                                     |Hash table                     |
+| Order                | No                                                                        | Yes, insertion order                                                           | Yes, sorted by keys                                                                |No                             |
+| Performance          | Fast                                                                      | Slightly slower than HashMap                                                   | Slower due to sorting                                                              |Slow                           |
+| Null keys/values     | One null key, many null values                                            | One null key, many null values                                                 | No null keys or values                                                             |No null keys or values         |
+| Synchronization      | No                                                                        | No                                                                             | No                                                                                 |Yes                            |
+| Performance          | Fast                                                                      | Slightly slower than HashMap                                                   | Slower due to sorting                                                              |Slow                           |
+| Legacy Class         | No                                                                        | No                                                                             | No                                                                                 |Yes                            |
+| Traversal            | Iterator                                                                  | Iterator                                                                       | Iterator                                                                           |Enumerator and Iterator        |
+| JDK version          | JDK 1.2                                                                   | JDK 1.4                                                                        | JDK 1.2                                                                            |JDK 1.0                        |
+| Synchronized class   | ConcurrentHashMap                                                         | Map<K, V> syncOrderedMap = Collections.synchronizedMap(new LinkedHashMap<>()); | ConcurrentSkipListMap (Sorted by key to natural ordering)                          | Already Schronized |
+| Iterator/ Enumerator | Iterator                                                                  | Iterator                                                                       | Iterator                                                                           | Enumerator and Iterator        |
+| fail-fast            | fail-fast                                                                 | fail-fast                                                                      | fail-fast                                                                          | Not fail-fast                  |
+| Inheritance          | HashMap extends AbstractMap and implements Map, Cloneable, Serializable   | LinkedHashMap extends HashMap and implements Map, Cloneable, Serializable      | TreeMap extends AbstractMap and implements NavigableMap, Cloneable, Serializable   | Hashtable extends Dictionary and implements Map, Cloneable, Serializable |
 ## Q. How are exceptions handled in all the map implementations?
 
 | Exception                  | HashMap | LinkedHashMap | TreeMap | Hashtable |
@@ -480,72 +484,6 @@ Hash buckets (same as HashMap):
 
 Doubly linked list of entries preserving order:
 null <- Node(key1) <-> Node(key3) <-> Node(key5) -> null
-```
-
-## Q. What is difference between HashMap and Hashtable?
-
-HashMap and Hashtable both are used to store data in key and value form. Both are using hashing technique to store unique keys.
-
-| Features             | HashMap	                                                                                                                                | Hashtable                                                                             |
-|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| Synchronization      | HashMap is **non synchronized**. It is not-thread safe and can't be shared between many threads without proper synchronization code.    | Hashtable is **synchronized**. It is thread-safe and can be shared with many threads. |
-| Null element         | HashMap allows one null key and multiple null values.                                                                                   | Hashtable doesn't allow any null key or value.                                        |
-| JDK version          | HashMap is a new class introduced in JDK 1.2.                                                                                           | Hashtable is a legacy class.                                                          |
-| Performance          | HashMap is fast.                                                                                                                        | Hashtable is slow.                                                                    |
-| Synchronization      | We can make the HashMap as synchronized by calling this code Map m = Collections.synchronizedMap(hashMap);                              | Hashtable is internally synchronized and can't be unsynchronized.                     |
-| Iterator/ Enumerator | HashMap is traversed by Iterator.	                                                                                                      | Hashtable is traversed by Enumerator and Iterator.                                    |
-| fail-fast            | Iterator in HashMap is fail-fast.	                                                                                                      | Enumerator in Hashtable is not fail-fast.                                             |
-| Inheritance          | HashMap inherits AbstractMap class.	                                                                                                    | Hashtable inherits Dictionary class.                                                  |
-
-```java
-/**
-   A sample Java program to demonstrate HashMap and HashTable 
-**/
-import java.util.*; 
-import java.lang.*; 
-import java.io.*; 
-
-class HashMapHashtableExample  
-{ 
-    public static void main(String args[]) {
-
-        // hashtable  
-        Hashtable<Integer,String> ht = new Hashtable<Integer,String>(); 
-        ht.put(101," ajay"); 
-        ht.put(101,"Vijay"); 
-        ht.put(102,"Ravi"); 
-        ht.put(103,"Rahul"); 
-
-        System.out.println("Hash table: "); 
-        for (Map.Entry m:ht.entrySet()) { 
-            System.out.println(m.getKey()+" "+m.getValue()); 
-        } 
-  
-        // hashmap 
-        HashMap<Integer,String> hm = new HashMap<Integer,String>(); 
-        hm.put(100,"Amit"); 
-        hm.put(104,"Amit");  // hash map allows duplicate values 
-        hm.put(101,"Vijay"); 
-        hm.put(102,"Rahul"); 
-        System.out.println("Hash map: "); 
-        for (Map.Entry m:hm.entrySet()) { 
-            System.out.println(m.getKey()+" "+m.getValue()); 
-        } 
-    } 
-} 
-```
-Output
-```
-Hash table:
-103 Rahul
-102 Ravi
-101 Vijay
-
-Hash map:
-100 Amit
-101 Vijay
-102 Rahul
-104 Amit
 ```
 
 ## Q. Difference between containsKey(), keySet() and values() in HashMap.
@@ -664,7 +602,6 @@ Java **HashMap** and **TreeMap** both are the classes of the Java Collections fr
 
 | Feature                | HashMap                                                                                                         | TreeMap                                                                                   |
 |------------------------|-----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| Implementation         | Hashtable-based                                                                                                 | Red-Black tree-based (self-balancing BST)                                                 |
 | Interfaces Implemented | Map, Cloneable, Serializable                                                                                    | NavigableMap, Cloneable, Serializable                                                     |
 | Null Keys/Values       | Allows one null key and multiple null values                                                                    | Does not allow null keys, but allows multiple null values                                 |
 | Key Type               | HashMap allows heterogeneous elements because it does not perform sorting on keys.                              |  TreeMap allows homogeneous values as a key because of sorting. |
