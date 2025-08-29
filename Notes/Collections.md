@@ -704,18 +704,18 @@ INACTIVE   [project id : 200, project name : Employee Management System,
 
 Java **HashMap** and **TreeMap** both are the classes of the Java Collections framework. Java Map implementation usually acts as a bucketed hash table. When buckets get too large, they get transformed into nodes of **TreeNodes**, each structured similarly to those in java.util.TreeMap.
 
-|HashMap	                       |TreeMap                           |
-|----------------------------------|----------------------------------|
-|Java HashMap is a hashtable based implementation of Map interface.|Java TreeMap is a Tree structure-based implementation of Map interface.|
-|HashMap implements Map, Cloneable, and Serializable interface.|TreeMap implements NavigableMap, Cloneable, and Serializable interface.|
-|HashMap allows a **single** null key and multiple null values.|TreeMap does not allow **null** keys but can have multiple null values.|
-|HashMap allows heterogeneous elements because it does not perform sorting on keys.|TreeMap allows homogeneous values as a key because of sorting.|
-|HashMap is **faster** than TreeMap because it provides constant-time performance that is O(1) for the basic operations like get() and put().|TreeMap is **slow** in comparison to HashMap because it provides the performance of O(log(n)) for most operations like add(), remove() and contains().|
-|The HashMap class uses the **hash table**.	|TreeMap internally uses a **Red-Black** tree, which is a self-balancing Binary Search Tree.|
-|It uses **equals()** method of the Object class to compare keys. The equals() method of Map class overrides it.|It uses the **compareTo()** method to compare keys.|
-|HashMap class contains only basic functions like get(), put(), KeySet(), etc. .|TreeMap class is rich in functionality, because it contains functions like: tailMap(), firstKey(), lastKey(), pollFirstEntry(), pollLastEntry().|
-|Order of elements	HashMap does not maintain any order.|The elements are sorted in natural order (ascending).|
-|The HashMap should be used when we do not require key-value pair in sorted order.|	The TreeMap should be used when we require key-value pair in sorted (ascending) order.|
+| Feature                | HashMap                                                                                                         | TreeMap                                                                                   |
+|------------------------|-----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| Implementation         | Hashtable-based                                                                                                 | Red-Black tree-based (self-balancing BST)                                                 |
+| Interfaces Implemented | Map, Cloneable, Serializable                                                                                    | NavigableMap, Cloneable, Serializable                                                     |
+| Null Keys/Values       | Allows one null key and multiple null values                                                                    | Does not allow null keys, but allows multiple null values                                 |
+| Key Type               | HashMap allows heterogeneous elements because it does not perform sorting on keys.                              |  TreeMap allows homogeneous values as a key because of sorting. |
+| Performance            | Faster (O(1) for get/put)                                                                                       | Slower (O(log n) for get/put)                                                             |
+| Order                  | No order guaranteed                                                                                             | Keys sorted in natural order or by Comparator                                             |
+| Key Comparison         | It uses **equals()** method of the Object class to compare keys. The equals() method of Map class overrides it. | It uses the **compareTo()** method to compare keys. or provided **Comparator**     |
+| Functionality          | Basic map functions: get(), put(), keySet(), etc.                                                               | Richer: tailMap(), firstKey(), lastKey(), pollFirstEntry(), pollLastEntry(), etc.         |
+| Use Case               | When order is not required                                                                                      | When sorted order of keys is required                                                     |
+
 
 # List Interface
 
@@ -1596,8 +1596,6 @@ Collections is an utility class in java.util package. It consists of only static
 |Collections.disjoint()	              |This method returns true if two specified collections have no elements in c|ommon.|
 |Collections.copy()	                  |This method copies all elements from one collection to another collectio|n.|
 |Collections.reverse()	              |This method reverses the order of elements in the specified collection.|
-
-
 
 
 
