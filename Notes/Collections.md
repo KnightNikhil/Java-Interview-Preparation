@@ -15,13 +15,6 @@
 * Collections.sort(list, comparator)
 * TreeMap and TreeSet with custom comparators
 
-✅ 8. Advanced Topics
-* Load Factor, Capacity in HashMap
-* Resize / Rehash logic
-* Difference between identity-based and equals-based maps: HashMap vs IdentityHashMap
-* WeakHashMap and its use with garbage collection
-* EnumMap, EnumSet for performance with Enums
-* Deque vs Queue, Stack deprecation
 
 ✅ 9. Real-World Scenarios & Design
 * Which collection to use when?
@@ -598,6 +591,16 @@ INACTIVE   [project id : 200, project name : Employee Management System,
 | Use Case Example      | Caching user sessions where logical equality of user IDs is important.                           | Caching proxy objects where identity of the proxy instances matters.                            |
 | Key Type              | Heterogeneous elements allowed because it does not perform sorting on keys, use:  Map<Object, String> map = new HashMap<>(); | Heterogeneous elements allowed because it does not perform sorting on keys, use:  Map<Object, String> map = new IdentityHashMap<>(); |
 
+## Q. Explain EnumMap?
+EnumMap is a specialized Map implementation designed specifically for use with enum types as keys. It is part of the Java Collections Framework and provides a highly efficient way to map enum constants to values.
+**Key Features of EnumMap:**
+- **Enum Keys**: EnumMap can only use enum types as keys. This ensures type safety and allows for efficient storage and retrieval of values associated with enum constants.
+- **Performance**: EnumMap is implemented as an array, which makes it very fast for lookups and updates. The performance is generally better than that of HashMap when using enum keys.
+- **Null Values**: EnumMap allows null values, but it does not allow null keys. Attempting to use a null key will result in a NullPointerException.
+- **Iteration Order**: EnumMap maintains the natural order of the enum constants, which is the order in which they are declared in the enum type.
+- **Memory Efficiency**: EnumMap is more memory-efficient than other Map implementations like HashMap because it uses a compact array representation.
+- **Type Safety**: Since EnumMap is parameterized with the enum type, it provides compile-time type safety, preventing the insertion of keys that are not of the specified enum type.
+- **Serialization**: EnumMap implements the Serializable interface, allowing it to be serialized and deserialized.
 
 # List Interface
 
@@ -959,6 +962,19 @@ drawing line in color : BLUE
 | Null Handling                  | Allows a single null value at most                                  | Allows a single null key at most and any number of null values      |
 | Order                          | Does **not** maintain order (except some, e.g., LinkedHashSet)      | Does **not** maintain order (except some, e.g., LinkedHashMap)      |
 | Data Structure Classes         | HashSet, LinkedHashSet, TreeSet, SortedSet, etc.                    | HashMap, TreeMap, WeakHashMap, LinkedHashMap, IdentityHashMap, etc. |
+
+## Q. Difference between EnumMap and EnumSet?
+| Feature            | EnumSet                                         | EnumMap                                         |
+|--------------------|-------------------------------------------------|-------------------------------------------------|
+| Interface          | Implements Set interface                        | Implements Map interface                        |
+| Key/Value          | Stores only enum values (elements)              | Stores key-value pairs where keys are enum values |
+| Duplicates         | Does not allow duplicate elements               | Does not allow duplicate keys, allows duplicate values |
+| Null Values        | Does not allow null values                      | Does not allow null keys, allows null values    |
+| Synchronization    | Not synchronized                               | Not synchronized                               |
+| Order              | Maintains the order of enum declaration         | Maintains the order of enum declaration         |
+| Use Case           | Used when you need a collection of enum values  | Used when you need to associate enum keys with values |
+| Performance        | Generally faster for operations like add, remove, contains | Generally faster due to key-value mapping      |
+
 
 
 ## Q. What is the difference between HashSet and HashMap?
