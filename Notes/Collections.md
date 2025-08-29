@@ -1,32 +1,6 @@
-`ROADMAP`
-
-
-
-
-✅ 6. Java 8+ Enhancements
-* Streams API:
-* filter, map, collect, sorted, forEach
-* Functional Interfaces: Function, Consumer, Predicate
-* Map.forEach, Map.computeIfAbsent(), removeIf() etc.
-
-✅ 7. Comparisons and Custom Sorting
-* Comparable<T> vs Comparator<T>
-* Lambda expressions for sorting
-* Collections.sort(list, comparator)
-* TreeMap and TreeSet with custom comparators
-
-
-✅ 9. Real-World Scenarios & Design
-* Which collection to use when?
-* Replace List<Optional<T>> with filters
-* Use LinkedHashMap for LRU cache
-* Choosing the right Set or Map for memory-sensitive or speed-critical applications
-
----
-
 # Collections Interview Questions
 
-<br/>
+
 
 ## Q. What is Java Collections Framework? List out some benefits of Collections framework?
 
@@ -1829,4 +1803,15 @@ Sorting by Age
 Compare and Swap (CAS) is an atomic instruction used in multithreading to achieve synchronization. It is a lock-free algorithm that allows multiple threads to update a shared variable without using traditional locking mechanisms like mutexes or semaphores.
 
 
+✅ 7. Comparisons and Custom Sorting
+* Comparable<T> vs Comparator<T>
+* Lambda expressions for sorting
+* Collections.sort(list, comparator)
+* TreeMap and TreeSet with custom comparators
 
+
+✅ 9. Real-World Scenarios & Design
+* Which collection to use when?
+* Replace List<Optional<T>> with filters
+* Use LinkedHashMap for LRU cache
+* Choosing the right Set or Map for memory-sensitive or speed-critical applications
