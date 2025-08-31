@@ -62,14 +62,15 @@
 
 `list.removeIf(predicate.negate())` -> `boolean removeIf(Predicate<? super E> filter)` -> Removes all of the elements of this collection that satisfy the given predicate.
 
+Note - Arrays.asList(…) gives you a fixed-size list, so calling removeIf will throw UnsupportedOperationException so use new ArrayList<>(Arrays.asList(...)) to create a modifiable list.
+
 `Collectors.partitioningBy(predicate)` -> `Map<Boolean, List<T>> `
 
 So, partitioningBy is a broader use-case tool than simple .filter(...) or removeIf(...).
 -	If you just want one list → use filter.
 -	If you need both matching & non-matching groups together → use partitioningBy.
 ```java
-Map<Boolean, List<Integer>> partitioned =
-        numbers.stream().collect(Collectors.partitioningBy(isEven));
+Map<Boolean, List<Integer>> partitioned = numbers.stream().collect(Collectors.partitioningBy(isEven));
 System.out.println("Even numbers: " + partitioned.get(true));   // [2, 4, 6, 8, 10]
 System.out.println("Odd numbers: " + partitioned.get(false));  // [1, 3, 5, 7, 9]
         
@@ -86,17 +87,105 @@ System.out.println("Odd numbers: " + partitioned.get(false));  // [1, 3, 5, 7, 9
 
 6.	Find the first element greater than 50 in a list using Stream
 
+`.findFirst()` -> Optional<T> findFirst() -> Returns an Optional describing the first element of this stream, or an empty Optional if the stream is empty.
+- this is better than usimg filter and get(0) as it stops at first match. If the list is [6, 1, 2, ...], it finishes in O(1).
+
+`removeIf` -> O(n) always (checks entire list).
+
+| Approach                                                                 | Modifies Original List | Performance (Time/Space)         | Notes                                                      |
+|--------------------------------------------------------------------------|:---------------------:|:-------------------------------:|------------------------------------------------------------|
+| `numbers.removeIf(pred.negate(n -> n >= 5));`<br>`numbers.getFirst();`   | Yes                   | O(n)                            | Removes elements < 5, then gets first; checks all elements |
+| `numbers.stream().filter(n -> n > 50).findFirst();`                      | No                    | O(k), stops at first match       | Stream, stops at first match, returns Optional             |
 
 7.	Use Optional to avoid NullPointerException
 
+| Approach & Method                              | Null Safety | Conciseness | Custom Default | Exception on Absent | Side Effects | Notes                                      |
+|------------------------------------------------|:-----------:|:-----------:|:--------------:|:------------------:|:------------:|--------------------------------------------|
+| `isPresent() / get()`                          | Yes         | Moderate    | No             | No                 | No           | Classic, can be verbose                    |
+| `ifPresent(Consumer)`                          | Yes         | High        | No             | No                 | No           | Executes action if present                 |
+| `ifPresentOrElse(Consumer, Runnable)`          | Yes         | High        | No             | No                 | No           | Handles both present and absent cases      |
+| `orElse(defaultValue)`                         | Yes         | High        | Yes            | No                 | No           | Returns default if absent                  |
+| `orElseGet(Supplier)`                          | Yes         | High        | Yes (lazy)     | No                 | Yes (if run) | Default computed only if absent            |
+| `orElseThrow(Supplier)`                        | Yes         | High        | No             | Yes                | No           | Throws exception if absent                 |
 
-8.	Sum all elements in an integer list with Stream#reduce
+**Performance:**  
+- All methods are O(1) except for the Supplier in `orElseGet`, which is only invoked if the value is absent.  
+- No significant memory overhead; Optional is a lightweight wrapper.  
+- `ifPresentOrElse` requires Java 9+.
 
+```java
+        Optional<Integer> first = numbers.stream()
+        .filter(n -> n > 5)
+        .findFirst();
+
+        //isPresent
+        if(first.isPresent()) {
+        System.out.println("Found: " + first.get());
+        } else {
+        System.out.println("Not found");
+        }
+        
+        //ifPresent
+        first.ifPresent(v -> System.out.println("Found: " + v));
+
+        //  ifPresentOrElse
+        first.ifPresentOrElse(
+        v -> System.out.println("Found: " + v),
+                () -> System.out.println("Not found")
+        );
+
+        //  Default value
+        int safe = first.orElse(-1);
+
+        // Lazy default
+        int lazy = first.orElseGet(() -> {
+        System.out.println("Computing default...");
+        return 99;});
+
+        //  Throw exception if absent
+        int mustExist = first.orElseThrow(() -> new RuntimeException("No number > 5"));
+```
+
+8.	Sum all elements in an integer list
+
+| Approach                                                        | Returns              | Performance (Time/Space) | Notes                                              |
+|-----------------------------------------------------------------|----------------------|:-----------------------:|----------------------------------------------------|
+| `Optional<Integer> sum = numbers.stream().reduce(Integer::sum)` | Optional<Integer>    | O(n) / O(1)             | Returns Optional, may be empty if list is empty     |
+| `numbers.stream().reduce(0, Integer::sum)`                      | int                  | O(n) / O(1)             | Returns 0 for empty list, avoids Optional           |
+| `numbers.stream().mapToInt(Integer::intValue).sum()`            | int                  | O(n) / O(1)             | Most concise, uses primitive stream, avoids boxing  |
+
+Both approaches avoid returning an `Optional`. The second is the most concise.
+
+`numbers.forEach(x -> sum += x); // ❌ Compilation error`
+- Here, sum is reassigned (sum += x). So it’s no longer “effectively final”.
 
 9.	Collect a list of objects’ names into a Set using Collectors
 
+| Approach                                                                                                       | Performance                | Use Case / Notes                                      |
+|----------------------------------------------------------------------------------------------------------------|----------------------------|-------------------------------------------------------|
+| `Set<String> names = employees.stream().map(Employee::getName).collect(Collectors.toSet())`                    | O(n), concise, no order    | Most common, collects unique names into a Set         |
+| `for (Employee e : employees){ `<br>`  names.add(e.getName()); }`                                              | O(n), explicit, no order   | Useful for custom logic inside loop                   |
+| `Set<String> names = employees.stream().map(Employee::getName).collect(Collectors.toCollection(HashSet::new))` | O(n), explicit Set type    | Specify Set implementation (e.g., HashSet, LinkedHashSet) |
+| `Set<String> names = employees.stream().map(e -> e.getName()).collect(Collectors.toSet())`                     | O(n), concise, no order    | Lambda version, same as method reference              |
+
+**Use Case:**  
+- Use Stream API for concise, functional code and when you want to avoid manual iteration.  
+- Use classic for-loop if you need more control or additional logic per element.  
+- Use `toCollection(...)` to specify a particular Set implementation.
 
 10.	Convert a String list to uppercase using Stream#map
+
+| Approach                                                                                                               | Performance                | Use Case / Notes                                              |
+|------------------------------------------------------------------------------------------------------------------------|----------------------------|---------------------------------------------------------------|
+| `List<String> names = employees.stream().map(e -> e.getName().toUpperCase()).collect(Collectors.toList())`             | O(n), concise, functional | Best for concise, readable code using streams and lambdas     |
+| `names.add(e.getName().toUpperCase())`                                                                                 | O(n), explicit, imperative | Useful when you need more control or additional logic per item |
+| `List<String> names = employees.stream().map(Employee::getName).map(String::toUpperCase).collect(Collectors.toList())` | O(n), concise, functional | Shows method reference chaining, very readable                |
+| `List<String> names = employees.forEach(e -> names.add(e.getName().toUpperCase()))`                                                         | O(n), explicit, imperative | Good for side effects or when collecting into an existing list |
+
+- Between #1 and #3, 
+  - is better for readability and maintainability (clean separation of steps, easier to extend).
+  - #1 is fine for short, simple transformations when you don’t care about chaining clarity.
+
 
 ### Intermediate
 11.	Flatten a list of lists using flatMap
