@@ -188,8 +188,28 @@ Both approaches avoid returning an `Optional`. The second is the most concise.
 
 
 ### Intermediate
-11.	Flatten a list of lists using flatMap
+11.	Flatten a list of lists 
+
+`flatMap()` -> <R> Stream<R> flatMap(Function<? super T,? extends Stream<? extends R>> mapper) -> Returns a stream consisting of the results of replacing each element of this stream with the contents of a mapped stream produced by applying the provided mapping function to each element.
+
+| Approach                                                                                         | Performance                | Notes                                                      |
+|--------------------------------------------------------------------------------------------------|----------------------------|------------------------------------------------------------|
+| `List<Integer> flatList = listOfLists.stream().flatMap(List::stream).collect(Collectors.toList())` | O(n), concise, functional | Most common, concise, uses method reference               |
+| `List<Integer> flatList = new ArrayList<>();`<br>`for (List<Integer> sublist : listOfLists) {`<br>` flatList.addAll(sublist); }` | O(n), explicit, imperative | Classic for-loop, useful for custom logic per sublist |
+| `List<Integer> flatList = listOfLists.stream().flatMap(l -> l.stream()).collect(Collectors.toList())` | O(n), concise, functional | Lambda version, same as method reference                    |
+| `List<Integer> flatList = listOfLists.stream().reduce(new ArrayList<>(), (acc, sublist) -> { acc.addAll(sublist); return acc; });` | O(n), less efficient       | Uses reduce, less common, more complex than flatMap |
+
 12.	Group list of employees by department using Collectors.groupingBy
+
+`Collectors.groupingBy()` -> static <T,K> Collector<T,?,Map<K,List<T>>> groupingBy(Function<? super T,? extends K> classifier) -> Returns a Collector implementing a "group by" operation on input elements of type T, grouping elements according to a classification function, and returning the results in a Map.
+
+| Approach                                                                                                      | Performance                | Notes                                                      |
+|---------------------------------------------------------------------------------------------------------------|----------------------------|------------------------------------------------------------|
+| `Map<String, List<Employee>> grouped = employees.stream().collect(Collectors.groupingBy(Employee::getDepartment))` | O(n), concise, functional | Most common, concise, uses method reference               |
+| `Map<String, List<Employee>> grouped = new HashMap<>();`<br>`for (Employee e : employees) {`<br>` grouped.computeIfAbsent(e.getDepartment(), k -> new ArrayList<>()).add(e); }` | O(n), explicit, imperative | Classic for-loop, useful for custom logic per employee |
+| `Map<String, List<Employee>> grouped = employees.stream().collect(Collectors.groupingBy(e -> e.getDepartment()))` | O(n), concise, functional | Lambda version, same as method reference                    |
+| `Map<String, List<Employee>> grouped = new HashMap<>();`<br>`for (Employee e : employees) {`<br>` String dept = e.getDepartment();`<br>` if (!grouped.containsKey(dept)) { grouped.put(dept, new ArrayList<>()); }`<br>` grouped.get(dept).add(e); }` | O(n), explicit, imperative | | More verbose, manual check for key existence |
+
 13.	Find the max/min salary among employees using Stream
 14.	Use Stream#peek for debugging a pipeline
 15.	Implement a custom functional interface
