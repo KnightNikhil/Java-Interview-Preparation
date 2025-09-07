@@ -1,4 +1,4 @@
-package Recursion;
+package DSA.Recursion;
 
 class PowerXN {
     public static void main(String[] args) {

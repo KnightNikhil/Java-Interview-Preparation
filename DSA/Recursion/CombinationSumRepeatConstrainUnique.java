@@ -1,7 +1,6 @@
-package Recursion;
+package DSA.Recursion;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CombinationSumRepeatConstrainUnique {
 
