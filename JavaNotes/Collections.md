@@ -317,6 +317,27 @@ alex1 hashcode = 1852704110
 alex2 hashcode = 2032578917
 Checking equality between alex1 and alex2 = false
 ```
+```java
+@Override
+public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null || getClass() != obj.getClass()) return false;
+    Student student = (Student) obj;
+    return id == student.id && Objects.equals(name, student.name);
+}
+
+@Override
+public int hashCode() {
+    return Objects.hash(id, name);
+}
+
+```
+Output
+```
+alex1 hashcode = 12345678   // same value for both alex1 and alex2
+alex2 hashcode = 12345678   // same value for both alex1 and alex2
+Checking equality between alex1 and alex2 = true
+```
 
 # Map Interface
 
