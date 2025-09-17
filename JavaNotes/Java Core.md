@@ -1,22 +1,28 @@
 # JAVA CORE
 
-1. Java OOP
-2. Java Memory Model & JVM Internals
-3. equals() & hashCode()
-4. Immutability & Defensive Copying
-5. Serialization & Deserialization
-6. Annotations
-7. Reflection API
-8. ClassLoaders
-9. Enums (Advanced Use)
-10. Functional Programming Concepts
-11. Best Practices & Code Quality
-12. Bonus Interview Topics
+---
 
+## Table of Contents
+
+1. [Java OOP](#java-oop)
+2. [Java Memory Model & JVM Internals](#java-memory-model--jvm-internals)
+3. [equals() & hashCode()](#equals--hashcode)
+4. [Immutability & Defensive Copying](#immutability--defensive-copying)
+5. [Serialization & Deserialization](#serialization--deserialization)
+6. [Annotations](#annotations)
+7. [Reflection API](#reflection-api)
+8. [ClassLoaders](#classloaders)
+9. [Enums (Advanced Use)](#enums-advanced-use)
+10. [Functional Programming Concepts](#functional-programming-concepts)
+11. [Best Practices & Code Quality](#best-practices--code-quality)
+12. [Bonus Interview Topics](#bonus-interview-topics)
+
+---
 
 ## Java OOP
 
-### Class & Object:
+### Class & Object
+
 - A class is a blueprint for creating objects. It defines fields (variables) and methods (functions) to represent behavior.
 - An object is a runtime instance of a class.
 
@@ -25,12 +31,13 @@ class Car {
     String model;
     void drive() { System.out.println("Driving " + model); }
 }
-Car c = new Car(); 
-c.model = "Tesla"; 
+Car c = new Car();
+c.model = "Tesla";
 c.drive();
 ```
 
-### Encapsulation:
+### Encapsulation
+
 - Wrapping data and methods into a single unit and restricting access using access modifiers.
 - Promotes data hiding and control over data.
 
@@ -42,7 +49,8 @@ class Account {
 }
 ```
 
-### Abstraction:
+### Abstraction
+
 - Hides complex implementation details and shows only the necessary features.
 - Achieved via abstract classes and interfaces.
 
@@ -55,7 +63,8 @@ class Car extends Vehicle {
 }
 ```
 
-### Inheritance:
+### Inheritance
+
 - Allows one class to acquire properties and behaviors of another class.
 - Promotes code reusability.
 
@@ -68,7 +77,8 @@ class Dog extends Animal {
 }
 ```
 
-### Polymorphism:
+### Polymorphism
+
 - Ability to take many forms. Two types:
   - Compile-time (method overloading)
   - Runtime (method overriding)
@@ -78,34 +88,37 @@ class Shape { void draw() { System.out.println("Drawing shape"); } }
 class Circle extends Shape { void draw() { System.out.println("Drawing circle"); } }
 ```
 
-### Object class methods:
+### Object class methods
+
 - `equals()` – logical equality
 - `hashCode()` – bucket placement in hashing
 - `toString()` – string representation
 - `clone()` – creates copy of object
 - `finalize()` – called by GC before object removal (deprecated)
 
-⸻
-
+---
 
 ## Java Memory Model & JVM Internals
 
-### JVM Architecture:
+### JVM Architecture
 
 #### ClassLoader Subsystem
+
 - Loads class files (`.class`) and follows the **Parent Delegation Model** to avoid class conflicts and ensure security.
 
 #### Runtime Data Areas
+
 - **Heap:** The main region for dynamic memory allocation where all objects, arrays, and class instances are stored. The heap is managed by the garbage collector and is shared by all threads.
 - **Stack:** Each thread has its own stack that holds method frames, local variables, and references to objects in the heap. This memory is reclaimed automatically when a method call ends or the thread exits.
   - **Young Generation:** Holds newly created objects and is optimized for fast allocation and frequent garbage collections (Minor GCs).
   - **Old Generation (Tenured):** Contains long-lived objects that survived multiple garbage collections.
-  - **Permanent Generation (PermGen) / Metaspace:** Stores class metadata, method objects, and interned strings. (PermGen is replaced by Metaspace in Java 8+.
+  - **Permanent Generation (PermGen) / Metaspace:** Stores class metadata, method objects, and interned strings. (PermGen is replaced by Metaspace in Java 8+.)
 - **Program Counter Register:** Holds the address of the current executing instruction for a thread.
 - **Metaspace:** This area keeps metadata about classes and methods (formerly the PermGen in older JVMs). Class definitions, static variables, and other runtime structures live here.
 - **Native Method Stack:** Used for native code execution via JNI (Java Native Interface). It operates alongside JVM stacks but serves native (non-Java) methods.
 
 #### Execution Engine
+
 - **Interpreter:** Reads and executes bytecode line-by-line.
 - **JIT Compiler (Just-In-Time):** Converts bytecode to native machine code for performance optimization.
 
@@ -113,25 +126,38 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
 
 ### Object Allocation and Garbage Collection
 
-`Object Creation:` When a new object is created, memory is allocated in the heap, and the reference is stored on the stack. For example:
-
-`Garbage Collection:` Java uses automatic garbage collection to free up memory occupied by objects that are no longer referenced. There are several GC algorithms (like G1, ZGC, Shenandoah), and the heap’s generational division optimizes collection by focusing on short-lived objects first—most objects die young and are collected quickly in the young generation. Objects that survive multiple collections are promoted to the old generation, where they are collected less frequently
+- **Object Creation:** When a new object is created, memory is allocated in the heap, and the reference is stored on the stack.
+- **Garbage Collection:** Java uses automatic garbage collection to free up memory occupied by objects that are no longer referenced. There are several GC algorithms (like G1, ZGC, Shenandoah), and the heap’s generational division optimizes collection by focusing on short-lived objects first—most objects die young and are collected quickly in the young generation. Objects that survive multiple collections are promoted to the old generation, where they are collected less frequently.
 
 #### GC Algorithms
+
 - **Serial GC:** Single-threaded, best for small applications.
 - **Parallel GC:** Multi-threaded, optimized for throughput.
 - **CMS (Concurrent Mark-Sweep):** Low-latency GC (deprecated).
 - **G1 GC (Garbage First):** Default collector; splits heap into regions, supports concurrent and parallel collection.
 
 ### JVM Tuning Parameters
+
 - Control memory and GC behavior using flags:
   - `-Xms`: Initial heap size
   - `-Xmx`: Maximum heap size
   - `-XX:+UseG1GC`: Enable G1 Garbage Collector
 
+### String Pool
+- A special memory region in the heap where string literals are stored to optimize memory usage and performance. Strings created using double quotes are interned in the pool, while those created with `new` are not unless explicitly interned using `String.intern()`.
+- Helps avoid duplicate string objects and saves memory.
+- Example:
+```java
+String s1 = "hello"; // in string pool
+String s2 = new String("hello"); // in heap
+String s3 = s2.intern(); // refers to string pool
+System.out.println(s1 == s3); // true
+System.out.println(s1 == s2); // false
+```
 ---
 
 ### Lifecycle of Java memory management
+
 1. JVM Startup and Memory Area Creation - JVM initializes memory areas (Heap, Stack, Metaspace), sized based on JVM arguments like `-Xms` and `-Xmx`
 2. Class Loading - ClassLoader loads classes into Metaspace
 3. Object Creation - New objects are allocated in the Heap, with references stored in the Stack
@@ -142,6 +168,7 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
 ---
 
 ### Parent Delegation Model
+
 - Class loaders delegate loading to parent loaders before attempting to load themselves.
 - Helps maintain consistency and avoids loading same class multiple times.
 
@@ -150,9 +177,11 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
 ### Memory Leaks / OutOfMemoryError (OOM)
 
 #### Memory Leaks
+
 - Caused when references to unused objects are unintentionally retained.
 
 #### Types of OOM Errors
+
 - `java.lang.OutOfMemoryError: Java heap space`
 - `java.lang.OutOfMemoryError: GC overhead limit exceeded`
 - `java.lang.OutOfMemoryError: Metaspace`
@@ -161,28 +190,26 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
 
 ### Interview Follow-up Questions
 
-#### Q1: What are the major components of the JVM?
-**A:** ClassLoader, Runtime Data Areas (Heap, Stack, Metaspace, etc.), Execution Engine (Interpreter & JIT), and Garbage Collector.
+**Q1: What are the major components of the JVM?**  
+A: ClassLoader, Runtime Data Areas (Heap, Stack, Metaspace, etc.), Execution Engine (Interpreter & JIT), and Garbage Collector.
 
-#### Q2: What is the Parent Delegation Model and why is it important?
-**A:** It ensures security and class consistency by allowing child classloaders to defer loading to parent loaders first.
+**Q2: What is the Parent Delegation Model and why is it important?**  
+A: It ensures security and class consistency by allowing child classloaders to defer loading to parent loaders first.
 
-#### Q3: Difference between Heap and Stack memory?
-**A:** Heap stores objects and instances; Stack stores method calls and local variables. Stack is thread-specific, Heap is shared.
+**Q3: Difference between Heap and Stack memory?**  
+A: Heap stores objects and instances; Stack stores method calls and local variables. Stack is thread-specific, Heap is shared.
 
-#### Q4: What causes OutOfMemoryError in Java?
-**A:** It occurs when memory regions (Heap, Metaspace, etc.) are exhausted due to memory leaks or insufficient configuration.
+**Q4: What causes OutOfMemoryError in Java?**  
+A: It occurs when memory regions (Heap, Metaspace, etc.) are exhausted due to memory leaks or insufficient configuration.
 
-#### Q5: How does G1 GC work?
-**A:** G1 divides the heap into regions and collects them in parallel and concurrently, optimizing for predictable pause times.
+**Q5: How does G1 GC work?**  
+A: G1 divides the heap into regions and collects them in parallel and concurrently, optimizing for predictable pause times.
 
 ---
 
-⸻
+## equals() & hashCode()
 
-### equals() & hashCode()
-
-#### Contract:
+### Contract
 
 - Must follow these properties:
   - Reflexive: `a.equals(a)` must be true
@@ -192,19 +219,19 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
   - Null-safe: `a.equals(null)` must return false
 - If `a.equals(b)` is true, then `a.hashCode() == b.hashCode()` must also hold
 
-#### Best Practices:
+### Best Practices
 
 - Avoid using mutable fields in `equals()` and `hashCode()`
 - Use `Objects.equals()` and `Objects.hash()` (Java 7+)
 
-#### HashMap/HashSet:
+### HashMap/HashSet
 
 - **hashCode()** determines the bucket
 - **equals()** determines object equality within the bucket
 
-#### Comparable & Comparator:
+### Comparable & Comparator
 
-- **Comparable**: Defines natural order
+- **Comparable:** Defines natural order
 
 ```java
 class Person implements Comparable<Person> {
@@ -215,160 +242,158 @@ class Person implements Comparable<Person> {
 }
 ```
 
-- **Comparator**: Defines custom order
+- **Comparator:** Defines custom order
 
 ```java
 Comparator<Person> byName = Comparator.comparing(p -> p.name);
 ```
 
-## Q. What is Comparable and Comparator Interface in java?
+---
+
+### Q. What is Comparable and Comparator Interface in java?
 
 Comparable and Comparator both are interfaces and can be used to sort collection elements.
 
-| Comparable	                                                                                                                                             | Comparator                                                                                                                                                        |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Comparable | Comparator |
+|------------|------------|
 | Comparable provides a single sorting sequence. In other words, we can sort the collection on the basis of a single element such as id, name, and price. | The Comparator provides multiple sorting sequences. In other words, we can sort the collection on the basis of multiple elements such as id, name, and price etc. |
-| Comparable affects the original class, i.e., the actual class is modified.                                                                              | Comparator doesn't affect the original class, i.e., the actual class is not modified.                                                                             |
-| Comparable provides compareTo() method to sort elements.                                                                                                | Comparator provides compare() method to sort elements.                                                                                                            |
-| Comparable is present in java.lang package.                                                                                                             | A Comparator is present in the java.util package.                                                                                                                 |
-| We can sort the list elements of Comparable type by Collections.sort(List) method.                                                                      | We can sort the list elements of Comparator type by Collections.sort(List, Comparator) method.                                                                    |
+| Comparable affects the original class, i.e., the actual class is modified. | Comparator doesn't affect the original class, i.e., the actual class is not modified. |
+| Comparable provides compareTo() method to sort elements. | Comparator provides compare() method to sort elements. |
+| Comparable is present in java.lang package. | A Comparator is present in the java.util package. |
+| We can sort the list elements of Comparable type by Collections.sort(List) method. | We can sort the list elements of Comparator type by Collections.sort(List, Comparator) method. |
 
 **Example:**
 
 ```java
-/**
-* Java Program to demonstrate the use of Java Comparable.
-*
-**/
-import java.util.*;  
-import java.io.*;  
+// Java Program to demonstrate the use of Java Comparable.
+import java.util.*;
+import java.io.*;
 
-class Student implements Comparable<Student>{  
-    int rollno;  
-    String name;  
-    int age;  
-    Student(int rollno,String name,int age){  
-        this.rollno=rollno;  
-        this.name=name;  
-        this.age=age;  
-    }  
-    public int compareTo(Student st){  
-        if(age==st.age)  
-          return 0;  
-        else if(age>st.age)  
-          return 1;  
-        else  
-          return -1;  
-    }  
-}  
+class Student implements Comparable<Student>{
+    int rollno;
+    String name;
+    int age;
+    Student(int rollno,String name,int age){
+        this.rollno=rollno;
+        this.name=name;
+        this.age=age;
+    }
+    public int compareTo(Student st){
+        if(age==st.age)
+          return 0;
+        else if(age>st.age)
+          return 1;
+        else
+          return -1;
+    }
+}
 
-// Creating a test class to sort the elements  
-public class ComparableMain {  
-    public static void main(String args[]) {  
-        ArrayList<Student> al=new ArrayList<Student>();  
-        al.add(new Student(101,"Ryan Frey",23));  
-        al.add(new Student(106,"Kenna Bean",27));  
-        al.add(new Student(105,"Jontavius Herrell",21));  
+// Creating a test class to sort the elements
+public class ComparableMain {
+    public static void main(String args[]) {
+        ArrayList<Student> al=new ArrayList<Student>();
+        al.add(new Student(101,"Ryan Frey",23));
+        al.add(new Student(106,"Kenna Bean",27));
+        al.add(new Student(105,"Jontavius Herrell",21));
 
-        Collections.sort(al);  
-        for(Student st:al){  
-            System.out.println(st.rollno+" "+st.name+" "+st.age);  
-        }  
-    }  
-}  
+        Collections.sort(al);
+        for(Student st:al){
+            System.out.println(st.rollno+" "+st.name+" "+st.age);
+        }
+    }
+}
 ```
 
 **Example:** Java Comparator
 
 Student.java
+
 ```java
-class Student {  
-    int rollno;  
-    String name;  
-    int age;  
-    Student(int rollno,String name,int age) {  
-      this.rollno=rollno;  
-      this.name=name;  
-      this.age=age;  
-    }  
+class Student {
+    int rollno;
+    String name;
+    int age;
+    Student(int rollno,String name,int age) {
+      this.rollno=rollno;
+      this.name=name;
+      this.age=age;
+    }
 }
 ```
 
 AgeComparator.java
 
 ```java
-import java.util.*;  
+import java.util.*;
 
-class AgeComparator implements Comparator<Student> {  
-    public int compare(Student s1,Student s2) {  
-    if(s1.age==s2.age)  
-      return 0;  
-    else if(s1.age>s2.age)  
-      return 1;  
-    else  
-      return -1;  
-    } 
-}  
+class AgeComparator implements Comparator<Student> {
+    public int compare(Student s1,Student s2) {
+    if(s1.age==s2.age)
+      return 0;
+    else if(s1.age>s2.age)
+      return 1;
+    else
+      return -1;
+    }
+}
 ```
 
 NameComparator.java
 
 ```java
-import java.util.*;  
+import java.util.*;
 
-class NameComparator implements Comparator<Student> {  
-    public int compare(Student s1,Student s2) {  
-        return s1.name.compareTo(s2.name);  
-    }  
-}  
+class NameComparator implements Comparator<Student> {
+    public int compare(Student s1,Student s2) {
+        return s1.name.compareTo(s2.name);
+    }
+}
 ```
+
 TestComparator.java
 
 ```java
-/**
-* Java Program to demonstrate the use of Java Comparator  
-*
-**/
-import java.util.*;  
-import java.io.*; 
+// Java Program to demonstrate the use of Java Comparator
+import java.util.*;
+import java.io.*;
 
-class TestComparator {  
+class TestComparator {
 
-    public static void main(String args[]) {  
-        // Creating a list of students  
-        ArrayList<Student> al=new ArrayList<Student>();  
-        al.add(new Student(101,"Caelyn Romero",23));  
-        al.add(new Student(106,"Olivea Gold",27));  
-        al.add(new Student(105,"Courtlyn Kilgore",21));  
-        
-        System.out.println("Sorting by Name");  
-        // Using NameComparator to sort the elements  
-        Collections.sort(al,new NameComparator());  
-        // Traversing the elements of list  
-        for(Student st: al){  
-          System.out.println(st.rollno+" "+st.name+" "+st.age);  
-        }  
-        
-        System.out.println("sorting by Age");  
-        // Using AgeComparator to sort the elements  
-        Collections.sort(al,new AgeComparator());  
-        // Travering the list again  
-        for(Student st: al){  
-          System.out.println(st.rollno+" "+st.name+" "+st.age);  
+    public static void main(String args[]) {
+        // Creating a list of students
+        ArrayList<Student> al=new ArrayList<Student>();
+        al.add(new Student(101,"Caelyn Romero",23));
+        al.add(new Student(106,"Olivea Gold",27));
+        al.add(new Student(105,"Courtlyn Kilgore",21));
+
+        System.out.println("Sorting by Name");
+        // Using NameComparator to sort the elements
+        Collections.sort(al,new NameComparator());
+        // Traversing the elements of list
+        for(Student st: al){
+          System.out.println(st.rollno+" "+st.name+" "+st.age);
         }
-    }  
-}  
+
+        System.out.println("sorting by Age");
+        // Using AgeComparator to sort the elements
+        Collections.sort(al,new AgeComparator());
+        // Travering the list again
+        for(Student st: al){
+          System.out.println(st.rollno+" "+st.name+" "+st.age);
+        }
+    }
+}
 ```
 
-Output:
+**Output:**
 
-```java
+```
 Sorting by Name
 106 Caelyn Romero 23
 105 Courtlyn Kilgore 21
 101 Olivea Gold 27
 
-Sorting by Age       
+Sorting by Age
 105 Courtlyn Kilgore 21
 101 Caelyn Romero 23
 106 Olivea Gold 27
@@ -376,80 +401,86 @@ Sorting by Age
 
 ---
 
-⸻
-
 ## Immutability & Defensive Copying
 
-#### What is an Immutable Class?
+### What is an Immutable Class?
 
 An immutable class is one whose state (fields) cannot be changed after the object is created.
+
 - Example: String, LocalDate, Integer.
 - Once constructed, their values never change.
 
-#### Benefits:
-*    Thread-safe by default
-*    Makes reasoning about code easier
-*    Useful in caching and map keys
+#### Benefits
+
+- Thread-safe by default
+- Makes reasoning about code easier
+- Useful in caching and map keys
 
 #### Steps to Make a Class Immutable
 
 Let’s say we want an immutable Person class.
 
-1. Declare the class final
-- Prevents subclassing, because a subclass could add mutable behavior.
+1. **Declare the class final**  
+   Prevents subclassing, because a subclass could add mutable behavior.
+
+    ```java
+    public final class Person {
+    ```
+
+2. **Make all fields private and final**  
+   Prevents external modification.  
+   final ensures they can be assigned only once (in constructor).
+
+    ```java
+    private final String name;
+    private final int age;
+    private final Address address; // mutable object
+    ```
+
+3. **Initialize fields only in constructor**
+
+    ```java
+    public Person(String name, int age, Address address) {
+        this.name = name;
+        this.age = age;
+        // Defensive copy if mutable object
+        this.address = new Address(address.getCity(), address.getZip());
+    }
+    ```
+
+4. **Do not provide setters**  
+   Only getters (read-only).
+
+    ```java
+    public String getName() { return name; }
+    public int getAge() { return age; }
+    ```
+
+5. **Return defensive copies for mutable fields**
+
+    ```java
+    public Address getAddress() {
+        return new Address(address.getCity(), address.getZip()); // defensive copy
+    }
+    ```
+
+   For collections:
+
+    ```java
+    private final List<String> hobbies;
+
+    public List<String> getHobbies() {
+        return new ArrayList<>(hobbies); // return copy
+    }
+    ```
+
+**Complete Example**
+
 ```java
 public final class Person {
-```
-
-2. Make all fields private and final
-- Prevents external modification.
-- final ensures they can be assigned only once (in constructor).
-```java
-private final String name;
-private final int age;
-private final Address address; // mutable object
-```
-
-3. Initialize fields only in constructor
-```java
-public Person(String name, int age, Address address) {
-this.name = name;
-this.age = age;
-// Defensive copy if mutable object
-this.address = new Address(address.getCity(), address.getZip());
-}
-```
-
-4. Do not provide setters
-- Only getters (read-only).
-```java
-public String getName() { return name; }
-public int getAge() { return age; }
-```
-
-5. Return defensive copies for mutable fields
-
-- If a field is a mutable object (like Date, List, custom Address), never return the original reference.
-```java
-public Address getAddress() {
-return new Address(address.getCity(), address.getZip()); // defensive copy
-}
-```
-For collections:
-```java
-private final List<String> hobbies;
-
-public List<String> getHobbies() {
-return new ArrayList<>(hobbies); // return copy
-}
-```
-
-Complete Example
-```java
-public final class Person {
-private final String name;
-private final int age;
-private final Address address; // mutable object
+    private final String name;
+    private final int age;
+    private final Address address; // mutable object
 
     public Person(String name, int age, Address address) {
         this.name = name;
@@ -469,8 +500,8 @@ private final Address address; // mutable object
 
 // Mutable Address class (not immutable!)
 class Address {
-private String city;
-private String zip;
+    private String city;
+    private String zip;
 
     public Address(String city, String zip) {
         this.city = city;
@@ -484,11 +515,9 @@ private String zip;
 }
 ```
 
-⸻
+**How this works**
 
-How this works
 ```java
-
 Address addr = new Address("Pune", "411001");
 Person p1 = new Person("Nikhil", 25, addr);
 
@@ -497,103 +526,114 @@ addr.setCity("Mumbai");
 
 System.out.println(p1.getAddress().getCity()); // Still Pune ✅
 ```
+
 Because we made defensive copies, Person stays immutable.
 
-⸻
+---
 
-Rules Recap
-1.	Make class final.
-2.	Make fields private and final.
-3.	Initialize via constructor only.
-4.	No setters.
-5.	Return defensive copies of mutable fields.
+**Rules Recap**
 
-⸻
+1. Make class final.
+2. Make fields private and final.
+3. Initialize via constructor only.
+4. No setters.
+5. Return defensive copies of mutable fields.
 
-⸻
+---
 
 ## Serialization & Deserialization
 
-Serialization in Java is the process of converting an object’s state into a byte stream, enabling the object to be easily persisted to a file, sent over a network, or stored in memory for later retrieval. Deserialization is the reverse process, where this byte stream is used to recreate the original Java object in memory—retaining its data and structure
+Serialization in Java is the process of converting an object’s state into a byte stream, enabling the object to be easily persisted to a file, sent over a network, or stored in memory for later retrieval. Deserialization is the reverse process, where this byte stream is used to recreate the original Java object in memory—retaining its data and structure.
 
-**Transient Fields**
+### Transient Fields
+
 - The transient keyword is used to prevent sensitive or temporary instance variables from being serialized. When a field is marked as transient, its value is not saved to the serialization stream. During deserialization, the transient field is set to its default value (null, 0, false depending on type) rather than its original value.
 - Transient fields are useful for excluding data that must not be persisted, such as passwords, authentication tokens, runtime states, or derived values.
-- Example:
+
+**Example:**
+
 ```java
 class User implements Serializable {
     String username;
     transient String password; // Will not be serialized
 }
 ```
+
 After deserialization, `password` is set to `null` regardless of its original value.
 
-**Static Fields**
+### Static Fields
+
 - Static fields are class variables, shared across all instances and belonging to the class itself, not individual objects. Because serialization captures the state of an object, and static variables are not part of individual object state, they are never serialized.
 
-**serialVersionUID** 
-- A unique version identifier ensures compatibility between the serialized object and class definition for deserialization. If mismatched, an `InvalidClassException` occurs
+### serialVersionUID
 
-**Associated Objects** 
-- Objects referenced by a serializable class must also be serializable; otherwise, `NotSerializableException` is thrown
+- A unique version identifier ensures compatibility between the serialized object and class definition for deserialization. If mismatched, an `InvalidClassException` occurs.
 
+### Associated Objects
 
-#### Serializable vs Externalizable:
-*    **Serializable:** JVM handles serialization
-*    **Externalizable:** You write writeExternal() and readExternal()
+- Objects referenced by a serializable class must also be serializable; otherwise, `NotSerializableException` is thrown.
 
-Custom Serialization:
+#### Serializable vs Externalizable
+
+- **Serializable:** JVM handles serialization
+- **Externalizable:** You write writeExternal() and readExternal()
+
+**Custom Serialization:**
+
 ```java
 private void writeObject(ObjectOutputStream oos) throws IOException {
-oos.defaultWriteObject();
-oos.writeInt(age * 2); // custom
+    oos.defaultWriteObject();
+    oos.writeInt(age * 2); // custom
 }
 ```
 
 **readResolve():**
-*    Used to maintain Singleton during deserialization
 
+- Used to maintain Singleton during deserialization
 
-⸻
+---
 
 ## Annotations
 
 ### What is an Annotation?
+
 - An annotation in Java is metadata (extra information) about your code.
 - They do not change the execution directly, but compilers, tools, or frameworks can use them to generate code, enforce rules, or provide behavior.
 
 **Example:**
+
 ```java
 @Override
 public String toString() {
     return "Hello";
 }
 ```
-Here, @Override tells the compiler this method must override a superclass method.
 
+Here, @Override tells the compiler this method must override a superclass method.
 
 ### Built-in Annotations in Java
 
-Java provides several built-in annotations:
-
 **Common Annotations**
-1.	**@Override** → Checks if method overrides a superclass method.
-2.	**@Deprecated** → Marks code as deprecated.
-3.	**@SuppressWarnings** → Tells compiler to ignore specific warnings.
-4.	**@FunctionalInterface** → Ensures the interface has exactly one abstract method.
+
+1. **@Override** → Checks if method overrides a superclass method.
+2. **@Deprecated** → Marks code as deprecated.
+3. **@SuppressWarnings** → Tells compiler to ignore specific warnings.
+4. **@FunctionalInterface** → Ensures the interface has exactly one abstract method.
 
 **Meta-Annotations (annotations applied to annotations)**
+
 - **@Target** → Where the annotation can be applied (method, field, class, etc.).
 - **@Retention** → How long the annotation is retained:
-- **SOURCE** → discarded at compile time (e.g., @Override).
-- **CLASS** → kept in .class file but ignored by JVM.
-- **RUNTIME** → available via reflection at runtime (used in frameworks).
+  - **SOURCE** → discarded at compile time (e.g., @Override).
+  - **CLASS** → kept in .class file but ignored by JVM.
+  - **RUNTIME** → available via reflection at runtime (used in frameworks).
 - **@Inherited** → Marks annotation as inheritable by subclasses.
 - **@Documented** → Marks annotation for inclusion in Javadoc.
 
 ### Custom Annotations
 
 You can define your own annotations:
+
 ```java
 import java.lang.annotation.*;
 
@@ -604,12 +644,14 @@ public @interface MyAnnotation {
     int version() default 1;          // Element with default value
 }
 ```
-Usage:
+
+**Usage:**
+
 ```java
 public class Test {
-@MyAnnotation(value = "Hello", version = 2)
-public void sayHello() {
-    System.out.println("Hello with annotation!");   
+    @MyAnnotation(value = "Hello", version = 2)
+    public void sayHello() {
+        System.out.println("Hello with annotation!");
     }
 }
 ```
@@ -620,8 +662,8 @@ public void sayHello() {
 import java.lang.reflect.Method;
 
 public class AnnotationReader {
-public static void main(String[] args) throws Exception {
-Method method = Test.class.getMethod("sayHello");
+    public static void main(String[] args) throws Exception {
+        Method method = Test.class.getMethod("sayHello");
 
         if (method.isAnnotationPresent(MyAnnotation.class)) {
             MyAnnotation annotation = method.getAnnotation(MyAnnotation.class);
@@ -631,48 +673,58 @@ Method method = Test.class.getMethod("sayHello");
     }
 }
 ```
-Output:
+
+**Output:**
+
 ```
 Value: Hello
 Version: 2
 ```
 
 **Real-World Use Cases**
-**1. JUnit**
-```java
-@Test
-public void testMethod() { ... }
-```
-Tells JUnit to treat this as a test case.
 
-**2. Spring**
-```java
-@Autowired
-private UserService service;
+1. **JUnit**
 
-Spring injects a dependency at runtime.
-```
+    ```java
+    @Test
+    public void testMethod() { ... }
+    ```
 
-**3. Hibernate / JPA**
-```java
-@Entity
-@Table(name = "users")
-public class User { ... }
-```
+   Tells JUnit to treat this as a test case.
 
-Marks this class as a DB entity.
+2. **Spring**
 
-**4. Servlets**
-```java
-@WebServlet("/home")
-public class HomeServlet extends HttpServlet { ... }
-```
+    ```java
+    @Autowired
+    private UserService service;
+    ```
+
+   Spring injects a dependency at runtime.
+
+3. **Hibernate / JPA**
+
+    ```java
+    @Entity
+    @Table(name = "users")
+    public class User { ... }
+    ```
+
+   Marks this class as a DB entity.
+
+4. **Servlets**
+
+    ```java
+    @WebServlet("/home")
+    public class HomeServlet extends HttpServlet { ... }
+    ```
 
 **Annotations vs Marker Interfaces**
+
 - **Marker interface** → tagging done at type level, checked by instanceof.
 - **Annotations** → more flexible, can be applied at methods, fields, classes, etc., and can carry extra metadata.
 
 **Summary**
+
 - Annotations = metadata attached to code.
 - Built-in ones: @Override, @Deprecated, @FunctionalInterface.
 - Meta-annotations: @Retention, @Target, @Inherited, @Documented.
@@ -680,11 +732,12 @@ public class HomeServlet extends HttpServlet { ... }
 - Used heavily in frameworks like Spring, Hibernate, JUnit.
 - Accessed via reflection at runtime if @Retention(RUNTIME) is used.
 
-⸻
+---
 
 ## Reflection API
 
-#### Accessing Metadata:
+### Accessing Metadata
+
 ```java
 Class<?> clazz = Class.forName("Employee");
 Method method = clazz.getDeclaredMethod("getName");
@@ -695,56 +748,63 @@ Object result = method.invoke(emp);
 **Use Cases:** Frameworks, Test Automation, Serialization tools
 
 **Drawbacks:**
-*    Slower than direct method calls
-*    Security manager can restrict access
 
-⸻
+- Slower than direct method calls
+- Security manager can restrict access
+
+---
 
 ## ClassLoaders
 
 A ClassLoader in Java is a part of the Java Runtime Environment (JRE) that dynamically loads classes into memory when they are required.
+
 - Java doesn’t load all classes upfront — it loads them on demand using ClassLoaders.
 - ClassLoaders also define the namespace of a class (i.e., where it belongs in the JVM).
 
 ### Types of ClassLoaders
 
 Java uses a delegation hierarchy model for class loading:
-1.	**Bootstrap ClassLoader (Primordial ClassLoader)**
-- Written in native code (C/C++).
-- Loads core Java classes (java.lang.*, java.util.*, etc.) from rt.jar (or jmods in Java 9+).
-- Has no parent.
-2.	**Extension (Platform) ClassLoader**
-- Loads classes from the extension directories (jre/lib/ext or modules in newer Java).
-- Example: classes for cryptography or XML processing.
-3.	**System (Application) ClassLoader**
-- Loads classes from the classpath (-cp or CLASSPATH env variable).
-- This is the default ClassLoader for user-defined classes.
-4.	**Custom ClassLoaders**
-- You can create your own by extending ClassLoader.
-- Useful in frameworks (Spring, Hibernate, Tomcat) and application servers to load/unload classes dynamically (plugins, hot deployment).
+
+1. **Bootstrap ClassLoader (Primordial ClassLoader)**
+  - Written in native code (C/C++).
+  - Loads core Java classes (java.lang.*, java.util.*, etc.) from rt.jar (or jmods in Java 9+).
+  - Has no parent.
+2. **Extension (Platform) ClassLoader**
+  - Loads classes from the extension directories (jre/lib/ext or modules in newer Java).
+  - Example: classes for cryptography or XML processing.
+3. **System (Application) ClassLoader**
+  - Loads classes from the classpath (-cp or CLASSPATH env variable).
+  - This is the default ClassLoader for user-defined classes.
+4. **Custom ClassLoaders**
+  - You can create your own by extending ClassLoader.
+  - Useful in frameworks (Spring, Hibernate, Tomcat) and application servers to load/unload classes dynamically (plugins, hot deployment).
 
 ### Delegation Model (How ClassLoaders Work)
+
 - A ClassLoader first delegates the request to its parent before trying to load a class itself.
 - This prevents duplicate loading of core classes and maintains security.
 
 **Example:**
-If you try to load java.lang.String with your custom ClassLoader:
-1.	Delegated to Bootstrap ClassLoader → finds it → returns.
-2.	Your ClassLoader never gets the chance to override it.
 
-###  Why are ClassLoaders important?
+If you try to load java.lang.String with your custom ClassLoader:
+
+1. Delegated to Bootstrap ClassLoader → finds it → returns.
+2. Your ClassLoader never gets the chance to override it.
+
+### Why are ClassLoaders important?
+
 - Frameworks & Containers (Spring Boot, Tomcat, OSGi) → load/unload classes dynamically.
 - Plugins → allow hot deployment without restarting JVM.
 - Security → prevents overriding of core classes.
 - Interview favorite → ties into JVM internals, reflection, and custom frameworks.
 
-### Custom ClassLoader:
+### Custom ClassLoader
 
 **Steps**
-1.	Create a normal Java class (to be loaded dynamically).
-2.	Write a CustomClassLoader by extending ClassLoader.
-3.	Use it to load the .class file at runtime.
 
+1. Create a normal Java class (to be loaded dynamically).
+2. Write a CustomClassLoader by extending ClassLoader.
+3. Use it to load the .class file at runtime.
 
 **1. A Simple Class (to be loaded)**
 
@@ -758,11 +818,10 @@ public class Hello {
 }
 ```
 
-⸻
-
 **2. Custom ClassLoader**
 
 We’ll read the .class file as bytes, then use defineClass() to load it.
+
 ```java
 import java.io.*;
 
@@ -805,16 +864,15 @@ public class CustomClassLoader extends ClassLoader {
 }
 ```
 
-⸻
-
 **3. Using the Custom ClassLoader**
 
 Now create a runner class:
+
 ```java
 public class LoaderTest {
-public static void main(String[] args) throws Exception {
-// Path to directory containing Hello.class
-String classPath = "/path/to/classes/";
+    public static void main(String[] args) throws Exception {
+        // Path to directory containing Hello.class
+        String classPath = "/path/to/classes/";
 
         // Use custom class loader
         CustomClassLoader loader = new CustomClassLoader(classPath);
@@ -831,34 +889,37 @@ String classPath = "/path/to/classes/";
 }
 ```
 
-Output
-```text
+**Output**
+
+```
 Hello from custom class loader!
 ```
 
-
 **Where this is useful**
+
 - Application Servers (Tomcat, JBoss) → load webapps with separate classloaders.
 - Frameworks (Spring Boot, OSGi) → load/unload plugins dynamically.
 - Hot Reloading → reload a class without restarting JVM.
-
 
 ### What happens if the same class is loaded by two different ClassLoaders?
 
 **Class Identity in Java**
 
 In the JVM, a class is uniquely identified not just by its name (e.g., com.example.MyClass) but by:
+
 ```
 <class name, defining ClassLoader>
 ```
+
 That means:
+
 - If two different ClassLoaders load a class with the same name and package, the JVM treats them as two completely different classes.
 - Even if the .class bytecode is identical, they live in different namespaces.
-
 
 **Example**
 
 Imagine you have Hello.class. If you load it with two different custom ClassLoaders:
+
 ```java
 CustomClassLoader loader1 = new CustomClassLoader("/path/to/classes/");
 CustomClassLoader loader2 = new CustomClassLoader("/path/to/classes/");
@@ -868,12 +929,15 @@ Class<?> class2 = loader2.loadClass("Hello");
 
 System.out.println(class1 == class2); // false
 ```
+
 Even though both refer to Hello, they are not equal because loader1 ≠ loader2.
 
 **Consequence**
 
 This can cause:
+
 - ClassCastException
+
 ```java
 Object obj = class1.newInstance();
 class2.cast(obj); // Throws ClassCastException!
@@ -882,6 +946,7 @@ class2.cast(obj); // Throws ClassCastException!
 Because JVM thinks Hello from loader1 ≠ Hello from loader2.
 
 **Why this Matters**
+
 - Application Servers (Tomcat, JBoss, WebSphere, etc.)
   - Each web application runs in its own ClassLoader.
   - This prevents class conflicts between different apps using different versions of the same library.
@@ -891,44 +956,47 @@ Because JVM thinks Hello from loader1 ≠ Hello from loader2.
   - You can unload and reload a new version of a class by discarding the old ClassLoader and creating a new one.
 
 **Parent Delegation Model Recap**
+
 - By default, a ClassLoader first asks its parent to load a class.
 - This ensures core classes (java.lang.String) are never overridden.
 - Custom loaders can break this delegation model (but it’s dangerous unless you know what you’re doing).
 
 **Summary**
+
 - A class is identified by (name + defining ClassLoader).
 - Same class name loaded by two different ClassLoaders = different classes in JVM.
 - Leads to isolation (good for modularity), but also ClassCastException pitfalls.
 
 #### Tomcat ClassLoader Hierarchy
+
 In Apache Tomcat, the ClassLoader hierarchy is designed to provide isolation between web applications while allowing shared access to common libraries. Here’s a simplified overview of the ClassLoader hierarchy in Tomcat:
 
 When Tomcat starts, it builds a tree of ClassLoaders on top of the JVM ones:
-1.	Bootstrap ClassLoader (JVM)
-- Loads rt.jar / core modules (java.lang.*, java.util.*, etc.).
-- Part of every Java process.
-2.	System (Application) ClassLoader (JVM)
-- Loads classes from the classpath ($JAVA_HOME/lib).
-- Example: If you run Tomcat with java -cp, these classes are here.
-3.	Tomcat-specific ClassLoaders
-- **Common ClassLoader**
-  - Loads classes/jars in CATALINA_HOME/lib.
-  - Shared by Tomcat internals + all deployed webapps.
-  - Example: JDBC drivers, logging frameworks.
-- **Catalina ClassLoader**
-  - Loads Tomcat’s internal server classes (org.apache.catalina.*, etc.).
-  - Isolated so webapps cannot override Tomcat’s core.
-- **Shared ClassLoader**
-  - (Optional, depending on Tomcat version/config).
-  - Loads jars that should be shared across multiple apps but not part of Tomcat itself.
-- **WebApp ClassLoader (per deployed app!)**
-  - Loads classes from /WEB-INF/classes and /WEB-INF/lib/*.jar.
-  - Each webapp gets its own loader → isolation.
-  - Two apps can use different versions of the same library without conflicts.
 
-⸻
+1. **Bootstrap ClassLoader (JVM)**
+  - Loads rt.jar / core modules (java.lang.*, java.util.*, etc.).
+  - Part of every Java process.
+2. **System (Application) ClassLoader (JVM)**
+  - Loads classes from the classpath ($JAVA_HOME/lib).
+  - Example: If you run Tomcat with java -cp, these classes are here.
+3. **Tomcat-specific ClassLoaders**
+  - **Common ClassLoader**
+    - Loads classes/jars in CATALINA_HOME/lib.
+    - Shared by Tomcat internals + all deployed webapps.
+    - Example: JDBC drivers, logging frameworks.
+  - **Catalina ClassLoader**
+    - Loads Tomcat’s internal server classes (org.apache.catalina.*, etc.).
+    - Isolated so webapps cannot override Tomcat’s core.
+  - **Shared ClassLoader**
+    - (Optional, depending on Tomcat version/config).
+    - Loads jars that should be shared across multiple apps but not part of Tomcat itself.
+  - **WebApp ClassLoader (per deployed app!)**
+    - Loads classes from /WEB-INF/classes and /WEB-INF/lib/*.jar.
+    - Each webapp gets its own loader → isolation.
+    - Two apps can use different versions of the same library without conflicts.
 
 **Diagram**
+
 ```
 Bootstrap ClassLoader
   ↑
@@ -942,19 +1010,21 @@ WebApp ClassLoader(s) ← (WEB-INF/classes, WEB-INF/lib)
 ```
 
 **Why this matters**
-1.	Isolation
-- App A can use commons-logging-1.1.jar
-- App B can use commons-logging-1.2.jar
-→ No conflict because they’re loaded in different WebApp ClassLoaders.
-2.	Security
-- A webapp cannot override Tomcat internals (org.apache.catalina.*) since those are loaded higher up (Catalina ClassLoader).
-3.	Hot Deployment
-- When you redeploy a webapp, Tomcat discards the old WebApp ClassLoader and creates a new one.
-- This avoids memory leaks, but if references to old classes remain (e.g., static singletons, threads), you get PermGen/Metaspace leaks.
+
+1. **Isolation**
+  - App A can use commons-logging-1.1.jar
+  - App B can use commons-logging-1.2.jar
+  - No conflict because they’re loaded in different WebApp ClassLoaders.
+2. **Security**
+  - A webapp cannot override Tomcat internals (org.apache.catalina.*) since those are loaded higher up (Catalina ClassLoader).
+3. **Hot Deployment**
+  - When you redeploy a webapp, Tomcat discards the old WebApp ClassLoader and creates a new one.
+  - This avoids memory leaks, but if references to old classes remain (e.g., static singletons, threads), you get PermGen/Metaspace leaks.
 
 **Real-World Example**
 
 Imagine you deploy two WARs:
+
 - App1.war → WEB-INF/lib/mysql-connector-5.1.jar
 - App2.war → WEB-INF/lib/mysql-connector-8.0.jar
 
@@ -963,78 +1033,80 @@ Even though both define com.mysql.jdbc.Driver, they’re loaded by different Web
 If instead you put mysql-connector.jar in CATALINA_HOME/lib, both apps would share the same driver → useful for connection pooling.
 
 **Summary**
+
 - Tomcat builds a ClassLoader tree on top of JVM loaders.
 - Each webapp has its own WebApp ClassLoader → isolation.
 - Shared libs go in CATALINA_HOME/lib.
 - Prevents conflicts but can cause memory leaks if class references escape after undeploy.
 
-⸻
+---
 
 ## Enums (Advanced Use)
 
-**Enums with Methods:**
+### Enums with Methods
+
 ```java
 public enum Operation {
-ADD { public int apply(int x, int y) { return x + y; } },
-SUB { public int apply(int x, int y) { return x - y; } };
-public abstract int apply(int x, int y);
+    ADD { public int apply(int x, int y) { return x + y; } },
+    SUB { public int apply(int x, int y) { return x - y; } };
+    public abstract int apply(int x, int y);
 }
 ```
 
+### EnumSet/EnumMap
 
-**EnumSet/EnumMap:**
-*    High-performance specialized collections for enums
+- High-performance specialized collections for enums
 
-**Strategy Pattern:**
-*    Enums encapsulate behaviors without if-else
+### Strategy Pattern
 
+- Enums encapsulate behaviors without if-else
 
 ### ENUM and interface implementation
 
 In Java an enum can implement interfaces.
 
-Here’s the breakdown:
+#### Why is it possible?
 
-**Why is it possible?**
 - An enum in Java is just a special class that extends java.lang.Enum.
 - Since classes can implement interfaces, so can enums.
 - But enums cannot extend another class (because they already extend Enum).
 
+#### Example 1: Enum implementing an interface
 
-**Example 1: Enum implementing an interface**
 ```java
 interface Operation {
     int apply(int a, int b);
 }
 
 enum CalculatorOperation implements Operation {
-  ADD {
-      public int apply(int a, int b) {
-      return a + b;
-      }
-  },
-  SUBTRACT {
-      public int apply(int a, int b) {
-      return a - b;
-      }
-  },
-  MULTIPLY {
-      public int apply(int a, int b) {
-      return a * b;
-      }
-  }
+    ADD {
+        public int apply(int a, int b) {
+            return a + b;
+        }
+    },
+    SUBTRACT {
+        public int apply(int a, int b) {
+            return a - b;
+        }
+    },
+    MULTIPLY {
+        public int apply(int a, int b) {
+            return a * b;
+        }
+    }
 }
 
 public class Main {
-public static void main(String[] args) {
-    System.out.println(CalculatorOperation.ADD.apply(5, 3));      // 8
-    System.out.println(CalculatorOperation.SUBTRACT.apply(5, 3)); // 2
-    System.out.println(CalculatorOperation.MULTIPLY.apply(5, 3)); // 15
-  }
+    public static void main(String[] args) {
+        System.out.println(CalculatorOperation.ADD.apply(5, 3));      // 8
+        System.out.println(CalculatorOperation.SUBTRACT.apply(5, 3)); // 2
+        System.out.println(CalculatorOperation.MULTIPLY.apply(5, 3)); // 15
+    }
 }
 ```
 
-**Example 2: Using marker interface**
+#### Example 2: Using marker interface
+
 ```java
 interface Marker {}
 
@@ -1043,11 +1115,13 @@ enum Status implements Marker {
     INACTIVE
 }
 ```
+
 Here, the enum doesn’t define any method but still implements the interface.
 
-⸻
+---
 
 ### What is a Marker Interface?
+
 - A marker interface is an interface with no methods or fields.
 - Its only purpose is to “mark” or “tag” a class, so the runtime (JVM) or frameworks can treat it specially.
 - Example in JDK:
@@ -1056,18 +1130,19 @@ Here, the enum doesn’t define any method but still implements the interface.
 
 Marker interfaces are a way of adding metadata to a class (before Java introduced annotations).
 
-**Example 1: Built-in marker interface (Serializable)**
+#### Example 1: Built-in marker interface (Serializable)
+
 ```java
 import java.io.*;
 
 class Person implements Serializable {   // Marker interface
-  private String name;
-  Person(String name) {
-      this.name = name;
-  }
-  public String getName() {
-      return name;
-      }
+    private String name;
+    Person(String name) {
+        this.name = name;
+    }
+    public String getName() {
+        return name;
+    }
 }
 
 public class MarkerDemo {
@@ -1090,25 +1165,28 @@ public class MarkerDemo {
     }
 }
 ```
+
 Here:
+
 - Person implements Serializable but no methods are required.
 - JVM checks: “Oh, this class is Serializable → allow serialization.”
 - If you don’t mark it, you’ll get NotSerializableException.
 
-**Example 2: Custom marker interface**
+#### Example 2: Custom marker interface
 
 Let’s say you want to mark classes that are “important”.
+
 ```java
 // Custom marker interface
 interface Important { }
 
 // Two classes
 class Report implements Important {
-// some code
+    // some code
 }
 
 class Draft {
-// some code
+    // some code
 }
 
 public class MarkerDemo2 {
@@ -1126,40 +1204,46 @@ public class MarkerDemo2 {
     }
 }
 ```
-Output
+
+**Output**
+
 ```
 Report is IMPORTANT!
 Draft is not important.
 ```
 
 Here:
+
 - Important interface has no methods.
 - But by marking Report with it, we can use instanceof to treat it differently at runtime.
 
-**Why use marker interfaces?**
-1.	Metadata before annotations: Before Java 5 annotations, marker interfaces were the only way to give “extra information” to the JVM or frameworks.
-2.	Type safety: Unlike annotations, marker interfaces participate in type checking at compile time.
-      - Example: You cannot accidentally pass a Draft into a method expecting Important.
-3.	Framework usage: Many libraries check for marker interfaces to apply special behavior.
+#### Why use marker interfaces?
 
-**Marker Interfaces vs Annotations**
+1. Metadata before annotations: Before Java 5 annotations, marker interfaces were the only way to give “extra information” to the JVM or frameworks.
+2. Type safety: Unlike annotations, marker interfaces participate in type checking at compile time.
+  - Example: You cannot accidentally pass a Draft into a method expecting Important.
+3. Framework usage: Many libraries check for marker interfaces to apply special behavior.
+
+#### Marker Interfaces vs Annotations
+
 - Today, annotations (like @Deprecated, @Override, @Entity) are more common.
 - Marker interfaces are still relevant when you want type checking along with marking.
 
-**Key Points**
-1.	An enum can implement one or more interfaces.
-2.	If the interface has abstract methods, each enum constant must implement them (unless the enum provides a common implementation).
-3.	This is often used in strategy-like patterns.
+#### Key Points
 
+1. An enum can implement one or more interfaces.
+2. If the interface has abstract methods, each enum constant must implement them (unless the enum provides a common implementation).
+3. This is often used in strategy-like patterns.
 
 ### Enums implementing marker interfaces
 
 Enums can implement marker interfaces just like classes.
 
-**Use cases:**
-1.	Tagging / grouping enums for common treatment.
-2.	Framework support (serialization, persistence, reflection-based logic).
-3.	Type safety → restrict methods to accept only certain enums.
+#### Use cases
+
+1. Tagging / grouping enums for common treatment.
+2. Framework support (serialization, persistence, reflection-based logic).
+3. Type safety → restrict methods to accept only certain enums.
 
 ```java
 // Marker interface
@@ -1188,6 +1272,7 @@ public class TestEnumMarker {
     }
 }
 ```
+
 ---
 
 ## Functional Programming Concepts
@@ -1196,8 +1281,8 @@ public class TestEnumMarker {
 
 A pure function:
 
-* Has no side effects (does not modify global state or parameters).
-* Always returns the same output for the same input.
+- Has no side effects (does not modify global state or parameters).
+- Always returns the same output for the same input.
 
 **Example:**
 
@@ -1209,7 +1294,7 @@ int square(int x) {
 
 **Follow-up Questions:**
 
-* *Why are pure functions important in multi-threading?*
+- *Why are pure functions important in multi-threading?*  
   Because they’re thread-safe by design—no shared mutable state.
 
 ---
@@ -1218,8 +1303,8 @@ int square(int x) {
 
 These are functions that:
 
-* Take other functions as arguments.
-* Or return functions as results.
+- Take other functions as arguments.
+- Or return functions as results.
 
 **Example:**
 
@@ -1232,17 +1317,17 @@ List<Integer> result = list.stream().map(square).collect(Collectors.toList());
 
 **Follow-up:**
 
-* *What Java features support higher-order functions?*
+- *What Java features support higher-order functions?*  
   Lambdas and functional interfaces like `Function<T,R>`, `Consumer<T>`, `Supplier<T>`.
 
 ---
 
 ### Currying and Function Composition
 
-**Currying:**
+**Currying:**  
 Breaking a function that takes multiple arguments into a series of unary functions.
 
-**Composition:**
+**Composition:**  
 Combining two functions: `f(g(x))`.
 
 **Example:**
@@ -1256,15 +1341,15 @@ Function<Integer, Integer> composed = add2.andThen(times3); // (x + 2) * 3
 
 **Follow-up:**
 
-* *How do you compose predicates?*
+- *How do you compose predicates?*  
   Using `Predicate#and`, `Predicate#or`.
 
 ---
 
 ### Functional vs Imperative Style
 
-* **Imperative:** You tell how to do it (loops, control flow).
-* **Functional:** You declare what to do (Streams, lambdas).
+- **Imperative:** You tell how to do it (loops, control flow).
+- **Functional:** You declare what to do (Streams, lambdas).
 
 **Example:**
 
@@ -1283,12 +1368,13 @@ int sum = list.stream().mapToInt(Integer::intValue).sum();
 
 ### Clean Code Principles
 
-* Meaningful names
-* Small, focused methods
-* Single Responsibility Principle
-* Avoid duplication
+- Meaningful names
+- Small, focused methods
+- Single Responsibility Principle
+- Avoid duplication
 
 **Example:**
+
 Avoid:
 
 ```java
@@ -1305,9 +1391,9 @@ public void encryptUserDetails(UserData userData) { ... }
 
 ### Defensive Programming
 
-* Check for nulls
-* Validate inputs
-* Fail fast with informative errors
+- Check for nulls
+- Validate inputs
+- Fail fast with informative errors
 
 **Example:**
 
@@ -1319,18 +1405,18 @@ Objects.requireNonNull(userId, "User ID must not be null");
 
 ### Design for Testability
 
-* Avoid static methods
-* Inject dependencies
-* Separate concerns
-* Return predictable outputs
+- Avoid static methods
+- Inject dependencies
+- Separate concerns
+- Return predictable outputs
 
 ---
 
 ### Idiomatic Java
 
-* Use enhanced `for` loop or streams
-* Prefer `StringBuilder` for concatenation
-* Use `Optional` instead of nulls when suitable
+- Use enhanced `for` loop or streams
+- Prefer `StringBuilder` for concatenation
+- Use `Optional` instead of nulls when suitable
 
 ---
 
@@ -1340,11 +1426,11 @@ Objects.requireNonNull(userId, "User ID must not be null");
 
 ### ✅ `final`, `static`, `transient`, `volatile`, `synchronized`
 
-* `final`: Can’t reassign (variables), extend (classes), override (methods)
-* `static`: Belongs to class, not instance
-* `transient`: Skips field during serialization
-* `volatile`: Ensures visibility across threads
-* `synchronized`: Ensures atomicity and mutual exclusion
+- `final`: Can’t reassign (variables), extend (classes), override (methods)
+- `static`: Belongs to class, not instance
+- `transient`: Skips field during serialization
+- `volatile`: Ensures visibility across threads
+- `synchronized`: Ensures atomicity and mutual exclusion
 
 ---
 
@@ -1362,8 +1448,8 @@ Use `.equals()` for comparison.
 
 ### String Intern Pool
 
-* String literals are interned by default.
-* `String.intern()` adds strings to the pool.
+- String literals are interned by default.
+- `String.intern()` adds strings to the pool.
 
 **Example:**
 
@@ -1377,16 +1463,16 @@ System.out.println(a == b); // true
 
 ### StringBuilder vs StringBuffer vs `+`
 
-* `StringBuilder`: Fast, not thread-safe.
-* `StringBuffer`: Thread-safe but slower.
-* `+`: Concatenation (converted to StringBuilder internally in most cases).
+- `StringBuilder`: Fast, not thread-safe.
+- `StringBuffer`: Thread-safe but slower.
+- `+`: Concatenation (converted to StringBuilder internally in most cases).
 
 ---
 
 ### Compile-time vs Runtime Polymorphism
 
-* **Compile-time**: Method overloading
-* **Runtime**: Method overriding via inheritance
+- **Compile-time**: Method overloading
+- **Runtime**: Method overriding via inheritance
 
 ---
 
@@ -1404,33 +1490,34 @@ public static void premain(String args, Instrumentation inst) {
 
 ---
 
-⸻
+---
 
-Follow-Up Interview Questions (Answered)
-1.	**How does the JVM handle class unloading?**
-*    Classes are unloaded when their classloader becomes unreachable and GC collects it. Mostly happens in dynamic environments (e.g., Tomcat).
-2.	**Can you override equals() without hashCode()?**
-*    Yes, but violates contract. Hash-based collections (HashMap/HashSet) will misbehave—equal objects may go into different buckets.
-3.	**How would you implement a cache using EnumMap?**
-*    If keys are enums:
-```java
-enum Status { ACTIVE, INACTIVE }
-EnumMap<Status, String> cache = new EnumMap<>(Status.class);
-```
-*    Faster and memory-efficient vs HashMap.
-4.	**Explain use cases of sealed classes in domain modeling.**
-*    Domain boundaries (e.g., only Circle, Rectangle are valid Shape types). Prevents arbitrary extension and improves pattern matching.
-5.	**What are the performance implications of Reflection?**
-*    Slower than direct calls due to dynamic dispatch. Also breaks compiler optimizations and introduces security risks.
-6.	**How does Java ensure backward compatibility in Serialization?**
-*    Via serialVersionUID. If the UID matches between sender/receiver class, deserialization succeeds even if class evolved.
-7.	**How is ClassLoader hierarchy useful for application isolation?**
-*    Different classloaders load the same class name in isolated ways, allowing independent libraries/apps in the same JVM (e.g., servlet containers).
-8.	**What is the difference between compile-time and runtime polymorphism?**
-*    Compile-time: Overloading; resolved at compile-time. Runtime: Overriding; resolved via dynamic dispatch.
-9.	**How do records compare to traditional POJOs?**
-*    Records auto-generate boilerplate (constructor, getters, equals/hashCode, toString) and are immutable by default.
-10.	**What are the trade-offs of immutability in large-scale systems?**
-*    Pros: Thread-safety, predictability, cache-safe. Cons: Object creation overhead, more GC pressure, harder modeling for certain mutable domains.
+## Follow-Up Interview Questions (Answered)
 
+1. **How does the JVM handle class unloading?**
+  - Classes are unloaded when their classloader becomes unreachable and GC collects it. Mostly happens in dynamic environments (e.g., Tomcat).
+2. **Can you override equals() without hashCode()?**
+  - Yes, but violates contract. Hash-based collections (HashMap/HashSet) will misbehave—equal objects may go into different buckets.
+3. **How would you implement a cache using EnumMap?**
+  - If keys are enums:
+    ```java
+    enum Status { ACTIVE, INACTIVE }
+    EnumMap<Status, String> cache = new EnumMap<>(Status.class);
+    ```
+  - Faster and memory-efficient vs HashMap.
+4. **Explain use cases of sealed classes in domain modeling.**
+  - Domain boundaries (e.g., only Circle, Rectangle are valid Shape types). Prevents arbitrary extension and improves pattern matching.
+5. **What are the performance implications of Reflection?**
+  - Slower than direct calls due to dynamic dispatch. Also breaks compiler optimizations and introduces security risks.
+6. **How does Java ensure backward compatibility in Serialization?**
+  - Via serialVersionUID. If the UID matches between sender/receiver class, deserialization succeeds even if class evolved.
+7. **How is ClassLoader hierarchy useful for application isolation?**
+  - Different classloaders load the same class name in isolated ways, allowing independent libraries/apps in the same JVM (e.g., servlet containers).
+8. **What is the difference between compile-time and runtime polymorphism?**
+  - Compile-time: Overloading; resolved at compile-time. Runtime: Overriding; resolved via dynamic dispatch.
+9. **How do records compare to traditional POJOs?**
+  - Records auto-generate boilerplate (constructor, getters, equals/hashCode, toString) and are immutable by default.
+10. **What are the trade-offs of immutability in large-scale systems?**
+  - Pros: Thread-safety, predictability, cache-safe. Cons: Object creation overhead, more GC pressure, harder modeling for certain mutable domains.
 
+---
