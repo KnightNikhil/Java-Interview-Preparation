@@ -714,4 +714,152 @@ class UserRepositoryTest {
 - Improve test quality to kill more mutants
 
 ---
+
+### Junit 4 vs 5
+
+| Aspect	                 | JUnit 4	                                                                      | JUnit 5 |
+|-------------------------|-------------------------------------------------------------------------------|-------------------------------|
+| Architecture	           | Single, monolithic junit-4.x.jar.	                                            | Modular:  1. JUnit Platform (launching framework)  2. JUnit Jupiter (new programming & extension model)  3. JUnit Vintage (to run JUnit 3/4 tests).| 
+| Annotations	            | - @Test  - @Before  - @After  - @BeforeClass  - @AfterClass  - @Ignore	       | - @Test  - @BeforeEach  - @AfterEach  - @BeforeAll  - @AfterAll  - @Disabled  - New: @DisplayName, @Nested, @Tag, @ParameterizedTest| 
+| Test Class Visibility	  | Test classes & methods must be public.	                                       | Can be package-private (no modifier). Public not required.| 
+| Assertions	             | From org.junit.Assert (e.g. assertEquals).	                                   | From org.junit.jupiter.api.Assertions.  Also supports lambdas & better messages: assertThrows(Exception.class, () -> {...});| 
+| Assumptions	            | Assume.assumeTrue().	org.junit.jupiter.api.Assumptions with lambdas.          |
+| Parameterized Tests	    | @RunWith(Parameterized.class) → verbose & awkward.	                           | Native @ParameterizedTest with flexible sources (@ValueSource, @CsvSource, @MethodSource, etc.).| 
+| Extensions	             | @RunWith (only one per class).	                                               | New extension model (@ExtendWith), allows multiple extensions (e.g. Spring, Mockito). Much more powerful.| 
+| Test Suites	            | @RunWith(Suite.class) & @SuiteClasses.	                                       | No special suite class. Use build tool (Maven/Gradle) or tags (@Tag) to group tests.| 
+| Static Imports	         | Assertions often used with static import (import static org.junit.Assert.*).	 | Same idea, but from Assertions API.| 
+| Execution	              | Only via JUnit Runner.	                                                       | More flexible: JUnit Platform supports running tests from IDEs, build tools, or custom launchers.| 
+| Dynamic Tests	          | Not supported.	                                                               | Supported: @TestFactory lets you generate tests at runtime.| 
+| Backward Compatibility	 | Only JUnit 4 tests.	                                                          | JUnit Vintage lets you run old JUnit 3/4 tests on JUnit 5 platform.| 
+
+
+**Example Differences**
+
+JUnit 4
+```java
+import org.junit.*;
+
+public class CalculatorTest {
+@BeforeClass
+public static void initAll() { ... }
+
+    @Before
+    public void init() { ... }
+
+    @Test
+    public void testAddition() {
+        Assert.assertEquals(4, 2 + 2);
+    }
+
+    @After
+    public void tearDown() { ... }
+
+    @AfterClass
+    public static void tearDownAll() { ... }
+}
+
 ```
+JUnit 5
+
+```java
+import org.junit.jupiter.api.*;
+
+class CalculatorTest {   // No need for public
+@BeforeAll
+static void initAll() { ... }
+
+    @BeforeEach
+    void init() { ... }
+
+    @Test
+    void testAddition() {
+        Assertions.assertEquals(4, 2 + 2);
+    }
+
+    @AfterEach
+    void tearDown() { ... }
+
+    @AfterAll
+    static void tearDownAll() { ... }
+}
+
+```
+
+**Key Takeaway**
+- **JUnit 4** → Simple but rigid (everything public, single runner, limited extensions).
+- **JUnit 5 →** Modern, modular, more expressive (package-private allowed, parameterized tests built-in, extension model, dynamic tests).
+
+
+### Java Access Modifiers 
+
+In Java, you can mark classes/methods with different visibility levels:
+	-	**public** → visible everywhere.
+	-	**protected** → visible in the same package + subclasses.
+	-	**private** → visible only inside the same class.
+	-	**no modifier (default) → called package-private** → visible only within the same package.
+
+**Example:**
+```java
+class MyClass {   // no modifier → package-private
+    void myMethod() {   // no modifier → package-private
+        System.out.println("Hello");
+    }
+}
+```
+
+Here, MyClass and myMethod() are accessible only inside the same package.
+
+
+**JUnit 4 vs JUnit 5 wrt access modifiers**
+
+JUnit 4
+-	Required public classes and public test methods.
+-	Example:
+
+```java
+public class MyTests {
+    @Test
+    public void testSomething() { ... }
+}
+```
+-	If class/methods weren’t public, tests wouldn’t run because JUnit 4’s reflection rules were stricter.
+
+
+JUnit 5 (Jupiter)
+-	Relaxed rules to allow package-private classes and methods.
+-	Example:
+```java
+class MyTests {   // package-private class
+    @Test
+    void testAddition() {   // package-private method
+        assertEquals(4, 2 + 2);
+    }
+}
+```
+
+✅ This works in JUnit 5.
+❌ This fails in JUnit 4 (test won’t even be discovered).
+
+**Why did JUnit 5 allow package-private?**
+
+Two main reasons:
+1.	Cleaner test code – You don’t need to expose test classes/methods publicly since they’re only meant for internal testing.
+2.	Reflection in JUnit 5 uses the java.lang.reflect API with relaxed accessibility rules → it can call methods even if they’re package-private.
+
+**What about private?**
+-	If you make a test class or test method private, even JUnit 5 cannot access it → tests won’t run.
+-	Example:
+```java
+private class MyTests {  // ❌ Won’t run
+    @Test
+    private void testSomething() {  // ❌ Won’t run
+        ...
+    }
+}
+```
+
+**Summary**
+-	JUnit 4 → Only public classes & methods are allowed.
+-	JUnit 5 → public or package-private (default modifier) classes & methods work.
+-	private → Never works (JUnit can’t see them).
+
