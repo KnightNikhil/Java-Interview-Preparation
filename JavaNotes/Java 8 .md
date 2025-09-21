@@ -1,6 +1,18 @@
 # Java Lambda Expressions – Complete Guide
 
-## 🔹 1. Overview
+## Table of Contents
+- [1. Overview](#1-overview)
+- [2. Java Functional Interfaces – Complete Guide](#java-functional-interfaces--complete-guide)
+- [3. Java Streams API](#java-streams-api)
+- [4. Java Method and Constructor References](#java-method-and-constructor-references)
+- [5. Java Default and Static Methods in Interfaces](#java-default-and-static-methods-in-interfaces)
+- [6. Java Optional Class](#java-optional-class)
+- [7. Java Date and Time API (java.time)](#java-date-and-time-api-javatime)
+- [8. Java Parallel Streams](#java-parallel-streams)
+
+ 
+
+##   1. Overview
 
 A **lambda expression** is a short block of code which takes in parameters and returns a value. It can be used to provide the implementation of a **functional interface**.
 
@@ -8,15 +20,15 @@ A **lambda expression** is a short block of code which takes in parameters and r
 
 ---
 
-## 🔹 2. Syntax and Usage
+##   2. Syntax and Usage
 
-### ✅ Syntax:
+### Syntax:
 ```java
 (parameters) -> expression
 (parameters) -> { statements; }
 ```
 
-### ✅ Examples:
+### Examples:
 
 #### Example 1: Simple Lambda
 ```java
@@ -38,14 +50,14 @@ Comparator<String> comparator = (s1, s2) -> {
 };
 ```
 
-### ✅ When to Use:
+### When to Use:
 - Implementing **functional interfaces**
 - **Inline behavior** without boilerplate code
 - Common with **Streams**, **Collections**, **Callbacks**
 
 ---
 
-## 🔹 3. Benefits over Anonymous Classes
+##   3. Benefits over Anonymous Classes
 
 | Feature | Anonymous Class | Lambda |
 |--------|------------------|--------|
@@ -54,7 +66,7 @@ Comparator<String> comparator = (s1, s2) -> {
 | Readability | Moderate | High |
 | Performance | Slightly slower | Better with `invokedynamic` |
 
-### ✅ Comparison Example:
+### Comparison Example:
 ```java
 // Anonymous class
 Runnable r1 = new Runnable() {
@@ -69,12 +81,12 @@ Runnable r2 = () -> System.out.println("Running!");
 
 ---
 
-## 🔹 4. Used with Collections & Functional Interfaces
+##   4. Used with Collections & Functional Interfaces
 
 > A **Functional Interface** is an interface with exactly one abstract method.  
 Examples: `Runnable`, `Comparator`, `Predicate`, `Function`, `Consumer`, `Supplier`.
 
-### ✅ Examples:
+### Examples:
 
 #### forEach with List
 ```java
@@ -102,7 +114,7 @@ map.forEach((key, value) -> System.out.println(key + "=" + value));
 
 ---
 
-## 🔹 5. Why Use Lambda Expressions?
+##   5. Why Use Lambda Expressions?
 
 | Use Case | Lambda Advantage |
 |----------|------------------|
@@ -114,16 +126,16 @@ map.forEach((key, value) -> System.out.println(key + "=" + value));
 
 ---
 
-## 🔹 6. Interview Questions and Answers
+##   6. Interview Questions and Answers
 
-### ❓ Q1: What is a lambda expression and why is it used in Java?
+###   Q1: What is a lambda expression and why is it used in Java?
 
 **Answer:**  
 A lambda expression is an anonymous function that implements a functional interface. It’s used to pass behavior (code) as a parameter, making code cleaner and concise for operations like filtering, sorting, callbacks, etc.
 
 ---
 
-### ❓ Q2: Difference between a lambda expression and an anonymous class?
+###   Q2: Difference between a lambda expression and an anonymous class?
 
 **Answer:**
 - Lambdas are **concise**, better-performing, and reference the enclosing class using `this`.
@@ -136,7 +148,7 @@ Runnable r = () -> System.out.println(this); // Refers to enclosing class
 
 ---
 
-### ❓ Q3: Can a lambda expression throw exceptions?
+###   Q3: Can a lambda expression throw exceptions?
 
 **Answer:**
 Yes, if the functional interface method declares the exception.
@@ -152,7 +164,7 @@ CheckedFunction cf = () -> { throw new IOException("Error"); };
 
 ---
 
-### ❓ Q4: Variable scope in lambda?
+###   Q4: Variable scope in lambda?
 
 **Answer:**
 Lambdas can access **effectively final** local variables.
@@ -165,7 +177,7 @@ Runnable r = () -> System.out.println(message);
 
 ---
 
-### ❓ Q5: Can lambda expressions be serialized?
+###   Q5: Can lambda expressions be serialized?
 
 **Answer:**
 Only if the target functional interface is `Serializable`.  
@@ -173,7 +185,7 @@ Avoid serialization of lambdas for portability and maintainability.
 
 ---
 
-### ❓ Q6: How does lambda work internally?
+###   Q6: How does lambda work internally?
 
 **Answer:**
 - Compiles using `invokedynamic`
@@ -182,7 +194,7 @@ Avoid serialization of lambdas for portability and maintainability.
 
 ---
 
-### ❓ Q7: Lambda in multi-threading?
+###   Q7: Lambda in multi-threading?
 
 **Answer:**
 Yes, great for `Runnable`, `Callable`, `Executors`.
@@ -194,7 +206,7 @@ executor.submit(() -> System.out.println("Task executed"));
 
 ---
 
-### ❓ Q8: Can you use lambda to implement multiple abstract methods?
+###   Q8: Can you use lambda to implement multiple abstract methods?
 
 **Answer:**
 No. Lambdas only work with **functional interfaces**, i.e., one abstract method.
@@ -202,13 +214,13 @@ No. Lambdas only work with **functional interfaces**, i.e., one abstract method.
 ```java
 interface MyInterface {
     void method1();
-    void method2(); // ❌ Not functional interface
+    void method2(); // Not functional interface
 }
 ```
 
 ---
 
-## ✅ Summary
+## Summary
 
 | Concept | Key Point |
 |--------|-----------|
@@ -223,7 +235,7 @@ interface MyInterface {
 
 # Java Functional Interfaces – Complete Guide
 
-## 🔹 What is a Functional Interface?
+##   What is a Functional Interface?
 
 A **Functional Interface** in Java is an interface that contains exactly **one abstract method**. They may contain multiple default or static methods but only **one unimplemented method**.
 
@@ -231,7 +243,7 @@ A **Functional Interface** in Java is an interface that contains exactly **one a
 
 ---
 
-## 🔹 Built-in Functional Interfaces (java.util.function package)
+##   Built-in Functional Interfaces (java.util.function package)
 
 ### 🔸 1. Predicate<T>
 Used for **boolean-valued** expressions (like filtering).
@@ -272,19 +284,19 @@ System.out.println(add.apply(10, 20)); // 30
 
 ### 🔸 6. BiPredicate<T, U>, BiFunction<T, U, R>, BiConsumer<T, U>
 
-#### ✅ BiPredicate<T, U>
+#### BiPredicate<T, U>
 ```java
 BiPredicate<String, String> startsWith = (s1, prefix) -> s1.startsWith(prefix);
 System.out.println(startsWith.test("Functional", "Fun")); // true
 ```
 
-#### ✅ BiFunction<T, U, R>
+#### BiFunction<T, U, R>
 ```java
 BiFunction<Integer, Integer, String> sumStr = (a, b) -> "Sum is " + (a + b);
 System.out.println(sumStr.apply(5, 6)); // Sum is 11
 ```
 
-#### ✅ BiConsumer<T, U>
+#### BiConsumer<T, U>
 ```java
 BiConsumer<String, Integer> printer = (name, age) -> 
     System.out.println(name + " is " + age + " years old");
@@ -293,7 +305,7 @@ printer.accept("Nikhil", 25);
 
 ---
 
-## 🔹 Custom Functional Interfaces
+##   Custom Functional Interfaces
 
 You can create your own if needed. Just remember: only **1 abstract method**.
 ```java
@@ -310,7 +322,7 @@ System.out.println(sp.process("hello")); // HELLO
 
 ---
 
-## 🔹 The @FunctionalInterface Annotation
+##   The @FunctionalInterface Annotation
 
 This annotation is **optional** but **recommended**. It tells the compiler:
 - This interface must have **only one abstract method**
@@ -332,27 +344,27 @@ Violation:
 @FunctionalInterface
 interface InvalidInterface {
     void method1();
-    void method2(); // ❌ Compilation error
+    void method2(); // Compilation error
 }
 ```
 
 ---
 
-## 🔹 Interview Questions & Answers
+##   Interview Questions & Answers
 
-### ❓ Q1: What is a functional interface?
+###   Q1: What is a functional interface?
 **Answer:**  
 An interface with exactly one abstract method. It's used as a target for lambda expressions and method references.
 
 ---
 
-### ❓ Q2: What is the purpose of `@FunctionalInterface` annotation?
+###   Q2: What is the purpose of `@FunctionalInterface` annotation?
 **Answer:**  
 It instructs the compiler to ensure that the interface has **exactly one abstract method**. If it has more, the compiler throws an error.
 
 ---
 
-### ❓ Q3: Difference between `Predicate`, `Function`, `Consumer`, and `Supplier`?
+###   Q3: Difference between `Predicate`, `Function`, `Consumer`, and `Supplier`?
 
 | Interface | Input | Output | Use Case |
 |----------|-------|--------|----------|
@@ -363,26 +375,26 @@ It instructs the compiler to ensure that the interface has **exactly one abstrac
 
 ---
 
-### ❓ Q4: Can you create your own functional interface?
+###   Q4: Can you create your own functional interface?
 **Answer:**  
 Yes. Just make sure it has one abstract method, and optionally annotate it with `@FunctionalInterface`.
 
 ---
 
-### ❓ Q5: Can functional interfaces have default and static methods?
+###   Q5: Can functional interfaces have default and static methods?
 **Answer:**  
 Yes. Functional interfaces can have multiple **default** or **static** methods but **only one abstract method**.
 
 ---
 
-### ❓ Q6: What's the difference between `Function` and `BiFunction`?
+###   Q6: What's the difference between `Function` and `BiFunction`?
 **Answer:**
 - `Function<T, R>` takes **1 argument** and returns **R**
 - `BiFunction<T, U, R>` takes **2 arguments**
 
 ---
 
-### ❓ Q7: What happens if you have more than one abstract method in a `@FunctionalInterface`?
+###   Q7: What happens if you have more than one abstract method in a `@FunctionalInterface`?
 **Answer:**  
 Compilation error:
 ```
@@ -391,7 +403,7 @@ Unexpected @FunctionalInterface annotation
 
 ---
 
-### ❓ Q8: Can functional interfaces be generic?
+###   Q8: Can functional interfaces be generic?
 **Answer:**  
 Yes.
 ```java
@@ -403,7 +415,7 @@ interface Processor<T> {
 
 ---
 
-## ✅ Summary Table
+## Summary Table
 
 | Interface | Type | Description | Method |
 |-----------|------|-------------|--------|
@@ -910,8 +922,9 @@ Optional<Integer> flat = name.flatMap(n -> Optional.of(n.length())); // good
 
 ## 4. Best Practices
 
-✅ Use `Optional` for return types, especially for getters and service calls.  
-❌ Do not use `Optional` for:
+Use `Optional` for return types, especially for getters and service calls.  
+
+Do not use `Optional` for:
 - Fields in entities or POJOs
 - Method parameters
 - Collections (use empty list/map instead)
@@ -977,7 +990,7 @@ The `java.time` package introduced in Java 8 provides a modern, immutable, and t
 
 ## 1. LocalDate, LocalTime, LocalDateTime, ZonedDateTime
 
-### ✅ LocalDate
+### LocalDate
 Represents a date (year, month, day) without time.
 
 ```java
@@ -985,7 +998,7 @@ LocalDate today = LocalDate.now();
 LocalDate birthDate = LocalDate.of(1990, Month.JULY, 10);
 ```
 
-### ✅ LocalTime
+### LocalTime
 Represents a time (hour, minute, second) without date.
 
 ```java
@@ -993,14 +1006,14 @@ LocalTime now = LocalTime.now();
 LocalTime lunchTime = LocalTime.of(13, 30);
 ```
 
-### ✅ LocalDateTime
+### LocalDateTime
 Combines date and time without timezone.
 
 ```java
 LocalDateTime now = LocalDateTime.now();
 ```
 
-### ✅ ZonedDateTime
+### ZonedDateTime
 Includes date, time, and timezone.
 
 ```java
@@ -1022,7 +1035,7 @@ LocalDate newDate = date.plusDays(10); // returns a new instance
 
 ## 3. Period and Duration
 
-### ✅ Period
+### Period
 Represents date-based amount of time (years, months, days).
 
 ```java
@@ -1030,7 +1043,7 @@ Period period = Period.between(LocalDate.of(2023, 1, 1), LocalDate.of(2025, 1, 1
 System.out.println(period.getYears()); // 2
 ```
 
-### ✅ Duration
+### Duration
 Represents time-based amount of time (hours, minutes, seconds).
 
 ```java
@@ -1042,14 +1055,14 @@ System.out.println(duration.toMinutes()); // 150
 
 ## 4. Formatting and Parsing using DateTimeFormatter
 
-### ✅ Formatting
+### Formatting
 ```java
 LocalDate date = LocalDate.of(2025, 7, 20);
 String formatted = date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 System.out.println(formatted); // 20-07-2025
 ```
 
-### ✅ Parsing
+### Parsing
 ```java
 String dateStr = "20-07-2025";
 LocalDate parsedDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
@@ -1060,7 +1073,7 @@ LocalDate parsedDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd-
 ## Interview Questions
 
 ### Q1: Why use `java.time` over old Date/Calendar classes?
-**A**: It's immutable, thread-safe, supports ISO and custom formats, and provides a cleaner API.
+**A**: It's immutable (Date and Calendar are mutable, so they can be changed unexpectedly → not safe for concurrent code.), thread-safe, supports ISO and custom formats, and provides a cleaner API (old one had confusing design like Months are 0-based, Years are offset from 1900 in some constructors, Date mixes date and time, Calendar is overly verbose, 	Formatting and parsing are in SimpleDateFormat, which is mutable and not thread-safe, 	No clear distinction between concepts: date-only, time-only, date-time with/without timezone.)
 
 ### Q2: What is the difference between `Period` and `Duration`?
 **A**: `Period` is for date-based (days, months, years), `Duration` is for time-based (seconds, minutes, hours).
@@ -1131,7 +1144,7 @@ Use parallel streams when:
 - Operations are **stateless and independent**.
 - No dependencies on **shared mutable state**.
 
-⚠️ Avoid using them for small datasets — parallelization overhead may outweigh the benefits.
+Avoid using them for small datasets — parallelization overhead may outweigh the benefits.
 
 ---
 
@@ -1174,7 +1187,7 @@ List<Integer> result = new ArrayList<>();
 list.parallelStream().forEach(result::add); // Risky: ArrayList is not thread-safe
 ```
 
-✅ Use **Concurrent collections** or `Collectors.toList()`:
+Use **Concurrent collections** or `Collectors.toList()`:
 ```java
 List<Integer> result = list.parallelStream().collect(Collectors.toList());
 ```
@@ -1364,7 +1377,7 @@ Map<Integer, List<Character>> result = Stream.of("cat", "cow", "car")
 
 ---
 
-## ✅ Why CompletableFuture?
+## Why CompletableFuture?
 
 | Problem with `Future`                  | CompletableFuture Solution                     |
 |----------------------------------------|------------------------------------------------|
@@ -1377,7 +1390,7 @@ Map<Integer, List<Character>> result = Stream.of("cat", "cow", "car")
 
 ---
 
-## ✅ Creating CompletableFuture
+## Creating CompletableFuture
 
 ### Run async task without return:
 ```java
@@ -1395,7 +1408,7 @@ CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
 
 ---
 
-## ✅ Chaining and Combining Futures
+## Chaining and Combining Futures
 
 ### `thenApply()` – transform result
 ```java
@@ -1428,7 +1441,7 @@ CompletableFuture<String> result = f1.thenCombine(f2, (a, b) -> a + " " + b);
 
 ---
 
-## ✅ Exception Handling
+## Exception Handling
 
 ### `exceptionally()` – fallback on failure
 ```java
@@ -1456,7 +1469,7 @@ CompletableFuture<String> future = CompletableFuture
 
 ---
 
-## ✅ Threading & Executor Customization
+## Threading & Executor Customization
 
 ### Use default ForkJoinPool (common pool):
 ```java
@@ -1473,7 +1486,7 @@ CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 
 ---
 
-## ✅ Combining Multiple Futures
+## Combining Multiple Futures
 
 ### `allOf()` – wait for all to complete
 ```java
@@ -1487,7 +1500,7 @@ CompletableFuture<Object> first = CompletableFuture.anyOf(f1, f2, f3);
 
 ---
 
-## ✅ Best Practices
+## Best Practices
 
 | Tip                                          | Why it matters                                     |
 |---------------------------------------------|----------------------------------------------------|
@@ -1509,3 +1522,492 @@ CompletableFuture<Object> first = CompletableFuture.anyOf(f1, f2, f3);
 
 ### Q: How is `CompletableFuture` better than `FutureTask`?
 - More fluent API, non-blocking chaining, better error handling, async combining
+
+
+## Q. Difference between this keyword and super keyword in java and how does it differ wrt lambda function?
+- `this` refers to the current instance of the class, while `super` refers to the parent class. In lambda expressions, `this` refers to the enclosing instance where the lambda is defined, not the lambda itself. `super` cannot be used in lambdas as they do not have a superclass.
+- example - 
+
+
+# Anonymous Inner Classes in Java
+
+Perfect, let’s zoom in on Anonymous Inner Classes (AICs) and go deep. 🚀
+
+⸻
+
+  1. What is an Anonymous Inner Class?
+
+An Anonymous Inner Class is:
+•	An inner class without a name, defined and instantiated at the same time.
+•	Usually used when you need to provide a short-term implementation of an interface or abstract class.
+•	It cannot have a constructor (since it has no name), but it can have an instance initializer block.
+
+In other words:
+👉 Instead of creating a separate .java file or even a named inner class, you just “inline” the definition at the point of use.
+
+⸻
+
+  2. General Syntax
+
+Type ref = new Type() {
+// body of the anonymous inner class
+// override methods of Type
+};
+
+Here, Type can be:
+•	An interface (must implement all abstract methods).
+•	An abstract class (must implement its abstract methods).
+•	A concrete class (can override some methods).
+
+⸻
+
+  3. Examples
+
+Example 1: Implementing an Interface
+
+```java
+Runnable r = new Runnable() {
+@Override
+public void run() {
+System.out.println("Running from Anonymous Inner Class!");
+}
+};
+r.run();
+```
+
+	•	No need to separately create a RunnableImpl class.
+	•	The compiler generates something like Outer$1.class behind the scenes.
+
+⸻
+
+Example 2: Extending an Abstract Class
+```java
+abstract class Animal {
+abstract void makeSound();
+}
+
+public class Demo {
+public static void main(String[] args) {
+Animal dog = new Animal() {
+@Override
+void makeSound() {
+System.out.println("Woof Woof!");
+}
+};
+dog.makeSound();
+}
+}
+```
+Here, Animal is abstract → we provide the implementation inline.
+
+⸻
+
+Example 3: Extending a Concrete Class
+```java
+class Hello {
+void greet() {
+System.out.println("Hello");
+}
+}
+
+public class Demo {
+public static void main(String[] args) {
+Hello h = new Hello() {
+@Override
+void greet() {
+System.out.println("Hi from Anonymous Inner Class");
+}
+};
+h.greet(); // prints: Hi from Anonymous Inner Class
+}
+}
+```
+You can override methods of a normal class too.
+
+⸻
+
+Example 4: With Arguments
+```java
+Button button = new Button("Click Me");
+button.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+System.out.println("Button clicked!");
+}
+});
+```
+Classic Swing/GUI use case → you don’t want to write a whole new class for a single button listener.
+
+⸻
+
+  4. Characteristics of Anonymous Inner Classes
+1.	No Name
+•	You can’t reuse them since they don’t have identifiers.
+•	Generated class names look like Outer$1.class, Outer$2.class, etc.
+2.	Single Use
+•	They’re best for one-off implementations.
+3.	Scope of this
+•	Inside an anonymous inner class, this refers to the anonymous inner class object, not the enclosing class.
+```java
+Runnable r = new Runnable() {
+public void run() {
+System.out.println(this.getClass().getName());
+}
+};
+r.run();
+// Prints something like Demo$1
+```
+
+	4.	Can Capture Variables
+	•	Like lambdas, anonymous inner classes can access effectively final variables from the enclosing scope.
+```java
+int num = 10;
+Runnable r = new Runnable() {
+public void run() {
+System.out.println(num); // ok if num is effectively final
+}
+};
+```
+
+	5.	No Constructors
+	•	Since they have no name, they cannot define a constructor.
+	•	But they can use instance initializers ({} block) for setup.
+```java
+Hello h = new Hello() {
+{ System.out.println("Instance initializer block runs!"); }
+};
+```
+
+
+⸻
+
+  5. Behind the Scenes
+
+When you write:
+```java
+Runnable r = new Runnable() {
+public void run() {
+System.out.println("Anonymous Inner Class");
+}
+};
+```
+The compiler generates something like:
+```java
+class Demo$1 implements Runnable {
+public void run() {
+System.out.println("Anonymous Inner Class");
+}
+}
+```
+So even though you didn’t give it a name, the compiler does.
+
+⸻
+
+  6. Limitations
+•	Verbose (compared to lambdas).
+•	Creates a new .class file at compile time.
+•	Harder to read if overused.
+•	Cannot have multiple constructors.
+•	Cannot be reused elsewhere.
+
+⸻
+
+  7. When to Use Anonymous Inner Classes
+•	When you only need an implementation once.
+•	For GUI event handling (ActionListener, MouseListener, etc.).
+•	To quickly override a method for a small tweak.
+•	When you’re on Java < 8 (since lambdas don’t exist yet).
+
+⸻
+
+⚡ So, an Anonymous Inner Class is like a quick disposable “on-the-spot worker” that you hire for a job and never keep on payroll again.
+
+⸻
+
+### Inner classes
+
+Got it 👍 let’s build this step by step, starting from zero.
+
+⸻
+
+  1. Inner Classes in Java
+
+An inner class is simply a class defined inside another class.
+
+Why do we need them?
+•	To logically group classes that are only used inside another class.
+•	To get direct access to the outer class’s members (even private ones).
+•	To make the code more readable when a class has only one usage.
+
+Types of Inner Classes
+1.	Non-static Inner Class (Member inner class)
+
+class Outer {
+private String msg = "Hello";
+
+    class Inner {
+        void display() {
+            System.out.println(msg); // can access Outer’s private members
+        }
+    }
+}
+
+public class Demo {
+public static void main(String[] args) {
+Outer outer = new Outer();
+Outer.Inner inner = outer.new Inner(); // needs an Outer object
+inner.display(); // prints Hello
+}
+}
+
+
+	2.	Static Nested Class
+
+class Outer {
+static class Inner {
+void display() {
+System.out.println("Static nested class");
+}
+}
+}
+
+public class Demo {
+public static void main(String[] args) {
+Outer.Inner inner = new Outer.Inner(); // no Outer object needed
+inner.display();
+}
+}
+
+
+	3.	Local Inner Class (defined inside a method)
+
+class Outer {
+void show() {
+class LocalInner {
+void display() {
+System.out.println("Inside method-local inner class");
+}
+}
+LocalInner inner = new LocalInner();
+inner.display();
+}
+}
+
+
+	4.	Anonymous Inner Class (no name, defined on the spot, usually for interfaces/abstract classes)
+
+Runnable r = new Runnable() {
+public void run() {
+System.out.println("Running in anonymous inner class");
+}
+};
+r.run();
+
+
+### Anonymous Inner Classes in Java vs Lmabda this keyword
+
+Perfect, let’s expand this subtle but very important distinction between lambdas and anonymous inner classes 🧩.
+
+⸻
+
+1. Lambdas: this = enclosing class
+
+```java
+
+class Test {
+Runnable r1 = () -> System.out.println(this.getClass().getName());
+}
+```
+
+	•	A lambda does not create a new object scope.
+	•	It’s like a lightweight “inline method”.
+	•	So when you use this, it refers to the instance of the enclosing class (Test).
+
+Example:
+```java
+public class Test {
+Runnable r1 = () -> System.out.println(this.getClass().getName());
+
+    public static void main(String[] args) {
+        new Test().r1.run();
+    }
+}
+```
+Output:
+```
+Test
+```
+👉 Because this points to the Test object, not the lambda.
+
+⸻
+
+2. Anonymous inner classes: this = the inner class itself
+```java
+class Test {
+Runnable r2 = new Runnable() {
+public void run() {
+System.out.println(this.getClass().getName());
+}
+};
+}
+```
+	•	An anonymous inner class creates a new class at runtime.
+	•	Inside it, this refers to the anonymous object, not the outer instance.
+
+Example:
+```java
+public class Test {
+Runnable r2 = new Runnable() {
+public void run() {
+System.out.println(this.getClass().getName());
+}
+};
+
+    public static void main(String[] args) {
+        new Test().r2.run();
+    }
+}
+```
+Output (compiler-dependent, but usually something like):
+```
+Test$1
+```
+
+👉 That Test$1 is the compiler-generated class for the anonymous inner class.
+
+⸻
+
+3. Why is this distinction important?
+   •	With lambdas:
+   •	this always refers to the enclosing object.
+   •	Cleaner access to fields/methods of the enclosing class.
+   •	With anonymous inner classes:
+   •	this refers to the anonymous instance itself.
+   •	If you need to refer to the enclosing class, you must use EnclosingClassName.this.
+
+Example:
+```java
+class Outer {
+String name = "Outer";
+
+    void test() {
+        Runnable r1 = () -> System.out.println(this.name);  // Outer.this
+        Runnable r2 = new Runnable() {
+            public void run() {
+                System.out.println(this.getClass().getName()); // anonymous class
+                System.out.println(Outer.this.name); // explicit reference to Outer
+            }
+        };
+
+        r1.run();
+        r2.run();
+    }
+}
+```
+
+⸻
+
+🔑 Key Takeaways
+1.	Lambda this → the enclosing class instance (Outer).
+2.	Anonymous inner class this → the anonymous inner class instance (Outer$1).
+3.	To access enclosing class explicitly inside an anonymous inner class, you must qualify it with Outer.this.
+4.	This difference makes lambdas more predictable and lightweight — they behave like methods, not objects.
+
+⸻
+
+Great question ⚡ — this digs into API design philosophy in Java.
+
+⸻
+
+### Why getters don’t return Optional<T>
+
+Normally, a getter looks like this:
+```java
+
+public String getName() {
+return name;
+}
+```
+If name is absent, it can return null.
+So why not write:
+```java
+public Optional<String> getName() {
+return Optional.ofNullable(name);
+}
+```
+Seems safe, right? But there are strong reasons why JavaBeans-style getters don’t use Optional:
+
+⸻
+
+1. Optional was never meant for fields
+   •	The JDK docs say: “Optional is primarily intended for return types where there is a clear need to represent ‘no result’.”
+   •	It was not designed to be a property type or used as a field in classes.
+
+So this is discouraged:
+```java
+class Person {
+private Optional<String> name; // bad practice
+}
+```
+
+⸻
+
+2. Serialization and Frameworks
+   •	JavaBeans spec (which libraries like Hibernate, Jackson, Spring rely on) expects getters/setters with plain types.
+   •	If getters return Optional, frameworks might fail to serialize/deserialize automatically.
+   •	Example: JSON libraries would produce {"name":{}} instead of {"name":null}.
+
+⸻
+
+3. Performance & Overhead
+   •	Wrapping every field in Optional creates extra objects → heap churn.
+   •	Getters are often in performance-sensitive code (e.g., POJOs in collections).
+
+⸻
+
+4. API Usability
+   •	For fields, callers already know if a value might be null.
+   •	Adding Optional everywhere makes code noisy:
+```java
+// with Optional getter
+String name = person.getName().orElse("Unknown");
+
+// with normal getter
+String name = person.getName() != null ? person.getName() : "Unknown";
+```
+→ In practice, the second form is simpler in bean-like objects.
+
+⸻
+
+5. Optional is for APIs, not DTOs
+   •	You often see Optional in method return types, where absence is part of the protocol:
+```java
+Optional<User> findUserById(String id);
+```
+
+•	But DTOs/entities/POJOs stick with plain getters.
+
+⸻
+
+  In summary
+•	Getters don’t return Optional because:
+•	It’s against the intended use of Optional.
+•	It complicates frameworks/serialization.
+•	It adds overhead and verbosity.
+•	Instead:
+•	Use Optional in service methods or APIs where absence is meaningful.
+•	Use plain getters in data models (with null if absent).
+
+⸻
+
+✨ Rule of thumb:
+•	Entity/POJO getters → never return Optional.
+•	Service/repository/business methods → may return Optional.
+
+⸻
+
+Would you like me to show you an example where Optional is good (service API) vs bad (getter in entity) side by side?
+
+
+
+
