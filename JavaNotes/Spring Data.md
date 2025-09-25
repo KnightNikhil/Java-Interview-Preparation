@@ -1453,7 +1453,7 @@ public void queryDslExample() {
 
 
 
-Follow-up Interview Questions
+**Follow-up Interview Questions**
 1.	How does QueryDslPredicateExecutor differ from @Query?
     - @Query is static, QueryDSL is dynamic & type-safe.
 2.	How are Q-classes generated?
@@ -1719,7 +1719,7 @@ Quick comparison with JPA/Relational DB (common interview angle)
 
 ⸻
 
-Follow-up interview questions
+**Follow-up Interview Questions**
 
 Basic / Conceptual
 1.	What is the difference between a document and a collection?
@@ -1944,7 +1944,7 @@ Now you can call /search?name=John&dept=IT without writing extra repository meth
 
 ⸻
 
-🤔 Follow-up Interview Questions
+🤔 **Follow-up Interview Questions**
 
 Basics
 1.	What is a Specification in Spring Data JPA?
@@ -2077,7 +2077,7 @@ This ensures changes are traceable to actual users.
 
 ⸻
 
-Follow-up Interview Questions
+**Follow-up Interview Questions**
 
 Basics
 1.	What is JPA auditing, and why do we need it?
@@ -2218,7 +2218,7 @@ Example:
 
 ⸻
 
-Follow-up Interview Questions
+**Follow-up Interview Questions**
 
 Basics
 1.	What is a projection in Spring Data JPA, and why do we need it?
@@ -2350,7 +2350,7 @@ Root<Employee> root = query.from(Employee.class);
 
 ⸻
 
-Follow-up Interview Questions
+**Follow-up Interview Questions**
 
 Basics
 1.	Why would you use a custom repository instead of derived queries?
@@ -2509,7 +2509,7 @@ Improves performance and reduces DB load.
 
 ⸻
 
-Follow-up Interview Questions
+**Follow-up Interview Questions**
 
 Entity Lifecycle Callbacks
 1.	What’s the difference between @PrePersist and @PostPersist?

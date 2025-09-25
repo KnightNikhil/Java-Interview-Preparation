@@ -88,6 +88,8 @@ In summary, **`@Cacheable` is a declarative, annotation-driven caching mechanism
 | Conditional | Cache/skip based on condition and unless SpEL expressions                         |
 
 
+----
+
 ## Scheduled Tasks / Cron Jobs in Java
 A **cron job in Java** is a scheduled task that executes code at regular, specific intervals (e.g., daily, hourly). In interview settings, you should focus on how cron jobs can be implemented using core Java and with frameworks like Spring, as well as how cron expressions control scheduling[1][2][4][6][9].
 
