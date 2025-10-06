@@ -10,20 +10,14 @@
 
 ⸻
 
-🔹 2. Auto-Configuration (Deep Dive)
-* @EnableAutoConfiguration
-* Internals: spring.factories, META-INF, conditional annotations
-* @ConditionalOnClass, @ConditionalOnMissingBean, @ConditionalOnProperty
-* Creating custom auto-configuration
 
 ⸻
 
-🔹 3. Spring Boot DevTools
-* Hot reloading
-* Dev-only beans
-* Conditional development tools
 
-# Spring Boot DevTools
+
+
+
+## Spring Boot DevTools
 
 Spring Boot DevTools is a set of tools aimed at improving the developer experience by providing features like hot reloading, automatic restarts, and conditional configurations specifically for development environments.
 
@@ -147,112 +141,7 @@ dependencies {
 ---
 ⸻
 
-🔹 4. Actuator
-* Enabling and exposing endpoints
-* Health, metrics, info, env, mappings, loggers, etc.
-* Securing actuator endpoints
-* Custom health indicators
-* Integration with Prometheus/ELK/Zipkin
-
-# Spring Boot Actuator
-
-Spring Boot Actuator provides production-ready features that help you monitor and manage your application.
-
----
-
-## ✅ Enabling and Exposing Endpoints
-
-Spring Boot Actuator endpoints are enabled by adding the dependency:
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
-
-Then configure which endpoints to expose in `application.properties`:
-
-```properties
-management.endpoints.web.exposure.include=health,info,metrics,env,loggers,mappings
-```
-
----
-
-## ✅ Key Actuator Endpoints
-
-- `/actuator/health`: Shows application health (customizable)
-- `/actuator/info`: Application info from `application.properties`
-- `/actuator/metrics`: Application and system metrics
-- `/actuator/env`: Environment properties
-- `/actuator/mappings`: All request mappings
-- `/actuator/loggers`: Log levels configuration at runtime
-
----
-
-## ✅ Securing Actuator Endpoints
-
-Secure endpoints using Spring Security:
-
-```properties
-management.endpoints.web.exposure.include=*
-management.endpoint.health.show-details=always
-spring.security.user.name=admin
-spring.security.user.password=secret
-```
-
-Restrict access to certain roles via Java Config.
-
----
-
-## ✅ Custom Health Indicators
-
-Create custom health checks by implementing the `HealthIndicator` interface:
-
-```java
-@Component
-public class CustomHealthIndicator implements HealthIndicator {
-    @Override
-    public Health health() {
-        boolean healthy = checkMySystemHealth();
-        if (healthy) {
-            return Health.up().withDetail("status", "All good").build();
-        }
-        return Health.down().withDetail("status", "Something wrong").build();
-    }
-}
-```
-
----
-
-## ✅ Integration with Monitoring Systems
-
-Spring Boot Actuator integrates with:
-
-- **Prometheus**: via `micrometer-registry-prometheus`
-- **Zipkin**: for distributed tracing via Spring Cloud Sleuth
-- **ELK Stack**: Forward logs via Logstash for centralized logging
-
----
-
-## 🎯 Follow-up Interview Questions
-
-### Q1. How do you expose only specific actuator endpoints?
-**A:** Using `management.endpoints.web.exposure.include` or `exclude` properties.
-
-### Q2. How do you implement a custom health indicator?
-**A:** Implement the `HealthIndicator` interface and override `health()`.
-
-### Q3. How can you change log level of a class at runtime?
-**A:** Use `/actuator/loggers/{logger.name}` endpoint with a POST request.
-
-### Q4. What's the role of Micrometer in Spring Boot?
-**A:** It acts as a metrics facade supporting multiple monitoring systems like Prometheus, Datadog, etc.
-
----
-
-✅ Actuator improves observability, and with proper security and integrations, it becomes essential for microservices in production.
-
+🔹
 ⸻
 
 🔹 5. Spring Boot Testing
@@ -337,7 +226,7 @@ public class AppConfig {
 
 ---
 
-## ✅ Profiles per Environment
+## Profiles per Environment
 
 - Spring Boot allows defining profiles such as `dev`, `test`, `prod`.
 - Create `application-{profile}.yml` or `.properties` files.

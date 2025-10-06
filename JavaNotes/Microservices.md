@@ -1,4 +1,46 @@
-`ROADMAP`
+# Microservices 
+
+## How would you handle inter-service communication in a microservices architecture using Spring Boot?
+Inter-service communication in a Spring Boot microservices architecture is typically handled using REST APIs for synchronous calls and messaging systems for asynchronous interactions. 
+
+The main approaches with Spring Boot include:
+
+### Synchronous Communication
+
+- **REST APIs:** Services expose endpoints; other services consume them via HTTP. This is the most common approach, implemented using clients like **RestTemplate** (legacy), **WebClient** (asynchronous, non-blocking), or **Feign Client** (declarative with service discovery integration)[1][3][4].
+    - **RestTemplate**: Blocked HTTP approach; being phased out in favor of WebClient.
+    - **WebClient**: Modern, reactive, non-blocking for async/sync HTTP interactions.
+    - **Feign Client**: Declarative HTTP client, integrates with Spring Cloud for easy load balancing and service registry.
+- Example with Feign Client:
+  ```java
+  @FeignClient(name = "books-service")
+  public interface BookClient {
+      @GetMapping("/books/{id}")
+      Book getBook(@PathVariable("id") Long id);
+  }
+  ```
+- Technologies: HTTP (REST), gRPC or GraphQL (for advanced, efficient protocols).
+
+### Asynchronous Communication
+
+- **Message Broker:** Services talk via message queues (Kafka, RabbitMQ, ActiveMQ), allowing them to publish/consume events or data decoupled in time.
+- **Spring Cloud Stream:** Abstracts messaging brokers, allowing you to write event-driven microservices easily.
+- Example Use Case: When a service registers a user and publishes an event, other services (notifications, analytics) consume that event and act independently and asynchronously.
+
+### Security and Resilience
+
+- Secure service-to-service communication with TLS (prefer mTLS where possible), OAuth2/JWT for authentication and authorization.
+- Employ circuit breakers (e.g., Resilience4j, Hystrix), timeouts, and retries for fault tolerance.
+- Service discovery and API gateways (e.g., Spring Cloud Gateway, Netflix Eureka) are recommended for scalable, flexible routing and centralized security.
+
+### Best Practices
+
+- Use synchronous communication (REST, gRPC) for real-time needs and asynchronous messaging for scalable, decoupled jobs.
+- Compress payloads and only transfer essential data.
+- Prefer WebClient over RestTemplate for new applications.
+- Enforce security at every layer with OAuth2/JWT, TLS, API gateways, and robust error handling.
+
+
 
 ✅ Critical Topics to Learn (Advanced Microservices)
 

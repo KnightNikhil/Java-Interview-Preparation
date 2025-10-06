@@ -195,9 +195,8 @@ Example of Idempotency Key:
 POST /payments
 Idempotency-Key: abc-123
 ```
-
-
 ⸻
+
 
 ### 12. Enforcing Mandatory Headers Globally in Spring Boot
 
@@ -244,6 +243,15 @@ public class InterceptorConfig implements WebMvcConfigurer {
 }
 ```
 
+⸻
+
+### What are the best practices for versioning REST APIs in a Spring Boot application
+
+For versioning REST APIs in Spring Boot, best practices include:
+- URL Versioning: Include the version number in the URL, like /api/v1/products.
+- Header Versioning: Use a custom header to specify the version.
+- Media Type Versioning: Version through content negotiation using the Accept header.
+- Parameter Versioning: Specify the version as a request parameter.
 
 
 ⸻

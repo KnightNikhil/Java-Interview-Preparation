@@ -1011,6 +1011,9 @@ public class MyService {
     - Avoiding circular dependencies
     - Allowing bean to exist before fully initialized
 
+**Explain different ways provided by Spring Boot to resolve circular dependencies.**
+- In Spring Boot, circular dependencies can be resolved by using setter injection instead of constructor injection, allowing beans to be instantiated before their dependencies are set. Another method is using the @Lazy annotation, which defers the initialization of a bean until it is actually needed, thus breaking the dependency cycle. Additionally, redesigning the application architecture to better separate concerns and reduce coupling between beans can also effectively address circular dependencies
+- To prevent cyclic dependencies in Spring, you can redesign your classes to remove direct dependencies, use setter or field injection instead of constructor injection, or introduce interfaces to decouple the components. This approach involves rethinking class designs to reduce tight coupling, employing different types of dependency injections that don't force immediate object creation, or using interfaces that abstract the implementation details. By doing so, you prevent the scenario where two or more classes depend on each other to be instantiated, which can cause the application to fail at runtime.
 ---
 
 #### 3. Field Injection
@@ -1225,3 +1228,13 @@ public class MyService {
 
 Important: Spring injects dependencies automatically, you never call these setters manually.
 
+## 🔍 Interview Follow-Up Questions
+
+### Q. What is the difference between @PostConstruct and InitializingBean?
+**A:** `@PostConstruct` is annotation-based and preferred for modern development. `InitializingBean` is interface-based and ties your bean to Spring.
+
+### Q. What is the use of BeanPostProcessor?
+**A:** It allows for modification of new bean instances, like wrapping them with proxies or performing validations.
+
+### Q. When would you use a prototype scope?
+**A:** When you need a new instance every time a bean is requested, like in the case of stateful beans.

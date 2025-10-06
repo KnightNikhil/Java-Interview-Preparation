@@ -656,6 +656,589 @@ If there is no waiting thread or all the waiting threads of low priority then th
 ---
 
 
+## Q. What is race-condition?
+**What is a Race Condition?**
+
+A race condition happens when:
+-	Two or more threads access a shared resource (variable, object, file, DB, etc.).
+-	At least one of them modifies it.
+-	And the final outcome depends on the interleaving (order) of thread execution.
+
+Since the JVM thread scheduler decides which thread runs when, execution order is non-deterministic → leading to inconsistent or incorrect results.
+
+⸻
+
+**Why does it happen?**
+
+Because thread operations that look atomic in Java are not really atomic at the CPU/JVM level.
+
+For example:
+`count++;`
+- This looks like a single operation, but under the hood it is:
+    1.	Read value of count from memory into CPU register.
+    2.	Increment it.
+    3.	Write updated value back to memory.
+
+If two threads interleave between steps, the update can be lost.
+
+```java
+class Counter {
+private int count = 0;
+
+    public void increment() {
+        count++; // not atomic
+    }
+
+    public int getCount() {
+        return count;
+    }
+}
+
+public class RaceConditionExample {
+public static void main(String[] args) throws InterruptedException {
+Counter counter = new Counter();
+
+        Thread t1 = new Thread(() -> {
+            for (int i = 0; i < 1000; i++) counter.increment();
+        });
+
+        Thread t2 = new Thread(() -> {
+            for (int i = 0; i < 1000; i++) counter.increment();
+        });
+
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+
+        System.out.println("Final count: " + counter.getCount());
+    }
+}
+```
+Expected Output = 2000
+Actual Output = 1900, 1978, 1995, etc. (non-deterministic)
+Because both threads race to update count.
+
+⸻
+
+
+**Timeline of a Race**
+
+Imagine count = 10, two threads increment:
+1.	Thread A reads count (10).
+2.	Thread B reads count (10).
+3.	Thread A increments (11) and writes back.
+4.	Thread B increments (still from old 10 → 11) and writes back.
+
+Final result = 11 (should have been 12).
+
+⸻
+
+**Types of Race Conditions**
+- **1.	Read-Modify-Write Race**
+  Example: count++, balance = balance - amount.
+- **2.	Check-Then-Act Race**
+```java
+if (balance >= amount) {
+    balance -= amount;
+}
+```
+Between checking and subtracting, another thread may modify balance → overdraft.
+- **3. Initialization Race**
+  Two threads creating a singleton object at the same time.
+
+⸻
+
+**How to Prevent Race Conditions?**
+**1.	Synchronized Blocks/Methods**
+```java
+public synchronized void increment() {
+    count++;
+}
+```
+
+**2.	Locks (ReentrantLock)**
+```
+lock.lock();
+try { count++; } finally { lock.unlock(); }
+```
+
+**3.	Atomic Variables (AtomicInteger)**
+```java
+AtomicInteger count = new AtomicInteger(0);
+count.incrementAndGet();
+```
+
+**4.	Volatile?**
+⚠️ volatile does not prevent race conditions, it only ensures visibility.
+Example:
+Initial: count = 10 (volatile)
+1.	Thread A reads → sees 10.
+2.	Thread B reads → sees 10 (yes, volatile ensures both read from main memory, so both got 10).
+3.	Thread A increments → calculates 11 and writes it back (main memory = 11).
+4.	Thread B increments → but note: it already loaded 10 into its register in step 2. It increments that to 11 and writes it back.
+
+Final result = 11, not 12.
+
+This is the classic lost update problem — visibility is correct, but atomicity is broken.
+
+For atomicity, you still need synchronization or atomics.
+
+⸻
+
+**Real-world Example**
+-	Banking System: Two ATMs withdrawing from the same account balance → balance mismatch.
+-	Ticket Booking: Two users book the last seat at the same time → overselling.
+-	E-commerce Cart: Two users apply discount codes simultaneously → double discounts.
+
+
+---
+
+## Synchronized keyword
+
+**What is synchronized?**
+- In Java, synchronized is a keyword used to control access to critical sections of code by multiple threads.
+- It ensures that only one thread at a time can execute the synchronized block/method for a given object/monitor.
+
+So, it prevents race conditions by providing mutual exclusion.
+
+⸻
+
+**How does it work internally?**
+
+When a thread enters a synchronized block/method:
+1.	It acquires the monitor lock of the object (or class if it’s a static method).
+2.	While the thread holds the lock, no other thread can enter any synchronized block/method guarded by the same lock.
+3.	Once the thread exits the block (normally or due to exception), it releases the lock automatically.
+4.	Other threads waiting for the same lock can then compete to acquire it.
+
+Each Java object has an intrinsic lock (monitor lock) associated with it.
+
+⸻
+
+**Types of Synchronization**
+
+**1. Synchronized Instance Methods**
+
+Lock is on the current object (this).
+```java
+class Counter {
+private int count = 0;
+
+    public synchronized void increment() {
+        count++; // only one thread at a time
+    }
+
+    public int getCount() {
+        return count;
+    }
+}
+```
+-	Here, two threads calling increment() on the same object won’t run it simultaneously.
+-	But if they call it on different objects, each has its own lock, so both threads can run.
+
+⸻
+
+**2. Synchronized Static Methods**
+
+- **Normal Synchronization Recap**
+
+When you declare an instance synchronized method:
+```java
+public synchronized void instanceMethod() {
+// critical section
+}
+```
+- The lock is acquired on the current object’s monitor (this).
+  -	So, if two threads are calling instanceMethod() on the same object, they must wait (mutual exclusion).
+  -	But if they call it on different objects, both can run at the same time.
+
+
+- **Static Synchronization**
+
+Now, if you declare a static synchronized method:
+```java
+public static synchronized void staticMethod() {
+// critical section
+}
+```
+- The lock is acquired on the Class object monitor (i.e., the .class literal).
+
+- Every loaded class in JVM has a unique Class object stored in the Method Area.
+- That object acts like a “class-level lock.”
+
+
+- **Key Difference**
+  -	Instance synchronized method → lock on object’s monitor (this).
+  -	Static synchronized method → lock on Class object’s monitor (MyClass.class).
+
+- So:
+  -	If two threads call a static synchronized method, only one can run at a time (because they share the same Class lock).
+  -	If one thread calls a static synchronized method and another calls an instance synchronized method → they don’t block each other (different locks: Class lock vs Object lock).
+
+⸻
+
+**Example**
+```java
+class Printer {
+// static synchronized method
+public static synchronized void printStatic(String msg) {
+System.out.println("Start: " + msg);
+try { Thread.sleep(1000); } catch (InterruptedException e) {}
+System.out.println("End: " + msg);
+}
+
+    // instance synchronized method
+    public synchronized void printInstance(String msg) {
+        System.out.println("Start Instance: " + msg);
+        try { Thread.sleep(1000); } catch (InterruptedException e) {}
+        System.out.println("End Instance: " + msg);
+    }
+}
+
+public class StaticSyncDemo {
+public static void main(String[] args) {
+Printer p1 = new Printer();
+Printer p2 = new Printer();
+
+        // Two threads calling static synchronized method
+        new Thread(() -> Printer.printStatic("A")).start();
+        new Thread(() -> Printer.printStatic("B")).start();
+
+        // Two threads calling instance synchronized method on same object
+        new Thread(() -> p1.printInstance("X")).start();
+        new Thread(() -> p1.printInstance("Y")).start();
+
+        // Two threads calling instance synchronized method on different objects
+        new Thread(() -> p1.printInstance("M")).start();
+        new Thread(() -> p2.printInstance("N")).start();
+    }
+}
+```
+- Behavior:
+  1.	Static sync methods (printStatic) → only one thread runs at a time, because they lock on Printer.class.
+  2.	Instance sync methods (printInstance) on same object → one thread at a time (lock on p1).
+  3.	Instance sync methods on different objects → run in parallel (different locks: p1 vs p2).
+  4.	Static vs Instance sync methods → don’t block each other (different locks).
+
+
+⸻
+
+**3. Synchronized Blocks**
+- Allows finer control — lock on a specific object, not necessarily this.
+```java
+class Counter {
+private int count = 0;
+private final Object lock = new Object();
+
+    public void increment() {
+        synchronized (lock) {
+            count++;
+        }
+    }
+}
+```
+-	Best practice because you avoid locking the entire method.
+
+**Limitations of synchronized**
+1.	Blocking — if one thread holds a lock, others must wait (can cause bottlenecks).
+2.	No fairness — JVM doesn’t guarantee which waiting thread gets the lock first.
+3.	Deadlock risk if multiple locks are acquired in inconsistent order.
+4.	Coarse-grained — locks entire object/method unless carefully scoped.
+
+⸻
+
+**When to Use**
+-	Use synchronized for simple mutual exclusion.
+-	For advanced control (fairness, timeout, read/write), use ReentrantLock from java.util.concurrent.locks.
+
+⸻
+
+**So in short:**
+-	synchronized is about locking a monitor.
+-	It ensures atomic execution of critical sections.
+-	Use it carefully to avoid deadlocks and contention.
+
+---
+
+## Locks 
+
+### Need of Locks
+
+**Why synchronized Exists**
+
+- synchronized was the original concurrency mechanism in Java (since JDK 1.0).
+- It gives you:
+  -	Mutual exclusion → only one thread in the block/method at a time.
+  -	Visibility → variables updated inside synchronized block are visible to other threads after lock release.
+  -	Reentrancy → same thread can acquire the lock multiple times.
+- So, yes — synchronized is enough for many simple concurrency needs.
+
+**But Then, Why Locks?**
+
+- By JDK 5, it became clear that synchronized is too limited for advanced multithreading.
+- That’s where java.util.concurrent.locks was introduced.
+
+**Here’s why Locks were needed:**
+- **1. More Control (Flexibility)**
+
+- With synchronized, you can’t do things like:
+  -	Try acquiring a lock and if unavailable, do something else.
+  -	Acquire a lock with a timeout.
+  -	Interrupt a thread waiting for a lock.
+
+With ReentrantLock, you can:
+```java
+if (lock.tryLock(1, TimeUnit.SECONDS)) {
+        try {
+        // critical section
+        } finally {
+        lock.unlock();
+    }
+} else {
+// do something else if lock not available
+}
+```
+- This is not possible with synchronized.
+
+- **2. Fairness Policy**
+-	synchronized is non-fair — the JVM chooses the next thread randomly.
+-	ReentrantLock can be fair (first-come-first-serve).
+```java
+ReentrantLock lock = new ReentrantLock(true); // fair lock
+```
+
+- **3. Multiple Condition Variables**
+  -	With synchronized, you only have one monitor queue (wait(), notify(), notifyAll()).
+  -	With ReentrantLock, you can create multiple Condition objects to manage different wait-sets.
+
+Example: One condition for “buffer full” and another for “buffer empty” in Producer-Consumer.
+
+
+- **4. Performance (under contention)**
+   -	In older JVMs (pre-Java 6), synchronized was slow, because it used heavyweight OS mutexes.
+   -	ReentrantLock was faster because it was implemented at the Java level.
+   -	Today (Java 8+), JVM has optimized synchronized (biased locking, lightweight locking, etc.), so performance gap is smaller — but ReentrantLock still shines under high contention or advanced use cases.
+
+
+- **5. Read-Write Scenarios**
+    - synchronized allows only exclusive locks (one thread at a time). 
+    - If you have a read-heavy system, this wastes performance. 
+    - Example: 100 threads just reading a cache → why block each other? 
+    - Solution: ReadWriteLock (multiple readers allowed, one writer at a time).
+
+
+- **6. Optimistic Locking (StampedLock)**
+    - synchronized and ReentrantLock are pessimistic (they always block). 
+    - In read-heavy workloads, this causes bottlenecks.
+    - StampedLock (Java 8) allows optimistic reading:
+      -	Threads read without locking.
+      -	Later, they check if data changed during the read. 
+    - Much faster for concurrent reads.
+
+**When to Use What?**
+
+Use synchronized when:
+-	Simpler critical sections.
+-	No special locking requirements.
+-	You want cleaner, less error-prone code.
+
+Use ReentrantLock (or others) when:
+-	You need tryLock() or tryLock(timeout).
+-	You want fair ordering.
+-	You need multiple condition variables.
+-	You need read-write separation (ReadWriteLock).
+-	You need optimistic concurrency (StampedLock).
+
+In short:
+synchronized is like a basic lock (easy to use, but limited).
+Lock framework gives advanced locks (powerful, flexible, but more complex).
+
+---
+
+## Lock
+
+### What is a Lock?
+- A Lock is a mechanism that ensures mutual exclusion in multithreading:
+    -	Only one thread can access a shared resource (critical section) at a time.
+    -	Other threads trying to access the resource must wait until the lock is released.
+
+
+### Types of Locks in Java
+**1. Intrinsic Locks (Monitor Locks)**
+-	Provided by the synchronized keyword.
+-	Tied to an object (this) or class (Class object for static).
+-	Features:
+  -	Mutual exclusion.
+  -	Reentrant (a thread can reacquire the same lock).
+  -	No flexibility (no try-lock, no timed-lock, no fairness policies).
+
+**2. Explicit Locks (java.util.concurrent.locks)**
+
+- Introduced in Java 5 (java.util.concurrent.locks package).
+- More advances features, we can control when to lock, how to lock and unlock, giving more control over when and how an object can be accessed.
+- Main interface: Lock.
+
+### Lock Interface
+
+**What is the Lock Interface?**
+-	Lock is part of java.util.concurrent.locks package.
+-	It provides a more flexible and powerful mechanism than synchronized for controlling access to shared resources.
+-	Unlike synchronized (which is block-structured and automatically released when the method/block exits), Lock requires explicit acquire and release (lock() and unlock()).
+
+**Methods of the Lock Interface**
+
+Here are the important ones:
+
+**1.	void lock()**
+-	Acquires the lock unconditionally.
+-	If another thread already holds the lock, the current thread will wait until it becomes available.
+
+**2.	void unlock()**
+-	Releases the lock.
+-	Unlike synchronized, you must always release the lock explicitly (ideally inside finally).
+```java
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class Counter {
+    private int count = 0;
+    private Lock lock = new ReentrantLock();
+
+    public void increment() {
+        lock.lock(); // acquire lock
+        try {
+            count++;
+        } finally {
+            lock.unlock(); // always release in finally
+        }
+    }
+
+    public int getCount() {
+        return count;
+    }
+}
+
+public class LockExample {
+    public static void main(String[] args) throws InterruptedException {
+        Counter counter = new Counter();
+
+        Runnable task = () -> {
+            for (int i = 0; i < 1000; i++) {
+                counter.increment();
+            }
+        };
+
+        Thread t1 = new Thread(task);
+        Thread t2 = new Thread(task);
+
+        t1.start(); t2.start();
+        t1.join(); t2.join();
+
+        System.out.println("Final Count: " + counter.getCount());
+    }
+}
+```
+
+**3.	boolean tryLock()**
+-	Tries to acquire the lock immediately without waiting.
+-	Returns:
+-	true → if lock acquired
+-	false → if lock not available
+
+**4.	boolean tryLock(long time, TimeUnit unit)**
+-	Tries to acquire the lock but waits for a given time before giving up.
+-	Prevents indefinite waiting.
+-   If the lock still not available after time period, returns false, code not executed.
+```java
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class TryLockTimeoutExample {
+    private final Lock lock = new ReentrantLock();
+
+    public void doWork(String threadName) {
+        try {
+            if (lock.tryLock(1, TimeUnit.SECONDS)) { // wait up to 1 sec
+                try {
+                    System.out.println(threadName + " acquired the lock.");
+                    Thread.sleep(2000); // simulate work
+                } finally {
+                    lock.unlock();
+                    System.out.println(threadName + " released the lock.");
+                }
+            } else {
+                System.out.println(threadName + " could not acquire the lock within 1 second.");
+            }
+        } catch (InterruptedException e) {
+            System.out.println(threadName + " was interrupted while waiting for the lock.");
+        }
+    }
+
+    public static void main(String[] args) {
+        TryLockTimeoutExample example = new TryLockTimeoutExample();
+
+        Thread t1 = new Thread(() -> example.doWork("Thread-1"));
+        Thread t2 = new Thread(() -> example.doWork("Thread-2"));
+
+        t1.start();
+        t2.start();
+    }
+}
+```
+```text
+Thread-1 acquired the lock.
+Thread-2 could not acquire the lock within 1 second.
+Thread-1 released the lock.
+```
+
+**5.	void lockInterruptibly()**
+-	Similar to lock(), but allows the thread to be interrupted while waiting for the lock.
+-	Useful when you don’t want threads to wait forever.
+-   A thread tries to acquire the lock but can be interrupted while waiting.
+-	If you just use lock(), the thread blocks forever until the lock is available.
+-	With lockInterruptibly(), if another thread interrupts it, it throws an InterruptedException and stops waiting.
+
+**What is interruption?**
+```java
+public class InterruptionExample {
+    public static void main(String[] args) throws InterruptedException {
+        Thread worker = new Thread(() -> {
+            while (true) {
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("Worker thread interrupted. Exiting...");
+                    break;
+                }
+                System.out.println("Working...");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    System.out.println("Interrupted during sleep. Cleaning up...");
+                    break; // exit loop
+                }
+            }
+        });
+
+        worker.start();
+        Thread.sleep(2000); // Let worker run a bit
+        worker.interrupt(); // Ask worker to stop
+    }
+}
+```
+```text
+Working...
+Working...
+Working...
+Interrupted during sleep. Cleaning up...
+```
+
+**6.	Condition newCondition()**
+-	Provides a Condition object (similar to wait(), notify(), notifyAll() in synchronized).
+-	Allows more advanced waiting/notification mechanisms.
+
+---
+
 ## Volatile Keyword
 
 **The Problem Without volatile**
@@ -1255,83 +1838,7 @@ task 4 complete
 * Thread Leakage
 * Resource Thrashing
 
----
 
-
-## Q. What is static synchronization?
-Static synchronization is achieved by static synchronized methods. Static synchronized method locked on **class** and non-static synchronized method locked on **current object** i.e. static and non-static synchronized methods can run at same time. It can produce inconsistency problem.
-
-If static synchronized method is called a class level lock is acquired and then if an object is tries to access non-static synchronized method at the same time it will not be accessible because class level lock is already acquired.
-```java
-/**
- * This program is used to show the multithreading 
- * example with synchronization using static synchronized method.
- * @author codesjava
- */
-class PrintTable {    
-    public synchronized static void printTable(int n) {
-	   System.out.println("Table of " + n);
-       for(int i = 1; i <= 10; i++) {
-           System.out.println(n*i);  
-           try {  
-        	 Thread.sleep(500);  
-           } catch(Exception e) {
-        	 System.out.println(e);
-           }  
-        }         
-    }  
-}  
- 
-class MyThread1 extends Thread {    
-    public void run() { 
-    	PrintTable.printTable(2);  
-    }        
-}  
- 
-class MyThread2 extends Thread {   
-	public void run() {  
-		PrintTable.printTable(5);  
-	}  
-}  
- 
-public class MultiThreadExample {  
-    public static void main(String args[]) {
- 
-    	//creating threads.
-	    MyThread1 t1 = new MyThread1();  
-	    MyThread2 t2 = new MyThread2();  
- 
-	    //start threads.
-	    t1.start();  
-	    t2.start();  
-    }  
-}
-```
-Output
-```
-Table of 2
-2
-4
-6
-8
-10
-12
-14
-16
-18
-20
-Table of 5
-5
-10
-15
-20
-25
-30
-35
-40
-45
-50
-```
 
 ---
 
@@ -1541,143 +2048,7 @@ JNI global references: 116
 ---
 
 
-## Q. What is difference between the Thread class and Runnable interface for creating a Thread?
-A thread can be defined in two ways. First, by extending a **Thread class** that has already implemented a Runnable interface. Second, by directly implementing a **Runnable interface**.
 
-**Difference**
-
-|THREAD	CLASS                               |RUNNABLE INTERFACE                                             |
-|-------------------------------------------|---------------------------------------------------------------|
-|Each thread creates a unique object and gets associated with it.|	Multiple threads share the same objects.|
-|As each thread create a unique object, more memory required.|As multiple threads share the same object less memory is used.|
-|In Java, multiple inheritance not allowed hence, after a class extends Thread class, it can not extend any other class.|	If a class define thread implementing the Runnable interface it has a chance of extending one class.|
-|A user must extend thread class only if it wants to override the other methods in Thread class.|If you only want to specialize run method then implementing Runnable is a better option.|
-|Extending Thread class introduces tight coupling as the class contains code of Thread class and also the job assigned to the thread|	Implementing Runnable interface introduces loose coupling as the code of Thread is separate form the job of Threads.|
-
-
-
-## Q. What is race-condition?
-Race condition in Java occurs in a multi-threaded environment **when more than one thread try to access a shared resource** (modify, write) at the same time. Since multiple threads try to race each other to finish executing a method thus the name **race condition**.
-
-**Example of race condition in Java**
-```java
-class Counter  implements Runnable{
-    private int c = 0;
-
-    public void increment() {
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        c++;
-    }
-
-    public void decrement() {    
-        c--;
-    }
-
-    public int getValue() {
-        return c;
-    }
-    
-    @Override
-    public void run() {
-        //incrementing
-        this.increment();
-        System.out.println("Value for Thread After increment " 
-        + Thread.currentThread().getName() + " " + this.getValue());
-        //decrementing
-        this.decrement();
-        System.out.println("Value for Thread at last " 
-        + Thread.currentThread().getName() + " " + this.getValue());        
-    }
-}
-
-public class RaceConditionExample {
-    public static void main(String[] args) {
-        Counter counter = new Counter();
-        Thread t1 = new Thread(counter, "Thread-1");
-        Thread t2 = new Thread(counter, "Thread-2");
-        Thread t3 = new Thread(counter, "Thread-3");
-        t1.start();
-        t2.start();
-        t3.start();
-    }    
-}
-```
-Output
-```
-Value for Thread After increment Thread-2 3
-Value for Thread at last Thread-2 2
-Value for Thread After increment Thread-1 2
-Value for Thread at last Thread-1 1
-Value for Thread After increment Thread-3 1
-Value for Thread at last Thread-3 0
-```
-
-**Using synchronization to avoid race condition in Java**  
-To fix the race condition we need to have a way to restrict resource access to only one thread at a time. We have to use `synchronized` keyword to synchronize the access to the shared resource.
-```java
-//This class' shared object will be accessed by threads
-class Counter  implements Runnable{
-    private int c = 0;
-
-    public  void increment() {
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        c++;
-    }
-
-    public  void decrement() {    
-        c--;        
-    }
-
-    public  int getValue() {
-        return c;
-    }
-    
-    @Override
-    public void run() {
-        synchronized(this) {
-            // incrementing
-            this.increment();
-            System.out.println("Value for Thread After increment " 
-             + Thread.currentThread().getName() + " " + this.getValue());
-            //decrementing
-            this.decrement();
-            System.out.println("Value for Thread at last " + Thread.currentThread().getName() 
-                + " " + this.getValue());
-        }        
-    }
-}
-
-public class RaceConditionExample {
-    public static void main(String[] args) {
-        Counter counter = new Counter();
-        Thread t1 = new Thread(counter, "Thread-1");
-        Thread t2 = new Thread(counter, "Thread-2");
-        Thread t3 = new Thread(counter, "Thread-3");
-        t1.start();
-        t2.start();
-        t3.start();
-    }    
-}
-```
-Output
-```
-Value for Thread After increment Thread-2 1
-Value for Thread at last Thread-2 0
-Value for Thread After increment Thread-3 1
-Value for Thread at last Thread-3 0
-Value for Thread After increment Thread-1 1
-Value for Thread at last Thread-1 0
-```
-
----
 
 ## Q. What is Lock interface in Java Concurrency API? What is the Difference between ReentrantLock and Synchronized?
 A `java.util.concurrent.locks.Lock` is a thread synchronization mechanism just like synchronized blocks. A Lock is, however, more flexible and more sophisticated than a synchronized block. Since Lock is an interface, you need to use one of its implementations to use a Lock in your applications. `ReentrantLock` is one such implementation of Lock interface.
