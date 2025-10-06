@@ -1183,8 +1183,8 @@ ConstraintViolation gives: getMessage(), getPropertyPath(), getInvalidValue().
 ```java
 @PostMapping("/users")
 public ResponseEntity<?> create(@Valid @RequestBody UserDto dto, BindingResult br) {
-if (br.hasErrors()) { ... } // or let exception handler handle it
-// proceed
+    if (br.hasErrors()) { ... } // or let exception handler handle it
+    // proceed
 }
 ```
 -	@Valid triggers bean validation on the request body.
@@ -1196,8 +1196,8 @@ if (br.hasErrors()) { ... } // or let exception handler handle it
 @Validated
 @RestController
 public class C {
-@GetMapping("/items/{id}")
-public Item get(@PathVariable @Min(1) Long id) { ... }
+    @GetMapping("/items/{id}")
+    public Item get(@PathVariable @Min(1) Long id) { ... }
 }
 ```
 -	For service-layer method validation (method param/return), enable MethodValidationPostProcessor (Spring auto-configures it if you include dependency), annotate service with @Validated.
@@ -1277,6 +1277,190 @@ public class MyService {
 ```
 If violated, a ConstraintViolationException is thrown.
 
+### **@Validated in Spring**
+
+@Validated is a Spring-specific annotation used to activate JSR-303/JSR-380 Bean Validation (like @NotNull, @Size, etc.) on method parameters or beans.
+It builds upon Jakarta Bean Validation (JSR-380) and allows method-level validation using Spring AOP.
+
+Package:
+`org.springframework.validation.annotation.Validated`
+
+
+⸻
+
+**Why Use @Validated?**
+
+The standard @Valid annotation works well for:
+-	Request bodies (@RequestBody)
+-	Entity fields (nested validation)
+
+However, @Valid does not perform method-level validation in service or component layers.
+To validate method parameters or return values, Spring AOP is needed.
+@Validated enables this functionality.
+
+⸻
+
+**Difference Between @Valid and @Validated**
+
+| Feature 	                   | @Valid	                                     | @Validated                                          |
+|-----------------------------|---------------------------------------------|-----------------------------------------------------|
+| Package	                    | jakarta.validation.Valid	                   | org.springframework.validation.annotation.Validated | 
+| Provided By	                | Jakarta Bean Validation (JSR-303)	          | Spring Framework                                    | 
+| Works On                    | 	Fields, method parameters, nested objects	 | Method-level validation (class proxies)             | 
+| Supports Validation  Groups | No	                                         | Yes                                                 | 
+| Exception Thrown	           | ConstraintViolationException	               | ConstraintViolationException (via AOP proxy)        | 
+
+Rule of Thumb:
+-	Use @Valid for request DTO validation
+-	Use @Validated for service or method-level validation
+
+⸻
+
+Example 1 — Basic Controller Validation
+```java
+@RestController
+@RequestMapping("/api/patients")
+public class PatientController {
+
+    @PostMapping
+    public ResponseEntity<String> addPatient(@Valid @RequestBody PatientRequest request) {
+        return ResponseEntity.ok("Patient added: " + request.getName());
+    }
+}
+
+public class PatientRequest {
+@NotBlank
+private String name;
+
+    @Min(0)
+    private int age;
+
+    // getters/setters
+}
+```
+Here, @Valid ensures the request body is validated before entering the controller.
+If validation fails, MethodArgumentNotValidException is thrown automatically.
+
+Example 2 — Method-Level Validation with @Validated
+```java
+@Service
+@Validated
+public class PatientService {
+
+    public void registerPatient(@NotBlank String name, @Min(1) int age) {
+        System.out.println("Registering patient: " + name);
+    }
+}
+```
+When calling:
+```java
+patientService.registerPatient("", 0);
+```
+Spring performs the following:
+1.	Creates an AOP proxy for the PatientService.
+2.	Intercepts method calls.
+3.	Validates method parameters using constraints.
+4.	Throws ConstraintViolationException if validation fails.
+
+⸻
+
+**Validation Groups with @Validated**
+
+@Validated supports validation groups, which @Valid does not.
+```java
+public interface OnCreate {}
+public interface OnUpdate {}
+
+public class PatientDTO {
+
+    @NotNull(groups = OnUpdate.class)
+    private Long id;
+
+    @NotBlank(groups = {OnCreate.class, OnUpdate.class})
+    private String name;
+}
+```
+Controller Example:
+```java
+@PostMapping("/create")
+public ResponseEntity<?> createPatient(@Validated(OnCreate.class) @RequestBody PatientDTO dto) {
+// validates fields for OnCreate group
+}
+```
+
+⸻
+
+**Internal Working of @Validated**
+1.	Spring creates a proxy for the bean annotated with @Validated.
+2.	The proxy intercepts method invocations.
+3.	The MethodValidationInterceptor invokes a validator (typically LocalValidatorFactoryBean).
+4.	Method parameters and return values are validated.
+5.	If a constraint fails, a ConstraintViolationException is thrown before method execution.
+
+The infrastructure bean responsible for this behavior is:
+
+`org.springframework.validation.beanvalidation.MethodValidationPostProcessor`
+It can be registered explicitly if not auto-configured:
+```java
+@Bean
+public MethodValidationPostProcessor methodValidationPostProcessor() {
+    return new MethodValidationPostProcessor();
+}
+```
+
+⸻
+
+**Common Interview Questions**
+
+Q1. What’s the difference between @Valid and @Validated?
+-	@Valid is a JSR-303 annotation for object graph validation.
+-	@Validated is Spring’s version that enables AOP-based method validation and validation groups.
+
+Q2. Why is @Validated placed at the class level in services?
+-	It signals Spring to create an AOP proxy that performs method-level validation before execution.
+
+Q3. What exception is thrown on validation failure?
+-	For @Valid in controllers → MethodArgumentNotValidException
+-	For @Validated in services → ConstraintViolationException
+
+Q4. Can we use both @Valid and @Validated together?
+-	Yes. Typically:
+-	@Valid is used in controllers for input validation.
+-	@Validated is used in service layers for deeper validation or grouped validation.
+
+⸻
+
+**Combined Controller and Service Example**
+```java
+@RestController
+@RequiredArgsConstructor
+public class PatientController {
+
+    private final PatientService patientService;
+
+    @PostMapping("/add")
+    public ResponseEntity<String> addPatient(@Valid @RequestBody PatientDTO dto) {
+        patientService.registerPatient(dto.getName(), dto.getAge());
+        return ResponseEntity.ok("Added!");
+    }
+}
+
+@Service
+@Validated
+class PatientService {
+
+    public void registerPatient(@NotBlank String name, @Min(1) int age) {
+        // business logic
+    }
+}
+```
+
+Behavior:
+-	@Valid validates the incoming request body.
+-	@Validated validates the service-layer parameters.
+-	Together they ensure full-stack validation and consistent error handling.
+
+
 ⸻
 
 **10. Message interpolation & i18n**
@@ -1319,10 +1503,9 @@ Fail-fast makes validation stop at first violation (faster but less info). Defau
 ⸻
 
 **14. Common pitfalls & clarifications (interview traps)**
--	@NotNull vs @NotEmpty vs @NotBlank — know differences.
 -	@Valid vs @Validated:
--	@Valid (javax/ jakarta) is Bean Validation annotation used to trigger cascade on nested objects (works on method params in some contexts).
--	@Validated (Spring) enables validation groups and method-level validation via AOP.
+  -	@Valid (javax/ jakarta) is Bean Validation annotation used to trigger cascade on nested objects (works on method params in some contexts).
+  -	@Validated (Spring) enables validation groups and method-level validation via AOP.
 -	Primitive types can’t be null. Use wrapper types if nullability matters.
 -	@Email is not RFC 100% spec — may accept invalid addresses; for full validation use stricter logic.
 -	volatile/concurrency & validation? unrelated — don’t mix up.
