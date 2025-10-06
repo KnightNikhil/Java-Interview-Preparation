@@ -17,7 +17,7 @@
 ## 2. Auto-configuration mechanism
 
 ### Annotations:
-- Conditional annotations in Spring Boot help us create beans or configurations only if certain  conditions are met.
+- Conditional annotations in Spring Boot help us **create beans or configurations only if certain  conditions are met**.
 - `@ConditionalOnClass`: Loads configuration only if a specific class is present in the classpath.
 - `@ConditionalOnMissingBean`: Applies auto-config only if a bean is not already defined by the user.
 - `@ConditionalOnProperty`: Activates config based on specific property values in `application.properties`/`yml`.
@@ -372,7 +372,7 @@ If you’re not sure which auto-configs are loaded, you can run:
 java -jar myapp.jar --debug
 ```
 This prints an Auto-Configuration Report (the “CONDITIONS EVALUATION REPORT”) showing:
-- 	Which auto-configurations were applied ✅
+- 	Which auto-configurations were applied -
 - 	Which were excluded or not matched ❌
 
 ⸻
@@ -480,120 +480,6 @@ How It Works Internally
 **A:** It can be used to manually import specific auto-configurations in non-boot projects.
 
 ---
-
-
-# Spring AOP (Aspect-Oriented Programming)
-
-## Purpose: Cross-Cutting Concerns
-
-Aspect-Oriented Programming (AOP) is a programming approach that helps in separating concerns in your program, especially those that cut across multiple parts of an application such as:
-- Logging
-- Security
-- Transaction Management
-- Performance Metrics
-- Auditing
-- Validation
-
----
-
-## Core AOP Concepts
-
-| Concept        | Description                                                                                    |
-|----------------|------------------------------------------------------------------------------------------------|
-| **JoinPoint**  | A point during execution of a program (e.g., method execution) where an aspect can be applied. |
-| **Pointcut**   | A predicate that matches JoinPoints (where advice should be applied).                          |
-| **Advice**     | Action taken at a particular JoinPoint. Types include `@Before`, `@After`, `@Around`, etc.     |
-| **Aspect**     | A module that encapsulates pointcuts and advices.                                              |
-| **Weaving**    | Process of linking aspects with other application types to create an advised object.           |
-
----
-
-## Types of Advices
-
-- `@Before`: Executes before the JoinPoint.
-- `@After`: Executes after the JoinPoint (finally block style).
-- `@AfterReturning`: Executes after method returns successfully.
-- `@AfterThrowing`: Executes if method throws an exception.
-- `@Around`: Surrounds the JoinPoint (most powerful; can control method execution).
-
----
-
-## Enable AOP in Spring
-
-```java
-@Configuration
-@EnableAspectJAutoProxy
-public class AppConfig {
-}
-```
-
----
-
-## Proxy Mechanism
-
-- **JDK Dynamic Proxies**: Used if the target implements at least one interface.
-- **CGLIB Proxies**: Used if the target is a concrete class.
-
-Use `proxyTargetClass=true` to enforce CGLIB proxying.
-
----
-
-## Common Use Cases
-
-- Logging method input/output
-- Timing execution for performance monitoring
-- Access control checks
-- Automatic validation and auditing
-
----
-
-## Example Aspect
-
-```java
-@Aspect
-@Component
-public class LoggingAspect {
-
-    @Before("execution(* com.example.service.*.*(..))")
-    public void logBefore(JoinPoint joinPoint) {
-        System.out.println("Method Called: " + joinPoint.getSignature().getName());
-    }
-
-    @AfterReturning(pointcut = "execution(* com.example.service.*.*(..))", returning = "result")
-    public void logAfterReturning(JoinPoint joinPoint, Object result) {
-        System.out.println("Method returned: " + result);
-    }
-}
-```
-
----
-
-## Interview Follow-up Questions
-
-### Q1: How does Spring choose between JDK and CGLIB proxy?
-**A:** If the bean implements an interface, Spring uses JDK dynamic proxies by default. If no interfaces are found or if `proxyTargetClass=true`, it uses CGLIB.
-
-### Q2: Can you apply aspects to private methods?
-**A:** No. Spring AOP uses proxies, and it can only intercept public/protected methods that are externally visible.
-
-### Q3: What is the difference between Spring AOP and AspectJ?
-**A:** Spring AOP is proxy-based and applies aspects at runtime, limited to method execution join points. AspectJ supports compile-time, load-time, and runtime weaving and has a richer join point model.
-
-### Q4: Is AOP supported in Spring Boot by default?
-**A:** Yes. Just add `spring-boot-starter-aop` and enable it using `@EnableAspectJAutoProxy`.
-
----
----
-
-3. Event Handling with ApplicationEventPublisher
-* Publish events using ApplicationEventPublisher
-* Listen with @EventListener or implementing ApplicationListener
-* Asynchronous event processing using @Async
-* Custom events vs built-in events (ContextRefreshedEvent, ApplicationReadyEvent, etc.)
-* Use cases: decoupling, domain-driven events, notification systems
-
-⸻
-
 
 # Spring Event Handling with ApplicationEventPublisher
 
@@ -816,7 +702,7 @@ export SPRING_PROFILES_ACTIVE=prod
 ---
 
 
-# @Conditional Annotations and Bean Lifecycle
+# @Conditional Annotations
 
 ## Conditional Annotations
 - Spring provides conditional annotations to control when a bean should be registered in the context.
@@ -1207,20 +1093,20 @@ public class HelloController {
 
 1. **What is the difference between @PathVariable and @RequestParam?**
 
-    - `@PathVariable` is used to capture dynamic parts from the URL path.
-    - `@RequestParam` is used to extract query parameters.
+  - `@PathVariable` is used to capture dynamic parts from the URL path.
+  - `@RequestParam` is used to extract query parameters.
 
 2. **When would you use ResponseEntity instead of returning plain objects?**
 
-    - When you need to set status codes, headers, or content types manually.
+  - When you need to set status codes, headers, or content types manually.
 
 3. **Can you use @RestController and @Controller in the same project?**
 
-    - Yes. They serve different purposes and can coexist.
+  - Yes. They serve different purposes and can coexist.
 
 4. **What happens if both @PathVariable and @RequestParam are used in the same method?**
 
-    - It works fine; you can capture both path and query data in a single method.
+  - It works fine; you can capture both path and query data in a single method.
 
 5. **How do you handle default values with @RequestParam?**
 
@@ -1228,43 +1114,51 @@ public class HelloController {
    @RequestParam(defaultValue = "guest") String user
    ```
 
+6. **What is BindingResult and why is it important?**
+
+  - It holds validation errors and allows custom error responses instead of exceptions.
+
+7. **What’s the purpose of @ControllerAdvice?**
+
+  - It provides centralized exception handling across all `@Controller` classes.
+
 ---
 
 # Validation
 
-1 — Big picture (what & why)
+**1. Big picture (what & why)**
 
 Bean Validation (JSR 303/349/380 → now Jakarta Validation) is the standard API for declarative constraint-based validation in Java.
-•	Purpose: validate POJOs (beans), method parameters/returns, container elements.
-•	Reference implementation: Hibernate Validator (most apps use it; Spring Boot brings it in by default).
-•	Two modes:
-•	Declarative via annotations (@NotNull, @Size, etc.)
-•	Programmatic via Validator API
+-	Purpose: validate POJOs (beans), method parameters/returns, container elements.
+-	Reference implementation: Hibernate Validator (most apps use it; Spring Boot brings it in by default).
+-	Two modes:
+  -	Declarative via annotations (@NotNull, @Size, etc.)
+  -	Programmatic via Validator API
 
 Note: namespace changed: older projects use javax.validation.*; recent Jakarta EE / Spring Boot 3+ uses jakarta.validation.*. Concepts are the same.
 
 ⸻
 
-2 — Core annotations (common, know these)
-•	@NotNull — value must not be null.
-•	@NotEmpty — for CharSequence/Collection/Map/Array: size > 0 (not null & not empty).
-•	@NotBlank — for Strings: not null, trimmed length > 0 (rejects whitespace).
-•	@Size(min=..., max=...) — for String/Collection/Array length.
-•	@Min, @Max — numeric bounds (long-based).
-•	@Positive, @PositiveOrZero, @Negative, @NegativeOrZero.
-•	@Email — email format (note: not full RFC validation).
-•	@Pattern(regexp=...) — regex match.
-•	@Past, @Future — dates/times.
-•	@Valid — cascade validation into nested object/collection elements.
-•	@AssertTrue, @AssertFalse — boolean checks.
-•	@Null — value must be null.
+**2. Core annotations (common, know these)**
+-	@NotNull — value must not be null.
+-	@NotEmpty — for CharSequence/Collection/Map/Array: size > 0 (not null & not empty).
+-	@NotBlank — for Strings: not null, trimmed length > 0 (rejects whitespace).
+-	@Size(min=..., max=...) — for String/Collection/Array length.
+-	@Min, @Max — numeric bounds (long-based).
+-	@Positive, @PositiveOrZero, @Negative, @NegativeOrZero.
+-	@Email — email format (note: not full RFC validation).
+-	@Pattern(regexp=...) — regex match.
+-	@Past, @Future — dates/times.
+-	@Valid — cascade validation into nested object/collection elements.
+-	@AssertTrue, @AssertFalse — boolean checks.
+-	@Null — value must be null.
 
 Container/Type-use constraints (Java 8+): List<@NotNull String> to validate container elements.
 
 ⸻
 
-3 — Validation API essentials (programmatic)
-
+**3. Validation API essentials (programmatic)**
+```java
 import javax.validation.*;
 import java.util.Set;
 
@@ -1274,138 +1168,140 @@ Validator validator = factory.getValidator();
 MyBean bean = new MyBean(...);
 Set<ConstraintViolation<MyBean>> violations = validator.validate(bean);
 for (ConstraintViolation<MyBean> v : violations) {
-System.out.println(v.getPropertyPath() + " " + v.getMessage());
+    System.out.println(v.getPropertyPath() + " " + v.getMessage());
 }
+```
 
 ConstraintViolation gives: getMessage(), getPropertyPath(), getInvalidValue().
 
 ⸻
 
-4 — Spring Boot integration (most important for interviews)
+**4. Spring Boot integration (most important for interviews)**
 
-4.1 Validating request body in controllers
+1. Validating request body in controllers
 
+```java
 @PostMapping("/users")
 public ResponseEntity<?> create(@Valid @RequestBody UserDto dto, BindingResult br) {
 if (br.hasErrors()) { ... } // or let exception handler handle it
 // proceed
 }
+```
+-	@Valid triggers bean validation on the request body.
+-	Spring handles errors as MethodArgumentNotValidException (for @RequestBody) or BindException (for form binding).
 
-	•	@Valid triggers bean validation on the request body.
-	•	Spring handles errors as MethodArgumentNotValidException (for @RequestBody) or BindException (for form binding).
-
-4.2 Validating path/params / method params
-•	Use @Validated on the controller/class or configuration to enable method-level validation for simple types:
-
+2. Validating path/params / method params
+-	Use @Validated on the controller/class or configuration to enable method-level validation for simple types:
+```java
 @Validated
 @RestController
 public class C {
 @GetMapping("/items/{id}")
 public Item get(@PathVariable @Min(1) Long id) { ... }
 }
-
-	•	For service-layer method validation (method param/return), enable MethodValidationPostProcessor (Spring auto-configures it if you include dependency), annotate service with @Validated.
+```
+-	For service-layer method validation (method param/return), enable MethodValidationPostProcessor (Spring auto-configures it if you include dependency), annotate service with @Validated.
 
 ⸻
 
-5 — Cascading validation
-
+**5. Cascading validation**
+```java
 public class Order {
-@Valid
-private Customer customer;
-@Valid
-private List<@NotNull Item> items;
+  @Valid
+  private Customer customer;
+  @Valid
+  private List<@NotNull Item> items;
 }
-
+```
 @Valid on a field causes the validator to validate nested object(s).
 
 ⸻
 
-6 — Custom constraint (class + validator)
+**6. Custom constraint (class + validator)**
 
 Annotation
-
+```java
 @Constraint(validatedBy = PasswordMatchesValidator.class)
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PasswordMatches {
-String message() default "Passwords don't match";
-Class<?>[] groups() default {};
-Class<? extends Payload>[] payload() default {};
+  String message() default "Passwords don't match";
+  Class<?>[] groups() default {};
+  Class<? extends Payload>[] payload() default {};
 }
-
+```
 Validator
-
+```java
 public class PasswordMatchesValidator implements ConstraintValidator<PasswordMatches, UserDto> {
 @Override
 public boolean isValid(UserDto dto, ConstraintValidatorContext ctx) {
-if (dto == null) return true; // keep null-check for @NotNull elsewhere
-return Objects.equals(dto.getPassword(), dto.getConfirmPassword());
+    if (dto == null) return true; // keep null-check for @NotNull elsewhere
+    return Objects.equals(dto.getPassword(), dto.getConfirmPassword());
 }
 }
-
+```
 Apply as class-level: @PasswordMatches on UserDto.
 
 ⸻
 
-7 — Cross-field/class-level validation
+**7. Cross-field/class-level validation**
 
 Used when a constraint depends on multiple fields (password match, startDate < endDate). Use type-level annotation + validator (see above).
 
 ⸻
 
-8 — Constraint composition & payload & groups
-•	Composition: create annotations that combine other constraints (meta-annotations).
-•	Payload: carry metadata for clients (rarely used).
-•	Groups: support different validation sequences (e.g., @Validated(Create.class) vs @Validated(Update.class)).
-
+**8. Constraint composition & payload & groups**
+-	Composition: create annotations that combine other constraints (meta-annotations).
+-	Payload: carry metadata for clients (rarely used).
+-	Groups: support different validation sequences (e.g., @Validated(Create.class) vs @Validated(Update.class)).
+```java
 public interface Create {}
 public interface Update {}
 
 @NotNull(groups = Create.class)
 private Long id;
-
+```
 Use group sequences to enforce order.
 
 ⸻
 
-9 — Method validation (JSR-349/380)
-•	Bean Validation supports method parameter and return value validation via @Validated and AOP proxying.
-•	Typical usage in services:
-
+**9. Method validation (JSR-349/380)**
+-	Bean Validation supports method parameter and return value validation via @Validated and AOP proxying.
+-	Typical usage in services:
+```java
 @Validated
 @Service
 public class MyService {
-public void create(@NotNull @Size(min=3) String name) { ... }
+    public void create(@NotNull @Size(min=3) String name) { ... }
 }
-
+```
 If violated, a ConstraintViolationException is thrown.
 
 ⸻
 
-10 — Message interpolation & i18n
-•	Default messages come from annotation message attribute, e.g. @Size(message = "must be between {min} and {max}").
-•	To internationalize: create ValidationMessages.properties (and localized variants) in classpath; use message keys in annotations: @NotNull(message = "{user.name.notnull}").
-•	Messages support placeholders like {validatedValue}, {min}, etc.
+**10. Message interpolation & i18n**
+-	Default messages come from annotation message attribute, e.g. @Size(message = "must be between {min} and {max}").
+-	To internationalize: create ValidationMessages.properties (and localized variants) in classpath; use message keys in annotations: @NotNull(message = "{user.name.notnull}").
+-	Messages support placeholders like {validatedValue}, {min}, etc.
 
 ⸻
 
-11 — Exception handling in Spring (best practice)
-•	@ControllerAdvice to handle:
-•	MethodArgumentNotValidException (body validation) → extract BindingResult.getFieldErrors() to return field-specific messages.
-•	ConstraintViolationException (method param/service layer) → map ConstraintViolation to field/param messages.
+**11. Exception handling in Spring (best practice)**
+-	@ControllerAdvice to handle:
+-	MethodArgumentNotValidException (body validation) → extract BindingResult.getFieldErrors() to return field-specific messages.
+-	ConstraintViolationException (method param/service layer) → map ConstraintViolation to field/param messages.
 Example error DTO:
-
+```JSON
 {
 "timestamp":"...",
 "status":400,
 "errors":[ {"field":"email","message":"must be a well-formed email address"} ]
 }
-
+``` 
 
 ⸻
 
-12 — Fail-fast vs default
+**12. Fail-fast vs default**
 
 Hibernate Validator supports fail-fast mode:
 
@@ -1415,30 +1311,30 @@ Fail-fast makes validation stop at first violation (faster but less info). Defau
 
 ⸻
 
-13 — Testing validation
-•	Unit-test validators with Validator programmatic API.
-•	Controller tests: use MockMvc and send invalid DTOs; assert error payload and status.
-•	Test custom constraints in isolation.
+**13. Testing validation**
+-	Unit-test validators with Validator programmatic API.
+-	Controller tests: use MockMvc and send invalid DTOs; assert error payload and status.
+-	Test custom constraints in isolation.
 
 ⸻
 
-14 — Common pitfalls & clarifications (interview traps)
-•	@NotNull vs @NotEmpty vs @NotBlank — know differences.
-•	@Valid vs @Validated:
-•	@Valid (javax/ jakarta) is Bean Validation annotation used to trigger cascade on nested objects (works on method params in some contexts).
-•	@Validated (Spring) enables validation groups and method-level validation via AOP.
-•	Primitive types can’t be null. Use wrapper types if nullability matters.
-•	@Email is not RFC 100% spec — may accept invalid addresses; for full validation use stricter logic.
-•	volatile/concurrency & validation? unrelated — don’t mix up.
-•	Message interpolation placeholders and using ValidationMessages.properties.
-•	@Valid is needed to validate elements in collections nested inside a bean; also use container element constraints for List<@NotNull Foo>.
+**14. Common pitfalls & clarifications (interview traps)**
+-	@NotNull vs @NotEmpty vs @NotBlank — know differences.
+-	@Valid vs @Validated:
+-	@Valid (javax/ jakarta) is Bean Validation annotation used to trigger cascade on nested objects (works on method params in some contexts).
+-	@Validated (Spring) enables validation groups and method-level validation via AOP.
+-	Primitive types can’t be null. Use wrapper types if nullability matters.
+-	@Email is not RFC 100% spec — may accept invalid addresses; for full validation use stricter logic.
+-	volatile/concurrency & validation? unrelated — don’t mix up.
+-	Message interpolation placeholders and using ValidationMessages.properties.
+-	@Valid is needed to validate elements in collections nested inside a bean; also use container element constraints for List<@NotNull Foo>.
 
 ⸻
 
-15 — Quick code cheatsheet
+15. Quick code cheatsheet
 
 DTO with annotations
-
+```java
 public class UserDto {
 @NotNull
 private Long id;
@@ -1454,22 +1350,24 @@ private Long id;
     // getters/setters
 }
 
-Controller
 
+```
+
+Controller
+```java
 @PostMapping("/users")
 public ResponseEntity<Void> create(@Valid @RequestBody UserDto dto) { ... }
+```
 
 Programmatic
-
+```java
 Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 Set<ConstraintViolation<UserDto>> v = validator.validate(dto);
-
-Custom constraint
-(see section 6)
+```
 
 ⸻
 
-16 — Interview-style Qs & short model answers
+**Interview-style Qs & short model answers**
 1.	Q: Difference @NotNull, @NotEmpty, @NotBlank?
 A: @NotNull forbids null; @NotEmpty forbids null or empty (for String/Collection); @NotBlank forbids null/empty/whitespace (for String).
 2.	Q: How to validate nested objects?
@@ -1487,62 +1385,15 @@ A: When you need different validation rules for different operations (e.g., crea
 
 ⸻
 
-17 — Best practices (what to say in interviews)
-•	Prefer declarative bean validation for DTOs and simple rules.
-•	Use @Valid to cascade and @Validated for groups/method validation.
-•	Keep validation logic simple; for complex business rules, implement in service layer (and throw meaningful exceptions).
-•	Return structured error responses (field -> message).
-•	Avoid putting heavy logic inside custom validators (they should be fast).
-•	Test custom validators thoroughly and include i18n.
-
-⸻
-
-If you want, I can:
-•	produce a one-file runnable Spring Boot sample demonstrating @Valid in controller, custom constraint, and a ControllerAdvice mapping errors to JSON, or
-•	give you 10 interview problems on validation (with answers) to practice.
-
-Which do you prefer?
-
-### Interview Follow-up Questions
-
-1. **What is the difference between @PathVariable and @RequestParam?**
-
-    - `@PathVariable` is used to capture dynamic parts from the URL path.
-    - `@RequestParam` is used to extract query parameters.
-
-2. **When would you use ResponseEntity instead of returning plain objects?**
-
-    - When you need to set status codes, headers, or content types manually.
-
-3. **Can you use @RestController and @Controller in the same project?**
-
-    - Yes. They serve different purposes and can coexist.
-
-4. **What happens if both @PathVariable and @RequestParam are used in the same method?**
-
-    - It works fine; you can capture both path and query data in a single method.
-
-5. **How do you handle default values with @RequestParam?**
-
-   ```java
-   @RequestParam(defaultValue = "guest") String user
-   ```
-
-6. **What is BindingResult and why is it important?**
-
-    - It holds validation errors and allows custom error responses instead of exceptions.
-
-7. **What’s the purpose of @ControllerAdvice?**
-
-    - It provides centralized exception handling across all `@Controller` classes.
+**Best practices (what to say in interviews)**
+-	Prefer declarative bean validation for DTOs and simple rules.
+-	Use @Valid to cascade and @Validated for groups/method validation.
+-	Keep validation logic simple; for complex business rules, implement in service layer (and throw meaningful exceptions).
+-	Return structured error responses (field -> message).
+-	Avoid putting heavy logic inside custom validators (they should be fast).
+-	Test custom validators thoroughly and include i18n.
 
 ---
-
-
-4. Content Negotiation
-* Returning XML, JSON, or custom format
-* produces and consumes attributes
-* HttpMessageConverter
 
 ### 4. Content Negotiation
 
@@ -1590,55 +1441,20 @@ public class WebConfig implements WebMvcConfigurer {
 
 ### Interview Follow-up Questions
 
-1. **What is the difference between @PathVariable and @RequestParam?**
 
-    - `@PathVariable` is used to capture dynamic parts from the URL path.
-    - `@RequestParam` is used to extract query parameters.
-
-2. **When would you use ResponseEntity instead of returning plain objects?**
-
-    - When you need to set status codes, headers, or content types manually.
-
-3. **Can you use @RestController and @Controller in the same project?**
-
-    - Yes. They serve different purposes and can coexist.
-
-4. **What happens if both @PathVariable and @RequestParam are used in the same method?**
-
-    - It works fine; you can capture both path and query data in a single method.
-
-5. **How do you handle default values with @RequestParam?**
-
-   ```java
-   @RequestParam(defaultValue = "guest") String user
-   ```
-
-6. **What is BindingResult and why is it important?**
-
-    - It holds validation errors and allows custom error responses instead of exceptions.
-
-7. **What’s the purpose of @ControllerAdvice?**
-
-    - It provides centralized exception handling across all `@Controller` classes.
-
-8. **How does Spring handle JSON and XML in responses?**
+1. **How does Spring handle JSON and XML in responses?**
 
     - Through `HttpMessageConverters`, based on the `Accept` header and `produces` attribute.
 
-9. **What happens if client requests XML but Jackson (for JSON) is only on classpath?**
+2. **What happens if client requests XML but Jackson (for JSON) is only on classpath?**
 
     - Spring returns 406 Not Acceptable since it can't fulfill the request.
-
-10. **How can you add custom format support like CSV or YAML?**
+   
+3. **How can you add custom format support like CSV or YAML?**
 
 - Implement and register a custom `HttpMessageConverter`.
 
 ---
-
-5. Exception Handling
-* @ExceptionHandler, @ResponseStatus
-* Centralized error handling with @ControllerAdvice
-* Custom error responses
 
 # 5. Exception Handling in Spring
 
@@ -1646,27 +1462,19 @@ Exception handling in Spring provides a robust mechanism to manage application e
 
 ---
 
-## @ExceptionHandler
+# @ExceptionHandler
 
-Excellent 👏 — this is one of the most frequently asked Spring Boot interview topics:
-👉 @ExceptionHandler and Exception Handling Mechanism in Spring MVC / Spring Boot
 
-Let’s go step by step so you understand it conceptually, technically, and with examples interviewers expect.
-
-⸻
-
-🎯 What is @ExceptionHandler?
+## What is @ExceptionHandler?
 
 @ExceptionHandler is an annotation used in Spring MVC / Spring Boot to handle exceptions thrown during request processing inside a controller.
 
-In simple words:
-
-It allows you to catch specific exceptions (like NullPointerException, UserNotFoundException, etc.) and define custom responses instead of returning the default Spring error page or stack trace.
+- In simple words: It allows you to catch specific exceptions (like NullPointerException, UserNotFoundException, etc.) and define custom responses instead of returning the default Spring error page or stack trace.
 
 ⸻
 
-⚙️ Basic Example
-
+**Basic Example**
+```java
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -1684,8 +1492,8 @@ public class UserController {
         return new ResponseEntity<>("Error: " + ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
-
-🔍 What happens here:
+```
+**What happens here:**
 1.	You hit /users/0.
 2.	IllegalArgumentException is thrown.
 3.	Instead of an ugly 500 error page, Spring looks inside the same controller.
@@ -1694,7 +1502,7 @@ public class UserController {
 
 ⸻
 
-🧠 How Spring Handles It Internally
+**How Spring Handles It Internally**
 
 When an exception is thrown in a controller method:
 1.	The DispatcherServlet catches it.
@@ -1705,10 +1513,10 @@ When an exception is thrown in a controller method:
 
 ⸻
 
-⚡️ Multiple Exception Handlers in One Controller
+**Multiple Exception Handlers in One Controller**
 
 You can handle multiple exception types easily.
-
+```java
 @RestController
 public class DemoController {
 
@@ -1722,31 +1530,30 @@ public class DemoController {
         return new ResponseEntity<>("Handled: " + ex.getClass().getSimpleName(), HttpStatus.BAD_REQUEST);
     }
 }
-
+```
 
 ⸻
 
-💡 Handling Exception Hierarchies
+**Handling Exception Hierarchies**
 
 Spring always picks the most specific handler first.
 
 Example:
-
+```java
 @ExceptionHandler(RuntimeException.class)
 public ResponseEntity<String> handleRuntime(RuntimeException ex) { ... }
 
 @ExceptionHandler(NullPointerException.class)
 public ResponseEntity<String> handleNPE(NullPointerException ex) { ... }
-
-👉 If a NullPointerException is thrown, Spring will call handleNPE() (since it’s more specific),
-not handleRuntime().
+```
+If a NullPointerException is thrown, Spring will call handleNPE() (since it’s more specific), not handleRuntime().
 
 ⸻
 
-⚙️ Returning JSON Responses (Best Practice for REST APIs)
+**Returning JSON Responses (Best Practice for REST APIs)**
 
 Instead of raw strings, it’s best to return structured error responses:
-
+```java
 @RestController
 public class ProductController {
 
@@ -1766,41 +1573,42 @@ public class ProductController {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 }
-
+```
 Output:
-
+```json
 {
 "timestamp": "2025-10-05T21:34:10",
 "status": 404,
 "error": "Product Not Found",
 "message": "Invalid product ID"
 }
+```
+
+⸻
+
+Key Rules
+
+| Rule   | 	Explanation                                                                             |
+|--------|------------------------------------------------------------------------------------------|
+| 1.	    | @ExceptionHandler methods can be in the same controller or in a global @ControllerAdvice |
+| 2.	    | You can handle multiple exception classes in one method using {}                         |
+| 3.     | The return type can be ResponseEntity, ModelAndView, or any object (for REST → JSON)     |
+| 4.	    | You can access HttpServletRequest, WebRequest, or HttpServletResponse as method params   |
+| 5.	    | Spring picks the closest matching exception type automatically                           |
 
 
 ⸻
 
-🧩 Key Rules
+Example: Centralized vs Local Handling
 
-Rule	Explanation
-1️⃣	@ExceptionHandler methods can be in the same controller or in a global @ControllerAdvice
-2️⃣	You can handle multiple exception classes in one method using {}
-3️⃣	The return type can be ResponseEntity, ModelAndView, or any object (for REST → JSON)
-4️⃣	You can access HttpServletRequest, WebRequest, or HttpServletResponse as method params
-5️⃣	Spring picks the closest matching exception type automatically
+- **Local:**
 
+Inside a single controller, handles only exceptions from that controller.
 
-⸻
-
-💬 Example: Centralized vs Local Handling
-
-Local:
-
-Inside a single controller — handles only exceptions from that controller.
-
-Global:
+- Global:
 
 Using @ControllerAdvice, you can centralize all @ExceptionHandlers.
-
+```java
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -1809,27 +1617,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Global: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-
+```
 Now any controller in the project throwing an exception will be handled here.
 
 ⸻
 
-🧠 Common Interview Questions & Answers
+**Common Interview Questions & Answers**
 
-Question	Explanation
-What is @ExceptionHandler?	Used to handle specific exceptions thrown during controller execution.
-What is the return type of @ExceptionHandler?	Can be any type; ResponseEntity is most common in REST APIs.
-Can one method handle multiple exceptions?	Yes, by passing an array of classes — e.g. @ExceptionHandler({A.class, B.class}).
-What’s difference between @ExceptionHandler and @ControllerAdvice?	@ExceptionHandler = local to one controller. @ControllerAdvice = global across all controllers.
-What if no matching handler is found?	Spring falls back to default error handling (BasicErrorController).
-Can you access the request info in handler?	Yes, add HttpServletRequest request or WebRequest as parameters.
-Order of precedence?	Local @ExceptionHandler in controller → Global @ControllerAdvice → Default Spring handler.
+1. What is @ExceptionHandler?	Used to handle specific exceptions thrown during controller execution.
+2. What is the return type of @ExceptionHandler?	Can be any type; ResponseEntity is most common in REST APIs.
+3. Can one method handle multiple exceptions?	Yes, by passing an array of classes — e.g. @ExceptionHandler({A.class, B.class}).
+4. What’s difference between @ExceptionHandler and @ControllerAdvice?	@ExceptionHandler = local to one controller. @ControllerAdvice = global across all controllers.
+5. What if no matching handler is found?	Spring falls back to default error handling (BasicErrorController).
+6. Can you access the request info in handler?	Yes, add HttpServletRequest request or WebRequest as parameters.
+7. Order of precedence?	Local @ExceptionHandler in controller → Global @ControllerAdvice → Default Spring handler.
 
 
 ⸻
 
-🧱 Example with Multiple Exception Types (Real-World)
-
+Example with Multiple Exception Types (Real-World)
+```java
 @RestController
 @RequestMapping("/api")
 public class EmployeeController {
@@ -1853,31 +1660,13 @@ public class EmployeeController {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
-
-✅ Clean separation of logic
-✅ Meaningful HTTP responses
-✅ No duplication in controllers
-
-⸻
-
-🔚 Summary
-
-Concept	Description
-Purpose	Handle controller exceptions gracefully
-Scope	Local to one controller (use @ControllerAdvice for global)
-Return Type	Can be any object, typically ResponseEntity
-Execution Flow	Controller throws exception → DispatcherServlet → finds matching handler
-Precedence	Controller-specific handler > Global handler > Default handler
-Best Practice	Use @RestControllerAdvice + @ExceptionHandler for uniform API error handling
+```
+- Clean separation of logic
+- Meaningful HTTP responses
+- No duplication in controllers
 
 
-⸻
 
-Would you like me to show you a production-grade example — where we use:
-•	Custom ApiError response class (timestamp, message, path),
-•	Global @ControllerAdvice,
-•	and different HTTP codes for different exceptions?
-That’s exactly what mid/senior Java interviews expect.
 ---
 
 ## @ResponseStatus
@@ -1898,31 +1687,28 @@ public class ResourceNotFoundException extends RuntimeException {
 
 ## Centralized Error Handling with @ControllerAdvice
 
-Perfect — let’s go deep into @ControllerAdvice, since it’s one of the most important annotations for building robust and production-grade Spring Boot applications.
+**What is @ControllerAdvice?**
+
+- @ControllerAdvice is a specialized Spring annotation used to handle cross-cutting concerns across all controllers in your application — most commonly exception handling, data binding, and model attributes.
+
+- Think of it like a “global interceptor” for controllers —
+- Instead of writing duplicate exception handling logic in every controller, you define it once in a class annotated with @ControllerAdvice.
 
 ⸻
 
-🧭 What is @ControllerAdvice?
+**Key Roles of @ControllerAdvice**
 
-@ControllerAdvice is a specialized Spring annotation used to handle cross-cutting concerns across all controllers in your application — most commonly exception handling, data binding, and model attributes.
-
-Think of it like a “global interceptor” for controllers —
-Instead of writing duplicate exception handling logic in every controller, you define it once in a class annotated with @ControllerAdvice.
-
-⸻
-
-🧩 Key Roles of @ControllerAdvice
-
-Responsibility	Description
-Global Exception Handling	Catch and handle exceptions thrown by any controller in one centralized place.
-Global Data Binding	Customize how data is bound to objects globally.
-Global Model Attributes	Add common data (like appVersion, userInfo) to all responses automatically.
+| Responsibility	            | Description                                                                    | 
+|----------------------------|--------------------------------------------------------------------------------|
+| Global Exception Handling	 | Catch and handle exceptions thrown by any controller in one centralized place. | 
+| Global Data Binding	       | Customize how data is bound to objects globally.                               | 
+| Global Model Attributes	   | Add common data (like appVersion, userInfo) to all responses automatically.    | 
 
 
 ⸻
 
-⚙️ Basic Structure
-
+**Basic Structure**
+```java
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -1931,18 +1717,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Something went wrong: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-
-🔍 How It Works:
-•	Any exception thrown in any controller method will be intercepted here.
-•	Spring Boot will check if there is a method with a matching @ExceptionHandler for that exception type.
-•	If found, it executes that method and returns the response.
+```
+How It Works:
+-	Any exception thrown in any controller method will be intercepted here.
+-	Spring Boot will check if there is a method with a matching @ExceptionHandler for that exception type.
+-	If found, it executes that method and returns the response.
 
 ⸻
 
-🧱 1. Exception Handling with @ControllerAdvice
+**1. Exception Handling with @ControllerAdvice**
 
 Example:
-
+```java
 @RestControllerAdvice // Shortcut for @ControllerAdvice + @ResponseBody
 public class GlobalExceptionHandler {
 
@@ -1970,37 +1756,38 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Unexpected error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-
-✅ Notes:
-•	@RestControllerAdvice is equivalent to @ControllerAdvice + @ResponseBody.
-•	It ensures all methods return JSON instead of a view.
-•	You can define multiple handlers for different exception classes.
+```
+Notes:
+-	@RestControllerAdvice is equivalent to @ControllerAdvice + @ResponseBody.
+-	It ensures all methods return JSON instead of a view.
+-	You can define multiple handlers for different exception classes.
 
 ⸻
 
-🧱 2. Scope Control (Target Specific Controllers)
+**2. Scope Control (Target Specific Controllers)**
 
-By default, @ControllerAdvice applies to all controllers,
-but you can narrow its scope using one of these filters:
+By default, @ControllerAdvice applies to all controllers, but you can narrow its scope using one of these filters:
 
+```java 
 @ControllerAdvice(basePackages = "com.example.api.controller")
+```
 
-👉 Applies only to controllers inside that package.
-
+- Applies only to controllers inside that package.
+```java
 @ControllerAdvice(assignableTypes = {UserController.class, OrderController.class})
-
-👉 Applies only to specific controllers.
-
+```
+- Applies only to specific controllers.
+```java
 @ControllerAdvice(annotations = RestController.class)
-
-👉 Applies only to controllers annotated with @RestController.
+```
+- Applies only to controllers annotated with @RestController.
 
 ⸻
 
-🧱 3. Adding Common Data (@ModelAttribute)
+3. Adding Common Data (@ModelAttribute)
 
 You can add attributes that should be available to all controllers.
-
+```java
 @ControllerAdvice
 public class GlobalModelAdvice {
 
@@ -2009,15 +1796,15 @@ public class GlobalModelAdvice {
         return "v1.0.3";
     }
 }
-
+```
 Every controller now automatically receives a model attribute appVersion.
 
 ⸻
 
-🧱 4. Global Data Binding (@InitBinder)
+4. Global Data Binding (@InitBinder)
 
 You can customize how form/request data is converted to Java objects globally.
-
+```java
 @ControllerAdvice
 public class GlobalBindingAdvice {
 
@@ -2027,32 +1814,33 @@ public class GlobalBindingAdvice {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
     }
 }
-
+```
 This ensures input sanitization for all controllers automatically.
 
 ⸻
 
-💡 Difference Between @ControllerAdvice and @ExceptionHandler (Inside Controller)
+Difference Between @ControllerAdvice and @ExceptionHandler (Inside Controller)
 
-Aspect	@ExceptionHandler in Controller	@ControllerAdvice
-Scope	Handles exceptions for one controller only	Handles exceptions globally across all controllers
-Usage	Localized error handling	Centralized error handling
-Best for	Small projects or specific controller logic	Large applications needing consistency
+| Aspect	   | @ExceptionHandler in Controller	             | @ControllerAdvice                                  |
+|-----------|----------------------------------------------|----------------------------------------------------|
+| Scope	    | Handles exceptions for one controller only	  | Handles exceptions globally across all controllers |
+| Usage	    | Localized error handling	                    | Centralized error handling                         |
+| Best for	 | Small projects or specific controller logic	 | Large applications needing consistency             |
 
 
 ⸻
 
-🧠 Interview Tip
+**Interview Tip**
 
 Q: How does Spring know which method to call in @ControllerAdvice?
-👉 Spring maintains a hierarchy: it looks for a matching @ExceptionHandler method for the thrown exception (or its superclass). If multiple match, it picks the most specific one.
+- Spring maintains a hierarchy: it looks for a matching @ExceptionHandler method for the thrown exception (or its superclass). If multiple match, it picks the most specific one.
 
 ⸻
 
-🛠 Real-World Example
+**Real-World Example**
 
 Imagine a REST API with endpoints for patients:
-
+```java
 @RestController
 @RequestMapping("/patients")
 public class PatientController {
@@ -2062,11 +1850,11 @@ public class PatientController {
         return ResponseEntity.ok(patientService.getPatientById(id));
     }
 }
-
+```
 Now, if getPatientById throws PatientNotFoundException, you don’t want every controller to handle it.
 
 So you define:
-
+```java
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -2080,31 +1868,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-
-✅ Cleaner
-✅ Reusable
-✅ Consistent error responses across controllers
-
-⸻
-
-✅ Summary Table
-
-Feature	Annotation	Description
-Global exception handling	@ExceptionHandler	Handles exceptions globally
-Add common model data	@ModelAttribute	Adds shared attributes
-Customize data binding	@InitBinder	Modifies data conversion rules
-REST-style response	@RestControllerAdvice	Returns JSON responses automatically
-Scoped advice	basePackages, assignableTypes, annotations	Limits advice to specific controllers
-
+```
+- Cleaner
+- Reusable
+- Consistent error responses across controllers
 
 ⸻
 
-Would you like me to show a real-world Spring Boot REST API example with:
-•	Custom exceptions
-•	@ControllerAdvice global handler
-•	Proper JSON error structure (timestamp, message, path)?
+- Summary Table
 
-That’s the exact style interviewers love to see.
+| Feature	                   | Annotation	                                 | Description                           |
+|----------------------------|---------------------------------------------|---------------------------------------|
+| Global exception handling	 | @ExceptionHandler	                          | Handles exceptions globally           |
+| Add common model data	     | @ModelAttribute	                            | Adds shared attributes                |
+| Customize data binding	    | @InitBinder	                                | Modifies data conversion rules        |
+| REST-style response	       | @RestControllerAdvice	                      | Returns JSON responses automatically  |
+| Scoped advice	             | basePackages, assignableTypes, annotations	 | Limits advice to specific controllers |
+
+
 
 ---
 
