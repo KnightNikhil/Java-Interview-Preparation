@@ -410,13 +410,386 @@ ApplicationRunner in Spring Boot lets us run code right after the application st
 
 ## 14. What is CommandLineRunner in SpringBoot?
 
-CommandLineRunner and ApplicationRunner in Spring Boot both let us run code after the application starts, but they differ slightly. CommandLineRunner uses a run method with a String array of arguments, while ApplicationRunner uses an ApplicationArguments object for more flexible argument handling.
+- CommandLineRunner and ApplicationRunner in Spring Boot both let us run code after the application starts, but they differ slightly. CommandLineRunner uses a run method with a String array of arguments, while ApplicationRunner uses an ApplicationArguments object for more flexible argument handling.
 
+- CommandLineRunner is a Spring Boot functional interface that allows you to run specific code after the Spring ApplicationContext is fully initialized, but before the application is ready to serve requests.
+
+**It is often used for:**
+-	Initializing data at startup
+-	Running setup or configuration logic
+-	Performing sanity checks
+-	Interacting with external systems (e.g., database migrations, cache warming, etc.)
+
+⸻
+
+**Definition**
+```java
+@FunctionalInterface
+public interface CommandLineRunner {
+    void run(String... args) throws Exception;
+}
+```
+It has a single abstract method, making it a functional interface (and therefore can be implemented using a lambda).
+
+⸻
+
+**When It Runs**
+
+- CommandLineRunner executes after the Spring Boot application has started and the ApplicationContext is ready.
+
+- Execution order:
+1.	Spring Boot initializes the application context.
+2.	Beans are created and dependencies are injected.
+3.	Spring Boot runs all beans that implement:
+   -	CommandLineRunner
+   -	ApplicationRunner
+4.	The web server starts and begins accepting requests.
+
+⸻
+
+**Example Usage**
+```java
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DataInitializer implements CommandLineRunner {
+
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("Application started. Initializing data...");
+        // Example: preload data or connect to external services
+    }
+}
+```
+When you run the application:
+```
+Application started. Initializing data...
+```
+This message prints immediately after the application context loads, before handling any requests.
+
+⸻
+
+**Using CommandLineRunner with Lambdas**
+
+Since it’s a functional interface, you can define it as a bean using a lambda expression:
+```java
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class StartupConfig {
+
+    @Bean
+    public CommandLineRunner loadData() {
+        return args -> {
+            System.out.println("Running startup logic...");
+            // initialization code here
+        };
+    }
+}
+```
+
+⸻
+
+**Passing Arguments**
+
+- When you start your Spring Boot application, any command-line arguments passed to it are available in the args parameter.
+
+Example:
+```
+java -jar app.jar --env=prod --debug=true
+```
+Code:
+```java
+@Component
+public class ArgsPrinter implements CommandLineRunner {
+  @Override
+  public void run(String... args) {
+    for (String arg : args) {
+        System.out.println("Argument: " + arg);
+    }
+  }
+}
+```
+Output:
+```
+Argument: --env=prod
+Argument: --debug=true
+```
+
+⸻
+
+**Multiple CommandLineRunner Beans**
+
+- If multiple beans implement CommandLineRunner, their execution order can be controlled using the @Order annotation or by implementing Ordered interface.
+
+Example:
+```java
+@Component
+@Order(1)
+class FirstRunner implements CommandLineRunner {
+    public void run(String... args) {
+        System.out.println("First runner");
+}
+}
+
+@Component
+@Order(2)
+class SecondRunner implements CommandLineRunner {
+    public void run(String... args) {
+        System.out.println("Second runner");
+    }
+}
+```
+
+Output:
+```
+First runner
+Second runner
+```
+
+**What if I don't mention the order?**
+- Result could be same as above or  as below
+- The order in which beans are discovered and registered in the Spring context. No guarantee.
+```
+Second runner
+First runner
+```
+
+⸻
+
+**CommandLineRunner vs ApplicationRunner**
+
+- Both are used for executing code at startup, but differ slightly in how they handle arguments:
+
+| Feature 	      | CommandLineRunner 	       | ApplicationRunner               |
+|----------------|---------------------------|---------------------------------|
+| Method	        | run(String... args)	      | run(ApplicationArguments args)  | 
+| Argument Type	 | Raw String array	         | Parsed and structured arguments | 
+| When to Use	   | Simple argument handling	 | Need to parse options/flags     | 
+
+**Example of ApplicationRunner:**
+```java
+@Component
+public class AppRunner implements ApplicationRunner {
+    @Override
+    public void run(ApplicationArguments args) {
+        System.out.println("Option names: " + args.getOptionNames());
+    }
+}
+```
+
+⸻
+
+**Real-World Use Cases**
+1.	Database Initialization
+```java
+@Component
+public class DBInitializer implements CommandLineRunner {
+private final UserRepository userRepository;
+
+    public DBInitializer(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public void run(String... args) {
+        if (userRepository.count() == 0) {
+            userRepository.save(new User("admin", "admin123"));
+        }
+    }
+}
+```
+
+2.	External Service Connection Check
+```java
+@Component
+    public class ServiceHealthCheck implements CommandLineRunner {
+        @Override
+        public void run(String... args) {
+            System.out.println("Checking connection to external API...");
+    }
+}
+```
+
+3.	Loading Configuration or Cache
+```java
+@Component
+public class CacheLoader implements CommandLineRunner {
+    @Override
+    public void run(String... args) {
+        // Preload frequently accessed data into cache
+    }
+}
+```
+
+⸻
+
+**Key Points to Remember**
+-	Runs once after the application context is loaded.
+-	Useful for initialization logic.
+-	Executes before the web server starts serving requests.
+-	Can handle command-line arguments.
+-	Multiple runners can exist, ordered with @Order.
+-	Alternative: ApplicationRunner (for structured arguments).
+
+⸻
+
+**Summary**
+
+| Aspect	        | Description                                                           |
+|----------------|-----------------------------------------------------------------------|
+| Interface	     | CommandLineRunner                                                     |
+| Purpose	       | Execute custom logic after Spring Boot startup                        |
+| Method	        | void run(String... args)                                              |
+| Trigger	       | After ApplicationContext is initialized                               |
+| Supports Ordering	 | Yes (@Order or Ordered)                                               |
+| Alternative	   | ApplicationRunner                                                     |
+| Common Uses	   |  Data initialization, preloading, configuration setup, startup checks |
+
+
+⸻
+
+Would you like me to show a real-world example where CommandLineRunner is used to insert default users into a database using a Spring Data JPA repository at application startup?
 ---
 
 ## 15. What is Spring Boot CLI and the most used CLI commands?
 
 Spring Boot CLI \(Command Line Interface\) helps us quickly create and run Spring applications using simple scripts. It makes development easier by reducing setup and configuration. Common commands are ‘spring init’ to start a new project, ‘spring run’ to run scripts, ‘spring test’ to run tests, and ‘spring install’ to add libraries. These commands make building and testing Spring apps faster and simpler.
+
+
+**What is Spring Boot CLI?**
+
+Spring Boot CLI is a command-line tool that allows you to develop, test, and run Spring Boot applications quickly — using Groovy scripts instead of full-blown Java code and build tools.
+
+It’s part of the Spring Boot ecosystem and is mainly used for rapid prototyping or demonstrating concepts without needing Maven/Gradle setup or verbose configuration.
+
+⸻
+
+**Why Use Spring Boot CLI?**
+-	No build tool setup: You don’t need a pom.xml or build.gradle.
+-	No boilerplate: Minimal code — you can write a REST controller in a few lines.
+-	Automatic dependency resolution: It auto-downloads common dependencies (like Spring Web, JPA, etc.) when you use certain imports.
+-	Great for learning or quick demos: Especially useful for proof-of-concept or hackathons.
+
+⸻
+
+**How It Works**
+
+- Spring Boot CLI runs Groovy scripts (.groovy files).
+- Groovy is a JVM language that’s more concise than Java and integrates seamlessly with it.
+
+- When you run a Groovy script via Spring Boot CLI:
+  -	The CLI automatically detects which Spring Boot starter dependencies are needed based on your imports.
+  -	It compiles and runs the app directly.
+
+⸻
+
+**Installation**
+
+Using SDKMAN (Recommended)
+```
+sdk install springboot
+```
+Verify installation:
+```
+spring --version
+```
+
+⸻
+
+**Example: Hello World REST API**
+
+Create a file named app.groovy:
+```java
+@RestController
+class HelloController {
+  @RequestMapping("/")
+  String home() {
+      return "Hello, Spring Boot CLI!"
+  }
+}
+```
+Run it using Spring Boot CLI:
+```
+spring run app.groovy
+```
+Output:
+```
+Tomcat started on port 8080
+```
+Now visit: http://localhost:8080
+
+⸻
+
+**Auto Dependency Resolution**
+
+If you write:
+```java
+@RestController
+class Sample {}
+```
+Spring Boot CLI automatically adds spring-boot-starter-web.
+
+If you write:
+```java
+import org.springframework.data.jpa.repository.JpaRepository
+```
+It automatically includes spring-boot-starter-data-jpa.
+- This is done through “dependency inference”, so you don’t manually add dependencies.
+
+⸻
+
+**Useful CLI Commands**
+
+| Command 	                 | Description                    | 
+|---------------------------|--------------------------------|
+| spring --version	         | Check version                  | 
+| spring run app.groovy	    | Run a Groovy script            | 
+| spring grab <dependency>	 | Manually add a dependency      | 
+| spring install <plugin>	  | Install a CLI plugin           | 
+| spring shell	             | Start Spring interactive shell | 
+| spring help	              | Show all available commands    | 
+
+
+⸻
+
+**CLI with Java Files (Optional)**
+
+- While the CLI is designed for Groovy, you can still run Java-based Spring Boot apps using:
+```
+spring run src/main/java/com/example/DemoApplication.java
+```
+But this is less common since the main goal of CLI is simplicity via Groovy.
+
+⸻
+
+**When to Use Spring Boot CLI**
+
+Use it when:
+-	You need quick prototypes or demos.
+-	You want to experiment with Spring features.
+-	You’re learning Spring Boot fundamentals.
+
+Avoid it when:
+-	Building production-grade applications.
+-	You need fine-grained dependency or build control (use Maven/Gradle instead).
+
+⸻
+
+**Summary**
+
+| Aspect	                | Description                          |
+|------------------------|--------------------------------------|
+| Tool Name	             | Spring Boot CLI                      |
+| Language	              | Groovy (JVM-based)                   |
+| Purpose	               | Rapid prototyping, demos, or testing |
+| Dependency Management	 | Automatic based on imports           |
+| Runs via	              | spring run app.groovy                |
+| Ideal For	             | Learning and quick REST APIs         |
+
 
 ---
 
@@ -438,11 +811,6 @@ If a starter dependency includes conflicting versions of libraries with other de
 
 ---
 
-## 19. What is the default port of Tomcat in Spring Boot?
-
-The default port for Tomcat in Spring Boot is 8080. This means when a Spring Boot application with an embedded Tomcat server is run, it will, by default, listen for HTTP requests on port 8080 unless configured otherwise.
-
----
 
 ## 20. Can we disable the default web server in a Spring Boot application?
 
@@ -468,29 +836,6 @@ In a Spring Boot application, HTTPS requests first pass through the embedded ser
 
 ---
 
-## 24. Explain @RestController annotation in Spring Boot.
-
-The @RestController annotation in Spring Boot is used to create RESTful web controllers. This annotation is a convenience annotation that combines @Controller and @ResponseBody, which means the data returned by each method will be written directly into the response body as JSON or XML, rather than through view resolution.
-
----
-
-## 25. Difference between @Controller and @RestController
-
-The key difference is that @Controller is used to mark classes as Spring MVC Controller and typically return a view. @RestController combines @Controller and @ResponseBody, indicating that all methods assume @ResponseBody by default, returning data instead of a view.
-
----
-
-## 26. What is the difference between RequestMapping and GetMapping?
-
-@RequestMapping is a general annotation that can be used for routing any HTTP method requests \(like GET, POST, etc.\), requiring explicit specification of the method. @GetMapping is a specialized version of @RequestMapping that is designed specifically for HTTP GET requests, making the code more readable and concise.
-
----
-
-## 27. What are the differences between @SpringBootApplication and @EnableAutoConfiguration annotation?
-
-The @SpringBootApplication annotation is a convenience annotation that combines @Configuration, @EnableAutoConfiguration, and @ComponentScan annotations. It is used to mark the main class of a Spring Boot application and trigger auto-configuration and component scanning. On the other hand, @EnableAutoConfiguration specifically enables Spring Boot's auto-configuration mechanism, which attempts to automatically configure our application based on the jar dependencies we have added. It is included within @SpringBootApplication.
-
----
 
 ## 28. How can you programmatically determine which profiles are currently active in a Spring Boot application?
 

@@ -1,20 +1,3 @@
-✅ Spring Boot Topics You’ve Covered
-
-🔹 1. Spring Boot Fundamentals
-* @SpringBootApplication annotation
-* Embedded Tomcat
-* Starter dependencies
-* Application configuration using application.yml / .properties
-* Profiles (@Profile, spring.profiles.active)
-* Externalized configuration
-
-⸻
-
-
-⸻
-
-
-
 
 
 ## Spring Boot DevTools

@@ -1488,7 +1488,6 @@ public static void premain(String args, Instrumentation inst) {
 }
 ```
 
----
 
 ---
 
@@ -1521,3 +1520,132 @@ public static void premain(String args, Instrumentation inst) {
   - Pros: Thread-safety, predictability, cache-safe. Cons: Object creation overhead, more GC pressure, harder modeling for certain mutable domains.
 
 ---
+
+# String... (varargs)
+
+**1. What is String...?**
+- String... (read as “String varargs”) is a variable-length argument syntax introduced in Java 5.
+- It allows a method to accept zero or more arguments of the specified type.
+
+- Essentially, String... is syntactic sugar for an array of Strings (String[]), but it gives flexibility when calling methods — you can pass:
+  -	No argument,
+  -	A single argument, or
+  -	Multiple arguments.
+
+⸻
+
+**Basic Example**
+```java
+public class VarargsExample {
+public static void printNames(String... names) {
+for (String name : names) {
+System.out.println(name);
+}
+}
+
+    public static void main(String[] args) {
+        printNames();                          // No arguments
+        printNames("Nikhil");                  // One argument
+        printNames("Nikhil", "Rahul", "Aman"); // Multiple arguments
+    }
+}
+```
+
+Output:
+
+```
+Nikhil
+Rahul
+Aman
+```
+
+
+⸻
+
+**What Happens Internally**
+-	The String... parameter is compiled as a String[].
+-	So internally, the method signature becomes:
+```java
+public static void printNames(String[] names)
+```
+
+-	When you call printNames("Nikhil", "Rahul"), the compiler automatically creates a String[] array:
+```java
+printNames(new String[] { "Nikhil", "Rahul" });
+```
+
+
+⸻
+
+**Key Rules for Varargs**
+1.	Only one varargs parameter per method is allowed.
+```java
+public void method(String... a, int... b); // ❌ Not allowed
+```
+
+2.	The varargs parameter must be the last parameter in the method signature.
+```java
+public void method(String fixed, String... others); // ✅ Allowed
+public void method(String... others, String fixed); // ❌ Not allowed
+```
+
+3.	You can pass either:
+-	Individual arguments: method("a", "b", "c")
+-	An array explicitly: method(new String[] {"a", "b", "c"})
+
+⸻
+
+**Real-World Example**
+
+Logging Utility
+```java
+public class Logger {
+public static void log(String message, Object... params) {
+System.out.println(String.format(message, params));
+}
+
+    public static void main(String[] args) {
+        log("User %s logged in at %s", "Nikhil", "10:00 AM");
+    }
+}
+```
+Output:
+```
+User Nikhil logged in at 10:00 AM
+```
+Here, Object... params allows any number of placeholders to be replaced dynamically.
+
+⸻
+
+**Comparison: Varargs vs Array**
+
+| Feature                  | Varargs (String...)           | Array (String[])                  |
+|--------------------------|-------------------------------|-----------------------------------|
+| Call syntax              | method("a", "b", "c")         | method(new String[]{"a", "b", "c"}) |
+| Can pass 0 arguments?    | Yes                           | No (need empty array)             |
+| Cleaner syntax           | ✅                            | ❌                                |
+| Internally represented as| Array                         | Array                             |
+
+
+⸻
+
+**When to Use**
+
+Use varargs when:
+-	You want to pass variable number of parameters.
+-	Method arguments are of same type.
+-	Example use cases:
+-	Logging (Logger.info("msg", args...))
+-	String concatenation
+-	SQL query parameter binding
+
+⸻
+
+**Best Practices**
+1.	Keep varargs as the last parameter.
+2.	Avoid using varargs when:
+      -	Performance is critical (creates an array each call).
+      -	Parameter count is known or fixed.
+3.	Combine with annotations like @SafeVarargs to avoid warnings in generics.
+
+⸻
