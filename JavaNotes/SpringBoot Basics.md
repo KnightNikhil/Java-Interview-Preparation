@@ -652,7 +652,6 @@ public class CacheLoader implements CommandLineRunner {
 
 ⸻
 
-Would you like me to show a real-world example where CommandLineRunner is used to insert default users into a database using a Spring Data JPA repository at application startup?
 ---
 
 ## 15. What is Spring Boot CLI and the most used CLI commands?
