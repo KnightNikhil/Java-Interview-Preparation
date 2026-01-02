@@ -335,3 +335,16 @@ public class AppConfig {
 **A:** Yes. Just add `spring-boot-starter-aop` and enable it using `@EnableAspectJAutoProxy`.
 
 ---
+
+The dependencies of some of the beans in the application context form a cycle:
+
+┌─────┐
+|  JWTFilter defined in file [/Users/nikhilladdha/Desktop/Projects/MediConnect/AuthService/target/classes/com/mediconnect/service/auth/security/JWTFilter.class]
+↑     ↓
+|  userServiceImpl (field private org.springframework.security.authentication.AuthenticationManager com.mediconnect.service.auth.service.UserServiceImpl.authenticationManager)
+↑     ↓
+|  securityConfig defined in file [/Users/nikhilladdha/Desktop/Projects/MediConnect/AuthService/target/classes/com/mediconnect/service/auth/security/SecurityConfig.class]
+└─────┘
+
+
+Why Constructor Injection Fails with CyclesWhen Spring creates a bean using constructor injection, it must have all the dependencies ready before it can instantiate the object.1.To create JWTFilter, Spring needs UserServiceImpl.2.To create UserServiceImpl, Spring needs SecurityConfig (likely for the PasswordEncoder).3.To create SecurityConfig, Spring needs JWTFilter (to add it to the filter chain).This creates a deadlock:•Spring says: "I can't create JWTFilter until I have UserServiceImpl."•"I can't create UserServiceImpl until I have SecurityConfig."•"I can't create SecurityConfig until I have JWTFilter."Since none of them can be created first, the application fails to start.Why Field/Setter Injection (or @Lazy) WorksWith field injection (e.g., @Autowired on a field) or setter injection, Spring can:1.Instantiate JWTFilter (with null dependencies initially).2.Instantiate UserServiceImpl.3.Instantiate SecurityConfig.4.Then, once the objects exist, it goes back and injects the dependencies into the fields/setters.Using @Lazy on a constructor parameter tells Spring: "Don't give me the real object right now. Give me a proxy (a placeholder)."•Spring creates JWTFilter with a proxy for UserServiceImpl.•The real UserServiceImpl is only created/looked up when you actually call a method on that proxy.•This breaks the initialization cycle because JWTFilter can be successfully created without waiting for the fully initialized UserServiceImpl.How to Fix ItYou need to break the cycle. The most common fix in Spring Security configurations is to use @Lazy on one of the dependencies in the constructor.I will apply @Lazy to the UserServiceImpl dependency in JWTFilter (or wherever it makes the most sense) to resolve this.First, I need to see the code for JWTFilter and SecurityConfig.

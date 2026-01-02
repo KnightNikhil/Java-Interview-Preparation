@@ -405,7 +405,8 @@ Sorting by Age
 
 ### What is an Immutable Class?
 
-An immutable class is one whose state (fields) cannot be changed after the object is created.
+- An immutable class is one whose state (fields) cannot be changed after the object is created. 
+- A final class in Java prevents inheritance, ensuring no other class can extend it. This design choice promotes security and immutability by completing the class’s implementation. Developers use it when subclassing could compromise behavior or performance
 
 - Example: String, LocalDate, Integer.
 - Once constructed, their values never change.
@@ -428,8 +429,9 @@ Let’s say we want an immutable Person class.
     ```
 
 2. **Make all fields private and final**  
-   Prevents external modification.  
-   final ensures they can be assigned only once (in constructor).
+- Making fields final in Java prevents reassignment of their references after initialization, promoting immutability and clear intent. This design choice enhances thread safety and enables compiler optimizations.
+-  Prevents external modification.  
+-  final ensures they can be assigned only once (in constructor).
 
     ```java
     private final String name;
