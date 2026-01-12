@@ -1651,3 +1651,26 @@ Use varargs when:
 3.	Combine with annotations like @SafeVarargs to avoid warnings in generics.
 
 ⸻
+
+
+# Shared Object Reference (Shared Mutable State)
+- Object Identity Sharing
+
+- Both users are operating on the same object identity, not copies.
+
+- This matters because:
+  - Locks work per object
+  -	Synchronization works only if the object is shared
+```bash
+// Thread/User 1
+BankAccount a1 = accountRepo.get(1);
+BankAccount a2 = accountRepo.get(2);
+
+// Thread/User 2
+BankAccount b1 = accountRepo.get(1);
+BankAccount b2 = accountRepo.get(2);
+
+// Truth
+a1 == b1   // true
+a2 == b2   // true
+```

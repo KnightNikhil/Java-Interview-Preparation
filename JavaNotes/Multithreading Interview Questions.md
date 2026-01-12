@@ -188,8 +188,8 @@ t.start()
 
 
 - **Q. What is difference between start() and run() method of thread class?**
-- When program calls `start()` method a **new Thread** is created and code inside `run()` method is executed in new Thread while if you call `run()` method directly **no new Thread is created** and code inside `run()` will execute on current Thread.
-- `start()` Can't be invoked more than one time otherwise throws `java.lang.IllegalStateException`  but `run()` can be invoked multiple times
+  - When program calls `start()` method a **new Thread** is created and code inside `run()` method is executed in new Thread while if you call `run()` method directly **no new Thread is created** and code inside `run()` will execute on current Thread.
+  - `start()` Can't be invoked more than one time otherwise throws `java.lang.IllegalStateException`  but `run()` can be invoked multiple times
 
 ----
 
@@ -239,17 +239,12 @@ Multiple chefs in the same kitchen. They can:
 
 **Comparison**
 
-| Aspect	           | Process (Restaurant)	                           | Thread (Chef)                                   | 
-|-------------------|-------------------------------------------------|-------------------------------------------------|
-| Memory	           | Own address space	                              | Shares address space with peers                 | 
-| Communication 	   | Hard (like two restaurants calling each other)	 | Easy (chefs shout to each other in the kitchen) | 
-| Failure           | Impact	                                         | If restaurant burns down, all chefs stop	       | If one chef cuts finger, others keep cooking| 
-| Resource          | creation	                                       | Expensive (open new restaurant)	                | Cheap (hire another chef)| 
-
-
-
-
-Would you like me to also give you a banking-domain analogy (since you prefer that) for process vs thread, so you can explain it in interviews using your domain?
+| Aspect	            | Process (Restaurant)	                          | Thread (Chef)                                   | 
+|--------------------|------------------------------------------------|-------------------------------------------------|
+| Memory	            | Own address space	                             | Shares address space with peers                 | 
+| Communication 	    | Hard (like two restaurants calling each other)	 | Easy (chefs shout to each other in the kitchen) | 
+| Failure - Impact	  | If restaurant burns down, all chefs stop	       | If one chef cuts finger, others keep cooking| 
+| Resource creation	 | Expensive (open new restaurant)	               | Cheap (hire another chef)|
 
 ----
 
@@ -332,72 +327,95 @@ name: T2, isDaemon: true
 ## wait() / notify() / notifyAll()
 - Threads can signal each other using object monitors.
 
-Note - wait, notify and notifyAll are applied on object and not thread
+NOTE - wait, notify and notifyAll are applied on object and not thread
 
 **Example:**
 - We have a producer thread that puts items into a shared “bucket” and a consumer thread that takes items out.
 - Both threads coordinate using wait() and notify().
 ```java
-class SharedBucket {
-   private int item;
-   private boolean available = false;
+public static class Helper {
 
-   // Producer puts item in the bucket
-   public synchronized void produce(int value) {
-      while (available) {
-         try {
-            wait(); // 🚨 Bucket is full → wait until consumer consumes
-         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-         }
-      }
-      item = value;
-      available = true;
-      System.out.println("Produced: " + value);
+    Queue<String> messages = new LinkedList<>();
+    int MAX_CAPACITY = 5;
 
-      notify(); // 👉 Wake up a waiting consumer
-   }
+    public synchronized void produceMessage() {
+        try{
+                /* this condition should be checked in "while" and not "if",
+                so that when the thread reacquires the lock, it will recheck the condition
+                because a thread can reacquire the lock even without th notify() being called on that thread by JVM
+                and if satisfied than need to wait again */
+            while (messages.size() == MAX_CAPACITY){
+                wait();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try{
+            Thread.sleep(2000); // JUST TO READ BEHAVIOR IN REALTIME
+            System.out.println("Message produced");
+            messages.add("Message");
+            notifyAll();
+                /* used to notify all the threads to wake up
+                 i.e. reacquire the lock and check the condition again,
+                 bcoz notify() might not wake up the thread working on producer,
+                 it might wake up another consumer thread, which is of no use to us
+                 */
 
-   // Consumer takes item from the bucket
-   public synchronized int consume() {
-      while (!available) {
-         try {
-            wait(); // 🚨 Bucket is empty → wait until producer produces
-         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-         }
-      }
-      available = false;
-      System.out.println("Consumed: " + item);
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
 
-      notify(); // 👉 Wake up a waiting producer
-      return item;
-   }
+    }
+
+    public synchronized void consumeMessage() {
+        try{
+                /* this condition should be checked in "while" and not "if",
+                so that when the thread reacquires the lock, it will recheck the condition
+                because a thread can reacquire the lock even without th notify() being called on that thread by JVM called spurious wakeups */
+            while (messages.isEmpty()){
+                wait();
+                    /* if thread need to wait, it will go to sleep, release the lock on method, so some other thread can try to execute the method
+                    once notify(), it will reacquire the lock, and start executing from the next line of code itself,
+                    */
+                System.out.println("producer wait over");
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try{
+            Thread.sleep(2000); // JUST TO READ BEHAVIOR IN REALTIME
+            System.out.println("Message consumed");
+            messages.remove();
+            notify();
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+    }
 }
 
-public class WaitNotifyDemo {
-   public static void main(String[] args) {
-      Bucket bucket = new Bucket();
 
-      // Producer Thread
-      Thread producer = new Thread(() -> {
-         for (int i = 1; i <= 5; i++) {
-            bucket.produce(i);
-            try { Thread.sleep(500); } catch (InterruptedException ignored) {}
-         }
-      });
 
-      // Consumer Thread
-      Thread consumer = new Thread(() -> {
-         for (int i = 1; i <= 5; i++) {
-            bucket.consume();
-            try { Thread.sleep(800); } catch (InterruptedException ignored) {}
-         }
-      });
+public static void main(String[] args) throws InterruptedException {
+    Helper helper = new Helper();
 
-      producer.start();
-      consumer.start();
-   }
+    Thread t1 = new Thread(() -> {
+        while (true) // TO PRODUCE ENDLESS MESSAGES
+            helper.produceMessage();
+
+    });
+
+    Thread t2 = new Thread(() ->{
+        while (true) // TO CONSUME ENDLESS MESSAGES
+            helper.consumeMessage();}
+    );
+
+    t2.start();
+    System.out.println("t2 started");
+    Thread.sleep(3000); //JUST TO MAKE SURE THAT CONSUMER RUNS BEFORE PRODUCER (FOR UNDERSTANDING PURPOSE ONLY)
+    t1.start();
+    System.out.println("t1 started");
 }
 ```
 **Behind the scene**
@@ -423,6 +441,9 @@ Step 3: Synchronization via wait()
 - `notify()` → Wakes up one waiting thread on the same monitor.
 - `notifyAll()` → Wakes up all waiting threads on the same monitor (they compete for the lock).
 
+**Q. Why wait(), notify() and notifyAll() must be called from inside of the synchronized block or method.?**
+- `wait()` forces the thread to release its lock. This means that it must own the lock of an object before calling the `wait()` method of that (same) object. Hence the thread must be in one of the object's synchronized methods or synchronized block before calling wait().
+- When a thread invokes an object's `notify()` or `notifyAll()` method, one (an arbitrary thread) or all of the threads in its waiting queue are removed from the waiting queue to the entry queue. They then actively contend for the object's lock, and the one that gets the lock goes on to execute.
 
 **Q. How does the jvm understood that when consumer notify() is called, which thread .wait() to be released?**
 
@@ -438,7 +459,7 @@ Step 3: Synchronization via wait()
         1.	It releases the monitor lock on obj.
         2.	It goes into the waiting set of obj (think of it as a queue of sleeping threads for that object).
 
-👉 Key point:
+--> Key point:
 Each object in Java has one waiting set, not separate waiting sets for producers vs. consumers.
 
 
@@ -447,8 +468,9 @@ Each object in Java has one waiting set, not separate waiting sets for producers
     - The JVM chooses ONE thread randomly (no guaranteed order) from obj’s waiting set.
     - That thread is moved from the waiting set to the entry set (threads competing for the lock).
     - It still needs to reacquire the lock before continuing.
+    - The execution will resume from the next line itself (obj.wait()).
 
-👉 So, if both producer and consumer are waiting on the same object monitor, you don’t control which one gets chosen with notify().
+--> So, if both producer and consumer are waiting on the same object monitor, you don’t control which one gets chosen with notify().
 
 
 3. What happens when notifyAll() is called?
@@ -460,7 +482,7 @@ This guarantees no thread is left behind accidentally, but can lead to “thunde
 
 4. How does JVM “know” it’s consumer vs. producer?
 
-👉 Trick answer: It doesn’t know.
+Trick answer: It doesn’t know.
 The JVM only knows:
 - “Thread X is waiting on bucket object.”
 - “Thread Y called bucket.notify().”
@@ -485,29 +507,24 @@ If bucket is empty and both consumers (C1, C2) are waiting:
 
 If instead, all four are waiting and someone calls notify(), any one may wake up (no guarantee it will be the “right” type).
 
-
 **Summary Rules**
 1.	notify() wakes up one random thread from the waiting set.
 2.	notifyAll() wakes up all waiting threads, they compete for the lock.
 3.	JVM does not differentiate between producer/consumer — the logic is in your condition checks (while (...) wait();).
 4.	Always use while, never if, when waiting — this avoids issues if the “wrong” thread is awakened.
 
-**Q. Why wait(), notify() and notifyAll() must be called from inside of the synchronized block or method.?**
-- `wait()` forces the thread to release its lock. This means that it must own the lock of an object before calling the `wait()` method of that (same) object. Hence the thread must be in one of the object's synchronized methods or synchronized block before calling wait().
-- When a thread invokes an object's `notify()` or `notifyAll()` method, one (an arbitrary thread) or all of the threads in its waiting queue are removed from the waiting queue to the entry queue. They then actively contend for the object's lock, and the one that gets the lock goes on to execute.
-
 ---
 
 ## Q. What is the difference between wait() and sleep() method?
-**1.  Class  belongs**:  The wait() method belongs to `java.lang.Object` class, thus can be called on any Object. The sleep() method belongs to `java.lang.Thread` class, thus can be called on Threads.
+**1. Class  belongs**:  The wait() method belongs to `java.lang.Object` class, thus can be called on any Object. The sleep() method belongs to `java.lang.Thread` class, thus can be called on Threads.
 
 **2. Context**:  The wait() method can only be called from Synchronized context i.e. using synchronized block or synchronized method. The sleep() method can be called from any context.
 
-**3. Locking**:  The wait() method releases the lock on an object and gives others chance to execute. The sleep() method does not releases the lock of an object for specified time or until interrupt.
+**3. Locking**:  The wait() method releases the lock on an object and gives others chance to execute. The sleep() method does not release the lock of an object for specified time or until interrupt.
 
 **4. Wake up condition**:  A waiting thread can be awake by notify() or notifyAll() method. A sleeping can be awaked by interrupt or time expires.
 
-**5. Execution**:  Each object has each wait() method for inter-communication between threads. The sleep() method is static method belonging to Thread class. There is a common mistake to write t.sleep(1000) because sleep() is a class method and will pause the current running thread not t.
+**5. Execution**:  Each object has each wait() method for intercommunication between threads. The sleep() method is static method belonging to Thread class. There is a common mistake to write t.sleep(1000) because sleep() is a class method and will pause the current running thread not t.
 ```java
 synchronized(LOCK) {
     Thread.sleep(1000); // LOCK is held
@@ -634,9 +651,9 @@ Key points about wait():
 -	Always called on an object’s monitor (not a thread).
 -	Must be inside a synchronized block/method.
 -	Causes the thread to:
-1.	Release the lock.
-2.	Enter the object’s waiting set.
-3.	Stay there until another thread calls notify()/notifyAll().
+  1. Release the lock.
+  2. Enter the object’s waiting set. 
+  3. Stay there until another thread calls notify()/notifyAll().
 
 
 ---
@@ -645,12 +662,14 @@ Key points about wait():
 
 **Yield -** It hints the JVM to give other threads a chance to run and execute. (it hints, not strict rule)
 
-**1. Currently executing thread state**: sleep()  method causes the currently executing thread to sleep for the number of milliseconds specified in the argument. yield() method temporarily pauses the currently executing thread to give a chance to the remaining waiting threads of the same priority to execute.
+**1. Currently executing thread state**: 
+- **sleep()**  method causes the currently executing thread to sleep for the number of milliseconds specified in the argument. 
+- **yield()** method temporarily pauses the currently executing thread to give a chance to the remaining waiting threads of the same priority to execute.
 If there is no waiting thread or all the waiting threads of low priority then the current thread will continue its execution.
 
 **2. Interrupted Exception**: Sleep method throws the Interrupted exception if another thread interrupts the sleeping thread.  yield method does not throw Interrupted Exception.
 
-**3. Give up monitors**:  Thread.sleep() method does not cause cause currently executing thread to give up any monitors while yield() method give up the monitors.
+**3. Give up monitors**:  Thread.sleep() method does not cause currently executing thread to give up any monitors while yield() method give up the monitors.
 
 
 ---
@@ -666,7 +685,6 @@ A race condition happens when:
 
 Since the JVM thread scheduler decides which thread runs when, execution order is non-deterministic → leading to inconsistent or incorrect results.
 
-⸻
 
 **Why does it happen?**
 
@@ -715,12 +733,11 @@ Counter counter = new Counter();
     }
 }
 ```
+```
 Expected Output = 2000
 Actual Output = 1900, 1978, 1995, etc. (non-deterministic)
 Because both threads race to update count.
-
-⸻
-
+```
 
 **Timeline of a Race**
 
@@ -731,8 +748,6 @@ Imagine count = 10, two threads increment:
 4.	Thread B increments (still from old 10 → 11) and writes back.
 
 Final result = 11 (should have been 12).
-
-⸻
 
 **Types of Race Conditions**
 - **1.	Read-Modify-Write Race**
@@ -747,7 +762,6 @@ Between checking and subtracting, another thread may modify balance → overdraf
 - **3. Initialization Race**
   Two threads creating a singleton object at the same time.
 
-⸻
 
 **How to Prevent Race Conditions?**
 **1.	Synchronized Blocks/Methods**
@@ -758,7 +772,7 @@ public synchronized void increment() {
 ```
 
 **2.	Locks (ReentrantLock)**
-```
+```java
 lock.lock();
 try { count++; } finally { lock.unlock(); }
 ```
@@ -770,7 +784,7 @@ count.incrementAndGet();
 ```
 
 **4.	Volatile?**
-⚠️ volatile does not prevent race conditions, it only ensures visibility.
+NOTE - volatile does not prevent race conditions, it only ensures visibility.
 Example:
 Initial: count = 10 (volatile)
 1.	Thread A reads → sees 10.
@@ -783,8 +797,6 @@ Final result = 11, not 12.
 This is the classic lost update problem — visibility is correct, but atomicity is broken.
 
 For atomicity, you still need synchronization or atomics.
-
-⸻
 
 **Real-world Example**
 -	Banking System: Two ATMs withdrawing from the same account balance → balance mismatch.
@@ -802,7 +814,6 @@ For atomicity, you still need synchronization or atomics.
 
 So, it prevents race conditions by providing mutual exclusion.
 
-⸻
 
 **How does it work internally?**
 
@@ -813,8 +824,6 @@ When a thread enters a synchronized block/method:
 4.	Other threads waiting for the same lock can then compete to acquire it.
 
 Each Java object has an intrinsic lock (monitor lock) associated with it.
-
-⸻
 
 **Types of Synchronization**
 
@@ -837,7 +846,6 @@ private int count = 0;
 -	Here, two threads calling increment() on the same object won’t run it simultaneously.
 -	But if they call it on different objects, each has its own lock, so both threads can run.
 
-⸻
 
 **2. Synchronized Static Methods**
 
@@ -867,7 +875,6 @@ public static synchronized void staticMethod() {
 - Every loaded class in JVM has a unique Class object stored in the Method Area.
 - That object acts like a “class-level lock.”
 
-
 - **Key Difference**
   -	Instance synchronized method → lock on object’s monitor (this).
   -	Static synchronized method → lock on Class object’s monitor (MyClass.class).
@@ -876,7 +883,6 @@ public static synchronized void staticMethod() {
   -	If two threads call a static synchronized method, only one can run at a time (because they share the same Class lock).
   -	If one thread calls a static synchronized method and another calls an instance synchronized method → they don’t block each other (different locks: Class lock vs Object lock).
 
-⸻
 
 **Example**
 ```java
@@ -922,7 +928,6 @@ Printer p2 = new Printer();
   4.	Static vs Instance sync methods → don’t block each other (different locks).
 
 
-⸻
 
 **3. Synchronized Blocks**
 - Allows finer control — lock on a specific object, not necessarily this.
@@ -946,113 +951,14 @@ private final Object lock = new Object();
 3.	Deadlock risk if multiple locks are acquired in inconsistent order.
 4.	Coarse-grained — locks entire object/method unless carefully scoped.
 
-⸻
-
 **When to Use**
 -	Use synchronized for simple mutual exclusion.
 -	For advanced control (fairness, timeout, read/write), use ReentrantLock from java.util.concurrent.locks.
-
-⸻
 
 **So in short:**
 -	synchronized is about locking a monitor.
 -	It ensures atomic execution of critical sections.
 -	Use it carefully to avoid deadlocks and contention.
-
----
-
-## Locks 
-
-### Need of Locks
-
-**Why synchronized Exists**
-
-- synchronized was the original concurrency mechanism in Java (since JDK 1.0).
-- It gives you:
-  -	Mutual exclusion → only one thread in the block/method at a time.
-  -	Visibility → variables updated inside synchronized block are visible to other threads after lock release.
-  -	Reentrancy → same thread can acquire the lock multiple times.
-- So, yes — synchronized is enough for many simple concurrency needs.
-
-**But Then, Why Locks?**
-
-- By JDK 5, it became clear that synchronized is too limited for advanced multithreading.
-- That’s where java.util.concurrent.locks was introduced.
-
-**Here’s why Locks were needed:**
-- **1. More Control (Flexibility)**
-
-- With synchronized, you can’t do things like:
-  -	Try acquiring a lock and if unavailable, do something else.
-  -	Acquire a lock with a timeout.
-  -	Interrupt a thread waiting for a lock.
-
-With ReentrantLock, you can:
-```java
-if (lock.tryLock(1, TimeUnit.SECONDS)) {
-        try {
-        // critical section
-        } finally {
-        lock.unlock();
-    }
-} else {
-// do something else if lock not available
-}
-```
-- This is not possible with synchronized.
-
-- **2. Fairness Policy**
--	synchronized is non-fair — the JVM chooses the next thread randomly.
--	ReentrantLock can be fair (first-come-first-serve).
-```java
-ReentrantLock lock = new ReentrantLock(true); // fair lock
-```
-
-- **3. Multiple Condition Variables**
-  -	With synchronized, you only have one monitor queue (wait(), notify(), notifyAll()).
-  -	With ReentrantLock, you can create multiple Condition objects to manage different wait-sets.
-
-Example: One condition for “buffer full” and another for “buffer empty” in Producer-Consumer.
-
-
-- **4. Performance (under contention)**
-   -	In older JVMs (pre-Java 6), synchronized was slow, because it used heavyweight OS mutexes.
-   -	ReentrantLock was faster because it was implemented at the Java level.
-   -	Today (Java 8+), JVM has optimized synchronized (biased locking, lightweight locking, etc.), so performance gap is smaller — but ReentrantLock still shines under high contention or advanced use cases.
-
-
-- **5. Read-Write Scenarios**
-    - synchronized allows only exclusive locks (one thread at a time). 
-    - If you have a read-heavy system, this wastes performance. 
-    - Example: 100 threads just reading a cache → why block each other? 
-    - Solution: **ReadWriteLock** (multiple readers allowed, one writer at a time).
-
-
-- **6. Optimistic Locking (StampedLock)**
-    - synchronized and ReentrantLock are pessimistic (they always block). 
-    - In read-heavy workloads, this causes bottlenecks.
-    - StampedLock (Java 8) allows optimistic reading:
-      -	Threads read without locking.
-      -	Later, they check if data changed during the read. 
-    - Much faster for concurrent reads.
-
-**When to Use What?**
-
-Use synchronized when:
--	Simpler critical sections.
--	No special locking requirements.
--	You want cleaner, less error-prone code.
-
-Use ReentrantLock (or others) when:
--	You need tryLock() or tryLock(timeout).
--	You want fair ordering.
--	You need multiple condition variables.
--	You need read-write separation (ReadWriteLock).
--	You need optimistic concurrency (StampedLock).
-
-In short:
-synchronized is like a basic lock (easy to use, but limited).
-Lock framework gives advanced locks (powerful, flexible, but more complex).
 
 ---
 
@@ -1143,8 +1049,8 @@ public class LockExample {
 **3.	boolean tryLock()**
 -	Tries to acquire the lock immediately without waiting.
 -	Returns:
--	true → if lock acquired
--	false → if lock not available
+  -	true → if lock acquired
+  -	false → if lock not available
 
 **4.	boolean tryLock(long time, TimeUnit unit)**
 -	Tries to acquire the lock but waits for a given time before giving up.
@@ -1236,6 +1142,98 @@ Interrupted during sleep. Cleaning up...
 **6.	Condition newCondition()**
 -	Provides a Condition object (similar to wait(), notify(), notifyAll() in synchronized).
 -	Allows more advanced waiting/notification mechanisms.
+
+
+### Need of Locks
+
+**Why synchronized Exists**
+
+- synchronized was the original concurrency mechanism in Java (since JDK 1.0).
+- It gives you:
+    -	Mutual exclusion → only one thread in the block/method at a time.
+    -	Visibility → variables updated inside synchronized block are visible to other threads after lock release.
+    -	Reentrancy → same thread can acquire the lock multiple times.
+- So, yes — synchronized is enough for many simple concurrency needs.
+
+**But Then, Why Locks?**
+
+- By JDK 5, it became clear that synchronized is too limited for advanced multithreading.
+- That’s where java.util.concurrent.locks was introduced.
+
+**Here’s why Locks were needed:**
+- **1. More Control (Flexibility)**
+
+- With synchronized, you can’t do things like:
+    -	Try acquiring a lock and if unavailable, do something else.
+    -	Acquire a lock with a timeout.
+    -	Interrupt a thread waiting for a lock.
+
+With ReentrantLock, you can:
+```java
+if (lock.tryLock(1, TimeUnit.SECONDS)) {
+        try {
+        // critical section
+        } finally {
+        lock.unlock();
+    }
+} else {
+// do something else if lock not available
+}
+```
+- This is not possible with synchronized.
+
+- **2. Fairness Policy**
+-	synchronized is non-fair — the JVM chooses the next thread randomly.
+-	ReentrantLock can be fair (first-come-first-serve).
+```java
+ReentrantLock lock = new ReentrantLock(true); // fair lock
+```
+
+- **3. Multiple Condition Variables**
+    -	With synchronized, you only have one monitor queue (wait(), notify(), notifyAll()).
+    -	With ReentrantLock, you can create multiple Condition objects to manage different wait-sets.
+
+Example: One condition for “buffer full” and another for “buffer empty” in Producer-Consumer.
+
+
+- **4. Performance (under contention)**
+    -	In older JVMs (pre-Java 6), synchronized was slow, because it used heavyweight OS mutexes.
+    -	ReentrantLock was faster because it was implemented at the Java level.
+    -	Today (Java 8+), JVM has optimized synchronized (biased locking, lightweight locking, etc.), so performance gap is smaller — but ReentrantLock still shines under high contention or advanced use cases.
+
+
+- **5. Read-Write Scenarios**
+    - synchronized allows only exclusive locks (one thread at a time).
+    - If you have a read-heavy system, this wastes performance.
+    - Example: 100 threads just reading a cache → why block each other?
+    - Solution: **ReadWriteLock** (multiple readers allowed, one writer at a time).
+
+
+- **6. Optimistic Locking (StampedLock)**
+    - synchronized and ReentrantLock are pessimistic (they always block).
+    - In read-heavy workloads, this causes bottlenecks.
+    - StampedLock (Java 8) allows optimistic reading:
+        -	Threads read without locking.
+        -	Later, they check if data changed during the read.
+    - Much faster for concurrent reads.
+
+**When to Use What?**
+
+Use synchronized when:
+-	Simpler critical sections.
+-	No special locking requirements.
+-	You want cleaner, less error-prone code.
+
+Use ReentrantLock (or others) when:
+-	You need tryLock() or tryLock(timeout).
+-	You want fair ordering.
+-	You need multiple condition variables.
+-	You need read-write separation (ReadWriteLock).
+-	You need optimistic concurrency (StampedLock).
+
+In short:
+synchronized is like a basic lock (easy to use, but limited).
+Lock framework gives advanced locks (powerful, flexible, but more complex).
 
 ---
 
@@ -1388,10 +1386,9 @@ Stopped Running….
 
 Threads in the same process share the same memory (heap).
 - That’s powerful → they can directly read/write shared variables.
-- But it’s dangerous ❌ → without coordination, you get race conditions, inconsistency, or even deadlocks.
+- But it’s dangerous → without coordination, you get race conditions, inconsistency, or even deadlocks.
 
 So the JVM + Java concurrency APIs give us structured ways to communicate safely.
-
 
 ### Ways Threads Communicate in Java
 
@@ -1412,7 +1409,7 @@ class Shared {
     }
 }
 ```
-
+ 
 - Here, one thread can setData, another can getData.
 - synchronized ensures mutual exclusion and happens-before relationship (visibility).
 
