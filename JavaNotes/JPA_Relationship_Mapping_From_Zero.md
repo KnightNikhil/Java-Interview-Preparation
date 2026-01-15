@@ -282,7 +282,12 @@ Cascade controls:
 
 Common cascades:
 - PERSIST → save child
-- REMOVE → delete child (dangerous)
+- REMOVE → delete child (dangerous)  
+  - In JPA, child deletion only happens via CascadeType.REMOVE or CascadeType.ALL(CascadeType.REMOVE included so) or orphanRemoval. If neither is used, deleting the parent will not delete children. FK handling must be managed explicitly.
+  - if we dont want to delete the child when parent deletes, we should not use anything mentioned above
+  - but this gives a constrain, Cannot delete or update a parent row: a foreign key constraint fails, 
+    - so make the coulmn nullable in such case - @JoinColumn(name = "account_id", nullable = true) 
+    - DB-level ON DELETE SET NULL -  handle FK via ON DELETE SET NULL (Best)
 - ALL → everything
 
 Cascade does NOT:
