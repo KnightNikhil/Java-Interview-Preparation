@@ -191,9 +191,9 @@ Apache Kafka is a distributed event streaming platform used for building real-ti
 - This is different from vertical scaling, where you add CPU, RAM, or disk to a single machine.
 
 - Kafka is designed for horizontal scalability because of:
- - Partitioning of topics.
- - Replication across brokers.
- - Distributed processing.
+  - Partitioning of topics.
+  - Replication across brokers.
+  - Distributed processing.
 
 #### Why Kafka Needs Data Replication
 
@@ -202,9 +202,9 @@ Apache Kafka is a distributed event streaming platform used for building real-ti
    - Fault tolerant (data is not lost if hardware crashes).
 
 - Replication ensures:
- - Copies of data are stored on multiple brokers.
- - If one broker goes down → another broker still has the data.
- - Consumers can continue reading without interruption.
+  - Copies of data are stored on multiple brokers.
+  - If one broker goes down → another broker still has the data.
+  - Consumers can continue reading without interruption.
 
 - Each partition has 1 leader broker and 1 or more replicas.
 - Leader handles all reads/writes for that partition.
@@ -235,95 +235,98 @@ Let’s explain it from first principles, then go deeper into producer, broker, 
 
 ⸻
 
-1️⃣ What “Batching” Really Means in Kafka
+**What “Batching” Really Means in Kafka**
 
 Kafka does not send or store messages one-by-one.
 It groups multiple messages together into a batch and treats them as a unit.
 
 This happens at multiple levels:
-•	Producer side
-•	Network
-•	Broker storage
-•	Consumer fetch
+-	Producer side
+-	Network
+-	Broker storage
+-	Consumer fetch
 
 ⸻
 
-2️⃣ Why Batching Is Needed (Core Reason)
+**Why Batching Is Needed (Core Reason)**
 
 Sending 1 message at a time means:
-•	Network call per message
-•	Disk write per message
-•	Syscall per message
+-	Network call per message
+-	Disk write per message
+-	Syscall per message
 
 That kills throughput.
 
 Batching converts:
 
-1000 messages × 1000 syscalls
+`1000 messages × 1000 syscalls`
 
 into:
 
-1 batch × 1 syscall
+`1 batch × 1 syscall`
 
 That’s the real win.
 
 ⸻
 
-3️⃣ Producer-Side Batching (MOST IMPORTANT)
+**Producer-Side Batching (MOST IMPORTANT)**
 
 Producer flow (simplified)
-
+```
 Application
-↓
+    ↓
 Producer Buffer
-↓
+    ↓
 Batch per partition
-↓
+    ↓
 Send to broker
-
+```
 Kafka producer buffers messages in memory and sends them in batches.
 
-⸻
 
-How Producer Forms Batches
+**How Producer Forms Batches**
 
 Kafka batches per partition.
 
 If you send:
-
+```java
 producer.send("orders", key1, msg1);
 producer.send("orders", key1, msg2);
 producer.send("orders", key1, msg3);
+```
+
 
 All go to:
-
+```
 orders-3 partition
+```
+
 
 They become:
-
+```
 Batch {
 msg1,
 msg2,
 msg3
 }
-
-⚠️ Messages with different keys → different partitions → different batches
+```
+**Note -** Messages with different keys → different partitions → different batches
 
 ⸻
 
-4️⃣ Producer Configs That Control Batching
+**Producer Configs That Control Batching**
 
-🔹 batch.size
+- batch.size
 
 Default: 16 KB
 
 Max size of a batch per partition.
-•	Larger batch → better throughput
-•	Smaller batch → lower latency
+-	Larger batch → better throughput
+-	Smaller batch → lower latency
 
 ⸻
 
-🔹 linger.ms (VERY IMPORTANT)
+- linger.ms (VERY IMPORTANT)
 
 Default: 0 ms
 
@@ -331,33 +334,35 @@ Default: 0 ms
 
 Example:
 
-linger.ms = 5
+`linger.ms = 5`
 
-Producer waits up to 5 ms to collect more messages.
+- Producer waits up to 5 ms to collect more messages.
 
-This is intentional delay to improve batching.
+- This is intentional delay to improve batching.
 
 ⸻
 
-🔹 buffer.memory
+- buffer.memory
 
 Total memory for all producer batches.
 
 If full:
-•	Producer blocks
-•	Or throws exception
+-	Producer blocks
+-	Or throws exception
 
 ⸻
 
-5️⃣ Example Timeline (Concrete)
+**Example Timeline (Concrete)**
 
 Assume:
-
+```
 batch.size = 32 KB
 linger.ms = 10 ms
+```
+
 
 Timeline:
-
+```text
 T0: msg1 arrives
 T1: msg2 arrives
 T2: msg3 arrives
@@ -366,10 +371,11 @@ T8: batch fills to 32 KB → send immediately
 OR
 T10: linger timeout → send whatever collected
 
+```
 
 ⸻
 
-6️⃣ Broker-Side Batching (Disk Efficiency)
+**Broker-Side Batching (Disk Efficiency)**
 
 Kafka stores data as:
 
@@ -379,14 +385,14 @@ Log Segment
 ├── Batch 3
 
 Each batch:
-•	Written sequentially
-•	Compressed together
-•	Indexed once
+-	Written sequentially
+-	Compressed together
+-	Indexed once
 
 This makes Kafka:
-•	Disk-friendly
-•	Cache-friendly
-•	Extremely fast
+-	Disk-friendly
+-	Cache-friendly
+-	Extremely fast
 
 ⸻
 
@@ -395,15 +401,15 @@ This makes Kafka:
 Kafka compresses batches, not individual messages.
 
 Supported:
-•	Snappy
-•	LZ4
-•	ZSTD
-•	GZIP
+-	Snappy
+-	LZ4
+-	ZSTD
+-	GZIP
 
 Why batch compression matters:
-•	Better compression ratio
-•	Lower CPU
-•	Less network traffic
+-	Better compression ratio
+-	Lower CPU
+-	Less network traffic
 
 ⸻
 
@@ -416,9 +422,9 @@ They fetch:
 A chunk of log data (multiple batches)
 
 Controlled by:
-•	fetch.min.bytes
-•	fetch.max.bytes
-•	fetch.max.wait.ms
+-	fetch.min.bytes
+-	fetch.max.bytes
+-	fetch.max.wait.ms
 
 Consumer loop:
 
@@ -444,12 +450,12 @@ Still delivered in order.
 ⸻
 
 🔟 What Happens If Producer Crashes Mid-Batch?
-•	Messages still in buffer → lost
-•	Messages sent but not acked → may be retried
+-	Messages still in buffer → lost
+-	Messages sent but not acked → may be retried
 
 This is why:
-•	acks=all
-•	Idempotent producer
+-	acks=all
+-	Idempotent producer
 
 are critical for reliability.
 
@@ -469,17 +475,17 @@ Latency vs Throughput
 
 ⸻
 
-12️⃣ Real High-Traffic Example (Flash Sale)
+1 Real High-Traffic Example (Flash Sale)
 
 Without batching:
-•	50k orders/sec
-•	50k network calls
-•	Broker melts
+-	50k orders/sec
+-	50k network calls
+-	Broker melts
 
 With batching:
-•	50k orders/sec
-•	~500 batches/sec
-•	Stable system
+-	50k orders/sec
+-	~500 batches/sec
+-	Stable system
 
 This is why Kafka survives traffic spikes.
 
@@ -497,9 +503,9 @@ This is why Kafka survives traffic spikes.
 14️⃣ Mental Model (Lock This In)
 
 Think of Kafka batching like:
-•	Messages = letters
-•	Batch = envelope
-•	Broker = post office
+-	Messages = letters
+-	Batch = envelope
+-	Broker = post office
 
 Sending letters one-by-one is slow.
 Sending envelopes is fast.
@@ -543,7 +549,7 @@ So the question becomes:
 
 ⸻
 
-2️⃣ What actually happens when batching is enabled
+ What actually happens when batching is enabled
 
 Kafka producer does not say:
 
@@ -572,9 +578,9 @@ Answer:
 Yes — but only if batching is disabled or linger.ms = 0.
 
 When batching is enabled:
-•	Kafka intentionally delays sending
-•	To aggregate more messages
-•	To reduce network & disk overhead
+-	Kafka intentionally delays sending
+-	To aggregate more messages
+-	To reduce network & disk overhead
 
 This delay is measured in milliseconds, not seconds.
 
@@ -591,15 +597,15 @@ Message 2 → network call
 Message 3 → network call
 
 Problems:
-•	TCP overhead per message
-•	Syscall per message
-•	Disk write per message
-•	Context switching
+-	TCP overhead per message
+-	Syscall per message
+-	Disk write per message
+-	Context switching
 
 Result:
-•	Low throughput
-•	High CPU usage
-•	Broker overload
+-	Low throughput
+-	High CPU usage
+-	Broker overload
 
 ⸻
 
@@ -610,13 +616,13 @@ Collect 200 messages
 Send once
 
 Benefits:
-•	1 network call
-•	Sequential disk write
-•	Fewer syscalls
-•	OS page cache efficient
+-	1 network call
+-	Sequential disk write
+-	Fewer syscalls
+-	OS page cache efficient
 
 Result:
-•	Massive throughput improvement
+-	Massive throughput improvement
 
 ⸻
 
@@ -625,13 +631,13 @@ Result:
 Yes — slightly.
 
 Example:
-•	linger.ms = 5
-•	Worst case latency increase = 5 ms
+-	linger.ms = 5
+-	Worst case latency increase = 5 ms
 
 In return:
-•	Throughput ↑ 10–100×
-•	Broker stability ↑
-•	Cost ↓
+-	Throughput ↑ 10–100×
+-	Broker stability ↑
+-	Cost ↓
 
 This is a deliberate trade-off.
 
@@ -642,21 +648,21 @@ This is a deliberate trade-off.
 Kafka does NOT delay already-sent messages.
 
 Once a batch is sent:
-•	It is immediately available to consumers
-•	Consumers can read it even while producer is batching new messages
+-	It is immediately available to consumers
+-	Consumers can read it even while producer is batching new messages
 
 So batching:
-•	Does NOT block consumption
-•	Does NOT block other partitions
-•	Only affects when producer sends
+-	Does NOT block consumption
+-	Does NOT block other partitions
+-	Only affects when producer sends
 
 ⸻
 
 7️⃣ Real-world traffic scenario (high traffic)
 
 Let’s say:
-•	Traffic = 50k msgs/sec
-•	linger.ms = 5
+-	Traffic = 50k msgs/sec
+-	linger.ms = 5
 
 In 5 ms:
 
@@ -665,9 +671,9 @@ In 5 ms:
 Producer sends almost continuously.
 
 So in reality:
-•	Producer rarely waits full linger.ms
-•	Batch fills quickly
-•	Latency impact is near zero
+-	Producer rarely waits full linger.ms
+-	Batch fills quickly
+-	Latency impact is near zero
 
 ⸻
 
@@ -677,12 +683,12 @@ Traffic = 5 msgs/sec
 linger.ms = 5
 
 Here:
-•	Producer will wait full 5 ms
-•	Latency noticeable
+-	Producer will wait full 5 ms
+-	Latency noticeable
 
 Solution:
-•	Lower linger.ms
-•	Or disable batching for that topic
+-	Lower linger.ms
+-	Or disable batching for that topic
 
 Kafka allows per-producer tuning.
 
@@ -691,8 +697,8 @@ Kafka allows per-producer tuning.
 9️⃣ Why Kafka doesn’t “send immediately and also batch”
 
 This sounds logical but is inefficient:
-•	First message alone = small packet → wasted call
-•	Next batch = extra call
+-	First message alone = small packet → wasted call
+-	Next batch = extra call
 
 This doubles overhead.
 
@@ -721,21 +727,21 @@ Answer:
 
 ⸻
 
-12️⃣ Final takeaway
-•	Yes, messages could be sent earlier
-•	Kafka chooses not to, on purpose
-•	Delay is tiny and bounded
-•	Throughput gains are huge
-•	Under high traffic, delay ≈ 0
+1 Final takeaway
+-	Yes, messages could be sent earlier
+-	Kafka chooses not to, on purpose
+-	Delay is tiny and bounded
+-	Throughput gains are huge
+-	Under high traffic, delay ≈ 0
 
 ⸻
 
 Next logical topics you might want:
-•	Producer buffer & backpressure
-•	acks=0/1/all and latency impact
-•	Exactly-once vs batching
-•	Why batching + retries is tricky
-•	Consumer-side fetch batching
+-	Producer buffer & backpressure
+-	acks=0/1/all and latency impact
+-	Exactly-once vs batching
+-	Why batching + retries is tricky
+-	Consumer-side fetch batching
 
 Just tell me what to go into next.
 
@@ -759,20 +765,290 @@ consumer.subscribe(Collections.singletonList("topic-name"));
 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 ```
 
+### Consumer Group
+A **consumer group** is a set of consumers that work together to consume data from a topic. Kafka ensures that each partition is consumed by only one consumer in the group.
+
+
+**How Consumers Read from Partitions**
+- A Kafka consumer group assigns partitions to consumers:
+-	Each consumer reads one or more partitions.
+-	Inside each partition → order is preserved.
+-	Across partitions → processing is parallel → order can vary.
+
+- Example:
+```
+Consumer group "risk-service"
+Consumer 1 → Partition 0
+Consumer 2 → Partition 1
+```
+They read in parallel → no global ordering.
+
 ### Broker
-A **Kafka broker** is a server that stores data and serves clients (producers/consumers). Kafka clusters consist of multiple brokers.
+A Kafka Broker is a single Kafka server instance that:
+-	Stores data (partitions)
+-	Serves client requests (produce & consume)
+-	Participates in replication
+-	Takes part in leader election
+-	Communicates with other brokers in the cluster
 
 ### Topic
-A **topic** is a named stream of records. Producers write to topics, and consumers read from them.
+- A **topic** is a named stream of records. Producers write to topics, and consumers read from them.
+- A category to which records are sent by producers.
 
 ### Partition
 Each topic is split into **partitions** to allow for parallelism and scalability.
 
 ### Offset
-Each record within a partition has a unique **offset** that identifies it. Consumers use offsets to keep track of what has been read.
+- Each record within a partition has a unique **offset** that identifies it. Consumers use offsets to keep track of what has been read.
+- Offset is assigned by the broker, not the producer
 
-### Consumer Group
-A **consumer group** is a set of consumers that work together to consume data from a topic. Kafka ensures that each partition is consumed by only one consumer in the group.
+**What Is Offset Commit?**
+
+Offset commit is the act of persisting the consumer’s read position so that:
+-	On restart
+-	On rebalance
+-	On failure
+
+…the consumer can resume from the correct place.
+
+Important: Kafka commits the next offset, not the last processed offset.
+
+**Where Are Offsets Stored?**
+
+Internal Topic: __consumer_offsets
+-	Offsets are stored in a Kafka topic
+-	Topic name: __consumer_offsets
+-	Partitions are spread across brokers
+-	Replication applies like any other topic
+
+Stored data includes:
+-	Consumer group ID
+-	Topic name
+-	Partition number
+-	Committed offset
+-	Metadata (optional)
+-	Timestamp
+
+Key insight: Offset commits are just Kafka messages written to an internal topic.
+
+
+Below is a clear, risk-focused explanation of Auto Commit vs Manual Offset Commit, using timeline / timestamp-based examples to show exactly where things go wrong. This is one of the most important Kafka concepts for interviews and production safety.
+
+⸻
+
+1. Auto Offset Commit
+
+What is Auto Commit?
+
+In auto commit, Kafka automatically commits offsets at a fixed interval, independent of your message processing logic.
+
+Configuration
+
+enable.auto.commit=true
+auto.commit.interval.ms=3000
+
+Meaning:
+•	Every 3 seconds, Kafka commits the latest polled offset
+•	Kafka does not know whether your code has finished processing
+
+⸻
+
+Auto Commit Timeline Example (At-Most-Once Risk)
+
+Scenario
+•	Topic: orders
+•	Partition: orders-0
+•	Messages: offsets 100, 101, 102
+•	Auto commit interval: 3 seconds
+
+⸻
+
+Timeline
+
+T0  (10:00:00) → consumer.poll()
+fetched offsets 100, 101, 102
+
+T1  (10:00:01) → processing offset 100
+T2  (10:00:02) → processing offset 101
+
+T3  (10:00:03) → AUTO COMMIT happens
+committed offset = 103
+
+T4  (10:00:04) → application CRASHES
+
+
+⸻
+
+What Happens After Restart?
+•	Kafka sees committed offset = 103
+•	Consumer resumes from 103
+•	Offset 102 was never processed
+
+Risk
+
+❌ Message loss
+
+Delivery Guarantee
+
+At-most-once
+
+⸻
+
+Why Auto Commit Is Dangerous
+•	Commit happens even if processing fails
+•	No coordination with business logic
+•	Crash between commit and processing = data loss
+•	Debugging is hard in production
+
+⸻
+
+2. Manual Offset Commit
+
+What is Manual Commit?
+
+In manual commit, your application decides when offsets are committed, usually after successful processing.
+
+Configuration
+
+enable.auto.commit=false
+
+
+⸻
+
+Manual Commit Timeline Example (At-Least-Once Risk)
+
+Scenario
+•	Topic: payments
+•	Partition: payments-0
+•	Messages: offsets 200, 201, 202
+
+⸻
+
+Timeline
+
+T0  (11:00:00) → consumer.poll()
+fetched offsets 200, 201, 202
+
+T1  (11:00:01) → processing offset 200
+T2  (11:00:02) → processing offset 201
+T3  (11:00:03) → processing offset 202
+
+T4  (11:00:04) → application CRASHES
+(before commitSync)
+
+
+⸻
+
+What Happens After Restart?
+•	No offset was committed
+•	Kafka resumes from offset 200
+•	Offsets 200, 201, 202 are reprocessed
+
+Risk
+
+⚠️ Duplicate processing
+
+Delivery Guarantee
+
+At-least-once
+
+⸻
+
+Why Manual Commit Is Safer
+•	No data loss
+•	You control commit timing
+•	Works well with retries and idempotency
+•	Preferred for financial / banking systems
+
+⸻
+
+3. Visual Comparison (Timestamp View)
+
+Time	Auto Commit	Manual Commit
+10:00:00	poll records	poll records
+10:00:02	processing	processing
+10:00:03	offset committed	not committed
+10:00:04	crash	crash
+Restart	skips messages	reprocesses messages
+Risk	data loss	duplicates
+
+
+⸻
+
+4. Commit Position Detail (Important Interview Point)
+
+Kafka commits the next offset.
+
+Example:
+•	Processed offset 101
+•	Committed offset = 102
+
+Meaning:
+
+“I am done with everything before 102”
+
+⸻
+
+5. commitSync vs commitAsync (Manual Commit)
+
+commitSync()
+•	Blocking
+•	Guarantees commit success
+•	Slower
+•	Safer
+
+commitAsync()
+•	Non-blocking
+•	Faster
+•	May fail silently
+•	Needs callback handling
+
+Best practice:
+•	Use commitAsync during normal flow
+•	Use commitSync on shutdown or rebalance
+
+⸻
+
+6. Auto Commit vs Manual Commit — Summary Table
+
+Aspect	Auto Commit	Manual Commit
+Control	Kafka	Application
+Commit timing	Time-based	Logic-based
+Risk	Data loss	Duplicates
+Delivery	At-most-once	At-least-once
+Production use	❌ Avoid	✅ Recommended
+Debuggability	Poor	Good
+
+
+⸻
+
+7. How Exactly-Once Solves Both Risks
+
+Kafka Exactly-Once Semantics (EOS):
+•	Combines message processing + offset commit
+•	Uses transactions
+•	No data loss
+•	No duplicates
+
+But:
+•	Higher complexity
+•	Not always required
+
+⸻
+
+8. Interview One-Liner
+
+Auto commit can lead to message loss because offsets may be committed before processing completes, whereas manual commit gives at-least-once delivery by committing offsets only after successful processing, trading data loss for possible duplicate processing.
+
+⸻
+
+If you want, next I can explain:
+•	Why Kafka commits the next offset (off-by-one confusion)
+•	How to design idempotent consumers
+•	Exactly-once with timeline example
+•	Rebalance + offset commit edge cases
+
+Just tell me what to cover next.
 
 ### Leader/Follower
 - Each partition has a **leader** (handling reads/writes) and zero or more **followers** (replicas for redundancy).
@@ -796,8 +1072,6 @@ A **consumer group** is a set of consumers that work together to consume data fr
 
 ###  2. Kafka Architecture
 
----
-
 ####  Cluster and Broker Setup
 
 - **Kafka Cluster**: A Kafka cluster consists of multiple **brokers**, each running on a separate machine (or container).
@@ -810,6 +1084,7 @@ Kafka Cluster
  └── Broker 3
 ```
 
+- Topics are abstractions. Brokers store partitions of topics.
 - Each broker has a unique ID and is responsible for one or more **partitions** of a topic.
 - Kafka scales horizontally: you add more brokers to handle more load.
 
@@ -817,7 +1092,7 @@ Kafka Cluster
 
 ####  Topics and Partitions
 
-- **Topic**: A category to which records are sent by producers.
+- **Topic**: A category to which records are sent by producers. This does not store data, no physical presence only abstraction, this helps us keep category of data together, data is stored in partitions.
 - **Partition**: 
   - A sequence of messages ordered by offset.
   - Stored as a log file on disk.
@@ -835,6 +1110,14 @@ Each message in the partition has:
 
  
 - Topics are split into partitions to allow parallel processing and scalability.
+
+**How it works:**
+1.	A topic is created with:
+    -	Number of partitions
+    -   Replication factor
+2.	Each partition is assigned to multiple brokers
+3.	One broker becomes the leader for that partition
+4.	Other brokers host replicas
 
 - **Note:** In Kafka, partitions of a single topic are deliberately spread across different brokers to maximize throughput, balance load, and ensure fault tolerance.
    
@@ -868,6 +1151,10 @@ Each broker hosts different partitions for different topics → maximum parallel
     - Load distribution
     - Message ordering per partition
 
+#### Q. What if there are multiple topics, how will the structure look like then?
+- When there are multiple topics, each topic is split into partitions and those partitions are distributed and replicated across brokers, 
+- so every broker ends up hosting partitions from multiple topics while each topic spans multiple brokers.
+- Basically, every broker can have partitions for all the topics(based on replication factor, no of broker and partitions per topic etc).
 
 #### Q. If partitions are in diff broker then how are they sequential?
 - When we say Kafka partitions are sequential, we mean within each partition, not across partitions.
@@ -2412,17 +2699,17 @@ Kafka publish failed ❌
 Why it happens
 
 Kafka and DB are two different systems:
-•	DB transaction commits
-•	Kafka producer fails (network / broker / timeout)
+-	DB transaction commits
+-	Kafka producer fails (network / broker / timeout)
 
 There is no atomicity across DB + Kafka.
 
 Even Kafka “transactions” do NOT cover your DB.
 
 What breaks
-•	Notification not sent
-•	Doctor calendar not updated
-•	Analytics incorrect
+-	Notification not sent
+-	Doctor calendar not updated
+-	Analytics incorrect
 
 This is catastrophic in healthcare / payments.
 
@@ -2443,15 +2730,15 @@ saveOutboxEvent();
 COMMIT
 
 Then:
-•	Background publisher reads outbox
-•	Publishes to Kafka
-•	Marks event as published
+-	Background publisher reads outbox
+-	Publishes to Kafka
+-	Marks event as published
 
 💡 Same DB transaction = guaranteed consistency
 
 ⸻
 
-2️⃣ Duplicate Events
+ Duplicate Events
 
 (At-Least-Once Delivery)
 
@@ -2466,17 +2753,17 @@ Kafka delivery model:
 “At least once”
 
 If:
-•	Consumer processes message
-•	Crashes before committing offset
+-	Consumer processes message
+-	Crashes before committing offset
 
 Kafka will re-deliver message.
 
 This is intentional — Kafka prefers data safety over convenience.
 
 What breaks
-•	Double email
-•	Double analytics count
-•	Double doctor slot booking
+-	Double email
+-	Double analytics count
+-	Double doctor slot booking
 
 How it’s solved
 
@@ -2502,31 +2789,31 @@ markProcessed(eventId);
 (System is alive but unusable)
 
 What happens
-•	Kafka running
-•	Messages piling up
-•	Users experience delays
+-	Kafka running
+-	Messages piling up
+-	Users experience delays
 
 Why it happens
 
 Producer speed > Consumer speed.
 
 Reasons:
-•	Slow DB writes
-•	External API calls
-•	Single-threaded consumers
+-	Slow DB writes
+-	External API calls
+-	Single-threaded consumers
 
 Kafka never slows producers by default.
 
 What breaks
-•	Notifications delayed by minutes
-•	Doctors see outdated calendars
-•	System appears “randomly slow”
+-	Notifications delayed by minutes
+-	Doctors see outdated calendars
+-	System appears “randomly slow”
 
 How it’s solved
-•	Increase partitions
-•	Increase consumer concurrency
-•	Batch DB writes
-•	Optimize slow operations
+-	Increase partitions
+-	Increase consumer concurrency
+-	Batch DB writes
+-	Optimize slow operations
 
 💡 Kafka queues pain silently.
 
@@ -2553,8 +2840,8 @@ send(topic, event);
 Kafka assigns random partitions.
 
 What breaks
-•	Booking cancelled before created
-•	Doctor slot freed before blocked
+-	Booking cancelled before created
+-	Doctor slot freed before blocked
 
 How it’s solved
 
@@ -2577,21 +2864,21 @@ One consumer overloaded, others idle.
 Why it happens
 
 Bad partition key distribution:
-•	Few doctors get most bookings
-•	Their partition becomes hotspot
+-	Few doctors get most bookings
+-	Their partition becomes hotspot
 
 Kafka does no auto-rebalancing of load inside partition.
 
 What breaks
-•	High latency
-•	Consumer lag
-•	Unpredictable performance
+-	High latency
+-	Consumer lag
+-	Unpredictable performance
 
 How it’s solved
-•	Better partition key design
-•	Composite keys
-•	Increase partitions
-•	Repartition topic
+-	Better partition key design
+-	Composite keys
+-	Increase partitions
+-	Repartition topic
 
 This only appears at scale.
 
@@ -2608,15 +2895,15 @@ One bad message blocks entire partition.
 Why it happens
 
 Kafka retries same message again and again:
-•	Invalid JSON
-•	DB constraint violation
-•	Unexpected schema
+-	Invalid JSON
+-	DB constraint violation
+-	Unexpected schema
 
 Kafka assumes consumer failure is temporary.
 
 What breaks
-•	Entire partition halted
-•	Downstream services frozen
+-	Entire partition halted
+-	Downstream services frozen
 
 How it’s solved
 
@@ -2647,21 +2934,21 @@ Why it happens
 Kafka does NOT enforce schema compatibility.
 
 JSON has:
-•	No versioning
-•	No type safety
+-	No versioning
+-	No type safety
 
 What breaks
-•	Consumer crashes
-•	Silent data corruption
+-	Consumer crashes
+-	Silent data corruption
 
 How it’s solved
 
 ✅ Schema Registry (Avro / Protobuf)
 
 Rules:
-•	Backward compatible changes only
-•	Versioned schemas
-•	Validation at producer time
+-	Backward compatible changes only
+-	Versioned schemas
+-	Validation at producer time
 
 This is mandatory at scale.
 
@@ -2678,22 +2965,22 @@ Consumers pause suddenly.
 Why it happens
 
 Kafka rebalances when:
-•	Consumer joins/leaves
-•	Pod restarts
-•	Network hiccups
+-	Consumer joins/leaves
+-	Pod restarts
+-	Network hiccups
 
 During rebalance:
 
 No messages are consumed
 
 What breaks
-•	Latency spikes
-•	SLA violations
+-	Latency spikes
+-	SLA violations
 
 How it’s solved
-•	Static membership
-•	Tune timeouts
-•	Reduce consumer restarts
+-	Static membership
+-	Tune timeouts
+-	Reduce consumer restarts
 
 ⸻
 
@@ -2708,21 +2995,21 @@ Kafka accepts messages faster than DB can handle.
 Why it happens
 
 Kafka is:
-•	Disk-based
-•	Extremely fast
-•	Designed to buffer
+-	Disk-based
+-	Extremely fast
+-	Designed to buffer
 
 It assumes consumers handle backpressure.
 
 What breaks
-•	DB connection pool exhaustion
-•	OOM errors
-•	Cascading failures
+-	DB connection pool exhaustion
+-	OOM errors
+-	Cascading failures
 
 How it’s solved
-•	Rate limit producers
-•	Pause consumers
-•	Queue-aware throttling
+-	Rate limit producers
+-	Pause consumers
+-	Queue-aware throttling
 
 Kafka does not protect your DB.
 
@@ -2739,17 +3026,17 @@ Any service can read/write any topic.
 Why it happens
 
 Default Kafka:
-•	No auth
-•	No ACLs
+-	No auth
+-	No ACLs
 
 What breaks
-•	Data leaks
-•	Compliance violations (HIPAA, PCI)
+-	Data leaks
+-	Compliance violations (HIPAA, PCI)
 
 How it’s solved
-•	SASL / mTLS
-•	Topic-level ACLs
-•	Service identities
+-	SASL / mTLS
+-	Topic-level ACLs
+-	Service identities
 
 ⸻
 
@@ -2766,20 +3053,20 @@ Why it happens
 Kafka doesn’t alert by default.
 
 What breaks
-•	SLA breaches
-•	Late incident response
+-	SLA breaches
+-	Late incident response
 
 How it’s solved
 
 Monitor:
-•	Consumer lag
-•	Producer error rate
-•	Disk usage
-•	Under-replicated partitions
+-	Consumer lag
+-	Producer error rate
+-	Disk usage
+-	Under-replicated partitions
 
 ⸻
 
-12️⃣ Large Message Payloads
+1 Large Message Payloads
 
 (Kafka abused as storage)
 
@@ -2790,19 +3077,19 @@ Brokers slow down.
 Why it happens
 
 Kafka replicates every byte:
-•	Memory
-•	Network
-•	Disk
+-	Memory
+-	Network
+-	Disk
 
 Large payloads multiply cost.
 
 What breaks
-•	Broker crashes
-•	Throughput collapse
+-	Broker crashes
+-	Throughput collapse
 
 How it’s solved
-•	Store files in S3
-•	Send references only
+-	Store files in S3
+-	Send references only
 
 ⸻
 
@@ -2819,8 +3106,8 @@ Why it happens
 Developers misuse Kafka for orchestration.
 
 What breaks
-•	Tight coupling
-•	Impossible changes
+-	Tight coupling
+-	Impossible changes
 
 How it’s solved
 
@@ -2841,13 +3128,13 @@ Why it happens
 Kafka is asynchronous.
 
 What breaks
-•	User trust
-•	UX expectations
+-	User trust
+-	UX expectations
 
 How it’s solved
-•	Async UI indicators
-•	Read models
-•	Product alignment
+-	Async UI indicators
+-	Read models
+-	Product alignment
 
 ⸻
 
@@ -2866,11 +3153,11 @@ You must design for failure.
 What this means for YOU
 
 If you implement:
-•	Outbox
-•	Idempotency
-•	DLT
-•	Partition strategy
-•	Monitoring
+-	Outbox
+-	Idempotency
+-	DLT
+-	Partition strategy
+-	Monitoring
 
 You are thinking like a senior distributed systems engineer.
 
