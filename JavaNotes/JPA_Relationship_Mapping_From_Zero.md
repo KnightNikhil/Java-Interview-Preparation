@@ -280,6 +280,9 @@ account.getTransactions().add(tx);
 Cascade controls:
 > What happens to child when parent changes
 
+- For any of the CascadeType values, it means that if operation X is called on an instance using the EntityManager interface, and that instance has references to other entity instances, and that association has CascadeType.X defined, then the EntityManager operation will also be applied to that associated entity.
+
+
 Common cascades:
 - PERSIST → save child
 - REMOVE → delete child (dangerous)  

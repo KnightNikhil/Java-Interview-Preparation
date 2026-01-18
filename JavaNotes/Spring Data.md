@@ -1316,7 +1316,8 @@ When you annotate a method/class with @Transactional, Spring does this under the
 
 ### Propagation types (REQUIRED, REQUIRES_NEW, etc.)
 Propagation defines how a transaction boundary behaves when a method is called inside an existing transaction.
-1. REQUIRED (Default)
+
+**1. REQUIRED (Default)**
 - If a transaction exists → join it.
 - If none exists → start a new one.
 ```java
@@ -1331,7 +1332,38 @@ Each called method will automatically join the active transaction initiated by `
 
 Use case: Most business methods. Ensures everything runs in one transaction.
 
-2. REQUIRES_NEW
+```java
+@Service
+@RequiredArgsConstructor
+public class InventoryServiceImpl implements InventoryService {
+    private final BookingRepository bookingRepository;
+    
+    @Override
+    @Transactional  // propagation = REQUIRED (default)
+    public void bookDoctorAppointment(AppointmentDetailsDto appointmentDetailsDto) {
+        // Runs in SAME transaction as caller
+        BookingInventory booking = bookingRepository.findByDoctorIdAndDateAndTime(
+            appointmentDetailsDto.getDoctorId(),
+            appointmentDetailsDto.getDate(),
+            appointmentDetailsDto.getTime()
+        );
+        
+        if (booking.getBookingStatus().equals(BookingStatus.AVAILABLE)) {
+            booking.setBookingStatus(BookingStatus.CONFIRMED);
+            booking.setPatientId(appointmentDetailsDto.getPatientId());
+            bookingRepository.save(booking);
+        }
+    }
+}
+```
+
+**Key Points:**
+- All operations share one transaction
+- One rollback affects everyone
+- If something fails at the end, earlier saves are wasted
+
+
+**2. REQUIRES_NEW**
 - Always starts a new transaction, suspending the current one (if any).
 - Commits/rolls back independently.
 - Ensures operations in the method are transactionally isolated from the parent transaction, providing robust handling for scenarios where partial data persistence is required.ß
@@ -1339,15 +1371,20 @@ Use case: Most business methods. Ensures everything runs in one transaction.
 @Transactional(propagation = Propagation.REQUIRED)
 public void createOrder(Order order) {
     orderRepository.save(order); // main transaction
-    processProduct(order.getItem());
+    logAuditTrail(order.getItem());
 }
 
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-public void processProduct(OrderItem item) {
-    // update product quantity in its own transaction
-    Product product = productRepository.findById(item.getProductId()).orElseThrow();
-    product.setQuantity(product.getQuantity() - item.getQuantity());
-    productRepository.save(product);
+public void logAuditTrail(OrderItem item) {
+    // TX2 starts - INDEPENDENT AUDIT TRANSACTION
+    // If this fails, it WON'T rollback the consultation save (TX1)
+    auditLogService.logAction(
+            AuditLog.builder()
+                    .action("ORDER_CREATED")
+                    .recordId(item.getId())
+                    .timestamp(LocalDateTime.now())
+                    .build()
+    );
 }
 
 ```
@@ -1355,9 +1392,23 @@ If `processProduct` throws an exception (e.g., insufficient stock), only the pro
 
 Use case: Logging, audit trails, notifications → should succeed even if main transaction fails.
 
-3. SUPPORTS
+**Diagram:**
+```
+createOrder() [TX1]
+    ↓
+    orderRepository.save() → TX1
+    ↓
+    logAuditTrail() → TX2 (new, independent)
+        ↓ (Success/Failure isolated)
+    ↓
+    Return result
+```
+
+
+**3. SUPPORTS**
 - If a transaction exists → join it.
 - If none exists → run without a transaction, just like a regular method.
+- 
 ```java
 @Transactional(propagation = Propagation.SUPPORTS)
 public List<Order> getOrders() {
@@ -1394,7 +1445,7 @@ If someone calls `updateInventory()` directly from a non-transactional context, 
 
 Use case: Internal methods that must always be called within a transaction.
 
-5. NOT_SUPPORTED
+**5. NOT_SUPPORTED**
 - It executes without any transactional context.
 - If there is an active transaction, Spring suspends (pauses) that transaction for the duration of the method. After the method completes, the suspended transaction is resumed.
 - Basically, if a transaction exists, it is temporarily aborts the method execution, runs the method without a transaction, and then resumes the original transaction afterward.
@@ -1434,17 +1485,43 @@ Main Reasons and Benefits for Suspending a Transaction
 
 - Use case: Long-running, non-critical tasks (e.g., reports, analytics).
 
-6. NEVER
+**6. NEVER - Never Run in Transaction**
 - Must run without a transaction.
 - If a transaction exists → throws exception.
 - If there is an active transaction when the method is called, Spring throws an exception, preventing the method from executing within that transaction.
 
+```java
+@Service
+@RequiredArgsConstructor
+public class ReportService {
+    private final PatientConsultationRepository consultationRepository;
+    
+    @Transactional
+    public void generateMonthlyReport(YearMonth month) {
+        // TX1 starts
+        List<Report> reports = consultationRepository.findByMonth(month);
+        exportReports(reports);  // Fails if tries to use TX
+    }
+    
+    @Transactional(propagation = Propagation.NEVER)
+    private void exportReports(List<Report> reports) {
+        // MUST NOT have active transaction
+        // If called from generateMonthlyReport() → throws exception
+    }
+}
+```
+**This is useful for:**
+1. Writing to external systems (file, API)
+2. Long-running operations
+3. Processes that shouldn't rollback.
+4. 
 Use case: Operations that should never run in a transaction (e.g., schema checks).
 
-7. NESTED
+**7. NESTED**
 - If a transaction exists → create a nested transaction (via savepoints).
 - If none exists → behaves like REQUIRED.
 - A savepoint marks a spot in the current transaction you can roll back to, rather than rolling back the entire transaction
+
 ```java
 @Transactional(propagation = Propagation.REQUIRED)
 public void processBatch() {
