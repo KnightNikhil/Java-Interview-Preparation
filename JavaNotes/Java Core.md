@@ -229,7 +229,9 @@ A: G1 divides the heap into regions and collects them in parallel and concurrent
 - **hashCode()** determines the bucket
 - **equals()** determines object equality within the bucket
 
-### Comparable & Comparator
+---
+
+## Comparable & Comparator
 
 - **Comparable:** Defines natural order
 
@@ -248,7 +250,7 @@ class Person implements Comparable<Person> {
 Comparator<Person> byName = Comparator.comparing(p -> p.name);
 ```
 
----
+
 
 ### Q. What is Comparable and Comparator Interface in java?
 
@@ -413,9 +415,77 @@ Sorting by Age
 
 #### Benefits
 
-- Thread-safe by default
-- Makes reasoning about code easier
-- Useful in caching and map keys
+- **Thread-safe by default**
+  - Concurrency issues arise when:
+    -	Multiple threads
+    -	Shared mutable state
+    -	At least one write 
+    - Immutability removes the “write” entirely.
+  - Note:
+    - Immutability ≠ singleton
+    -	Immutability ≠ one instance
+    -	Immutability = no state change after construction
+    -	Multiple identical immutable objects are harmless
+
+
+
+- **Makes reasoning about code easier**
+    - Mutable:
+  ```java
+    Order order = orderService.getOrder();
+    
+    validate(order);
+    calculateDiscount(order);
+    save(order);
+    ```
+    - If calculateDiscount() mutates:
+      1. Debugging becomes a nightmare
+      2. Side effects propagate silently
+    - Immutable:
+  ```java
+    Order order = orderService.getOrder();
+    Order discountedOrder = discountService.apply(order);
+    save(discountedOrder);
+  ```
+    1. Flow is explicit
+    2. No hidden side effects 
+    3. Each method is pure
+    - Why this matters at scale
+      -	Fewer defensive copies
+      -	Easier debugging
+      -	Easier testing
+      -	Fewer “spooky action at a distance” bugs
+
+
+- **Useful in caching and map keys**
+  - How HashMap works (critical understanding)
+    1.	Key’s hashCode() decides bucket
+    2.	equals() resolves collision
+    3.	HashMap assumes key never changes
+  - What happens if the hashCode() changed?
+    1. Entry is in wrong bucket
+    2. map.get(key) → null
+  - Immutable key = safe forever
+    1. Make key final `private final String userId;`
+    2. Since, equals + hashCode based on userId
+    3. Hash never changes
+
+
+#### Builder pattern and immutable class
+- Point to remember: 
+  - builder creates a new object everytime
+    - So, basically builder acts as a scalable constructor
+    - there's no prblem with creating multiple instances of a class, the problem is it should change it's state/value once created
+  - Setter can change the state of a files so they can not be used 
+
+
+**Rules**
+
+1. Make class final.
+2. Make fields private and final.
+3. Initialize via constructor only.
+4. No setters.
+5. Return defensive copies of mutable fields.
 
 #### Steps to Make a Class Immutable
 
@@ -533,16 +603,6 @@ Because we made defensive copies, Person stays immutable.
 
 ---
 
-**Rules Recap**
-
-1. Make class final.
-2. Make fields private and final.
-3. Initialize via constructor only.
-4. No setters.
-5. Return defensive copies of mutable fields.
-
----
-
 ## Serialization & Deserialization
 
 Serialization in Java is the process of converting an object’s state into a byte stream, enabling the object to be easily persisted to a file, sent over a network, or stored in memory for later retrieval. Deserialization is the reverse process, where this byte stream is used to recreate the original Java object in memory—retaining its data and structure.
@@ -565,11 +625,13 @@ After deserialization, `password` is set to `null` regardless of its original va
 
 ### Static Fields
 
-- Static fields are class variables, shared across all instances and belonging to the class itself, not individual objects. Because serialization captures the state of an object, and static variables are not part of individual object state, they are never serialized.
+- Static fields are class variables, shared across all instances and belonging to the class itself, not individual objects. 
+- Because serialization captures the state of an object, and **static variables are not part of individual object state, they are never serialized**.
 
 ### serialVersionUID
 
-- A unique version identifier ensures compatibility between the serialized object and class definition for deserialization. If mismatched, an `InvalidClassException` occurs.
+- A unique version identifier ensures compatibility between the serialized object and class definition for deserialization. 
+- If mismatched, an `InvalidClassException` occurs.
 
 ### Associated Objects
 
@@ -589,9 +651,9 @@ private void writeObject(ObjectOutputStream oos) throws IOException {
 }
 ```
 
-**readResolve():**
-
+#### **readResolve():**
 - Used to maintain Singleton during deserialization
+- Better understanding in Singleton Design Principle
 
 ---
 
@@ -659,7 +721,7 @@ public class Test {
 ```
 
 ### Accessing Annotations via Reflection
-
+- Accessed via reflection at runtime if @Retention(RUNTIME) is used.
 ```java
 import java.lang.reflect.Method;
 
@@ -725,15 +787,6 @@ Version: 2
 - **Marker interface** → tagging done at type level, checked by instanceof.
 - **Annotations** → more flexible, can be applied at methods, fields, classes, etc., and can carry extra metadata.
 
-**Summary**
-
-- Annotations = metadata attached to code.
-- Built-in ones: @Override, @Deprecated, @FunctionalInterface.
-- Meta-annotations: @Retention, @Target, @Inherited, @Documented.
-- Can create custom annotations with elements & defaults.
-- Used heavily in frameworks like Spring, Hibernate, JUnit.
-- Accessed via reflection at runtime if @Retention(RUNTIME) is used.
-
 ---
 
 ## Reflection API
@@ -753,293 +806,6 @@ Object result = method.invoke(emp);
 
 - Slower than direct method calls
 - Security manager can restrict access
-
----
-
-## ClassLoaders
-
-A ClassLoader in Java is a part of the Java Runtime Environment (JRE) that dynamically loads classes into memory when they are required.
-
-- Java doesn’t load all classes upfront — it loads them on demand using ClassLoaders.
-- ClassLoaders also define the namespace of a class (i.e., where it belongs in the JVM).
-
-### Types of ClassLoaders
-
-Java uses a delegation hierarchy model for class loading:
-
-1. **Bootstrap ClassLoader (Primordial ClassLoader)**
-  - Written in native code (C/C++).
-  - Loads core Java classes (java.lang.*, java.util.*, etc.) from rt.jar (or jmods in Java 9+).
-  - Has no parent.
-2. **Extension (Platform) ClassLoader**
-  - Loads classes from the extension directories (jre/lib/ext or modules in newer Java).
-  - Example: classes for cryptography or XML processing.
-3. **System (Application) ClassLoader**
-  - Loads classes from the classpath (-cp or CLASSPATH env variable).
-  - This is the default ClassLoader for user-defined classes.
-4. **Custom ClassLoaders**
-  - You can create your own by extending ClassLoader.
-  - Useful in frameworks (Spring, Hibernate, Tomcat) and application servers to load/unload classes dynamically (plugins, hot deployment).
-
-### Delegation Model (How ClassLoaders Work)
-
-- A ClassLoader first delegates the request to its parent before trying to load a class itself.
-- This prevents duplicate loading of core classes and maintains security.
-
-**Example:**
-
-If you try to load java.lang.String with your custom ClassLoader:
-
-1. Delegated to Bootstrap ClassLoader → finds it → returns.
-2. Your ClassLoader never gets the chance to override it.
-
-### Why are ClassLoaders important?
-
-- Frameworks & Containers (Spring Boot, Tomcat, OSGi) → load/unload classes dynamically.
-- Plugins → allow hot deployment without restarting JVM.
-- Security → prevents overriding of core classes.
-- Interview favorite → ties into JVM internals, reflection, and custom frameworks.
-
-### Custom ClassLoader
-
-**Steps**
-
-1. Create a normal Java class (to be loaded dynamically).
-2. Write a CustomClassLoader by extending ClassLoader.
-3. Use it to load the .class file at runtime.
-
-**1. A Simple Class (to be loaded)**
-
-Save this as Hello.java and compile (javac Hello.java → generates Hello.class).
-
-```java
-public class Hello {
-  public void sayHello() {
-    System.out.println("Hello from custom class loader!");
-  }
-}
-```
-
-**2. Custom ClassLoader**
-
-We’ll read the .class file as bytes, then use defineClass() to load it.
-
-```java
-import java.io.*;
-
-public class CustomClassLoader extends ClassLoader {
-
-    private String classPath;
-
-    public CustomClassLoader(String classPath) {
-        this.classPath = classPath;
-    }
-
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        try {
-            // Convert class name to file system path
-            String fileName = classPath + name.replace('.', '/') + ".class";
-
-            // Read class file bytes
-            byte[] bytes = loadClassData(fileName);
-
-            // Define the class in JVM
-            return defineClass(name, bytes, 0, bytes.length);
-        } catch (IOException e) {
-            throw new ClassNotFoundException(name, e);
-        }
-    }
-
-    private byte[] loadClassData(String fileName) throws IOException {
-        InputStream input = new FileInputStream(fileName);
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-        int data;
-        while ((data = input.read()) != -1) {
-            buffer.write(data);
-        }
-        input.close();
-
-        return buffer.toByteArray();
-    }
-}
-```
-
-**3. Using the Custom ClassLoader**
-
-Now create a runner class:
-
-```java
-public class LoaderTest {
-    public static void main(String[] args) throws Exception {
-        // Path to directory containing Hello.class
-        String classPath = "/path/to/classes/";
-
-        // Use custom class loader
-        CustomClassLoader loader = new CustomClassLoader(classPath);
-
-        // Load class dynamically
-        Class<?> helloClass = loader.loadClass("Hello");
-
-        // Create instance
-        Object obj = helloClass.getDeclaredConstructor().newInstance();
-
-        // Call method via reflection
-        helloClass.getMethod("sayHello").invoke(obj);
-    }
-}
-```
-
-**Output**
-
-```
-Hello from custom class loader!
-```
-
-**Where this is useful**
-
-- Application Servers (Tomcat, JBoss) → load webapps with separate classloaders.
-- Frameworks (Spring Boot, OSGi) → load/unload plugins dynamically.
-- Hot Reloading → reload a class without restarting JVM.
-
-### What happens if the same class is loaded by two different ClassLoaders?
-
-**Class Identity in Java**
-
-In the JVM, a class is uniquely identified not just by its name (e.g., com.example.MyClass) but by:
-
-```
-<class name, defining ClassLoader>
-```
-
-That means:
-
-- If two different ClassLoaders load a class with the same name and package, the JVM treats them as two completely different classes.
-- Even if the .class bytecode is identical, they live in different namespaces.
-
-**Example**
-
-Imagine you have Hello.class. If you load it with two different custom ClassLoaders:
-
-```java
-CustomClassLoader loader1 = new CustomClassLoader("/path/to/classes/");
-CustomClassLoader loader2 = new CustomClassLoader("/path/to/classes/");
-
-Class<?> class1 = loader1.loadClass("Hello");
-Class<?> class2 = loader2.loadClass("Hello");
-
-System.out.println(class1 == class2); // false
-```
-
-Even though both refer to Hello, they are not equal because loader1 ≠ loader2.
-
-**Consequence**
-
-This can cause:
-
-- ClassCastException
-
-```java
-Object obj = class1.newInstance();
-class2.cast(obj); // Throws ClassCastException!
-```
-
-Because JVM thinks Hello from loader1 ≠ Hello from loader2.
-
-**Why this Matters**
-
-- Application Servers (Tomcat, JBoss, WebSphere, etc.)
-  - Each web application runs in its own ClassLoader.
-  - This prevents class conflicts between different apps using different versions of the same library.
-- Plugins / OSGi
-  - Allows loading multiple versions of the same library at runtime.
-- Hot Reloading
-  - You can unload and reload a new version of a class by discarding the old ClassLoader and creating a new one.
-
-**Parent Delegation Model Recap**
-
-- By default, a ClassLoader first asks its parent to load a class.
-- This ensures core classes (java.lang.String) are never overridden.
-- Custom loaders can break this delegation model (but it’s dangerous unless you know what you’re doing).
-
-**Summary**
-
-- A class is identified by (name + defining ClassLoader).
-- Same class name loaded by two different ClassLoaders = different classes in JVM.
-- Leads to isolation (good for modularity), but also ClassCastException pitfalls.
-
-#### Tomcat ClassLoader Hierarchy
-
-In Apache Tomcat, the ClassLoader hierarchy is designed to provide isolation between web applications while allowing shared access to common libraries. Here’s a simplified overview of the ClassLoader hierarchy in Tomcat:
-
-When Tomcat starts, it builds a tree of ClassLoaders on top of the JVM ones:
-
-1. **Bootstrap ClassLoader (JVM)**
-  - Loads rt.jar / core modules (java.lang.*, java.util.*, etc.).
-  - Part of every Java process.
-2. **System (Application) ClassLoader (JVM)**
-  - Loads classes from the classpath ($JAVA_HOME/lib).
-  - Example: If you run Tomcat with java -cp, these classes are here.
-3. **Tomcat-specific ClassLoaders**
-  - **Common ClassLoader**
-    - Loads classes/jars in CATALINA_HOME/lib.
-    - Shared by Tomcat internals + all deployed webapps.
-    - Example: JDBC drivers, logging frameworks.
-  - **Catalina ClassLoader**
-    - Loads Tomcat’s internal server classes (org.apache.catalina.*, etc.).
-    - Isolated so webapps cannot override Tomcat’s core.
-  - **Shared ClassLoader**
-    - (Optional, depending on Tomcat version/config).
-    - Loads jars that should be shared across multiple apps but not part of Tomcat itself.
-  - **WebApp ClassLoader (per deployed app!)**
-    - Loads classes from /WEB-INF/classes and /WEB-INF/lib/*.jar.
-    - Each webapp gets its own loader → isolation.
-    - Two apps can use different versions of the same library without conflicts.
-
-**Diagram**
-
-```
-Bootstrap ClassLoader
-  ↑
-System (App) ClassLoader
-  ↑
-Common ClassLoader   ← (CATALINA_HOME/lib)
-  ↑
-Catalina ClassLoader  ← (Tomcat internals)
-  ↑
-WebApp ClassLoader(s) ← (WEB-INF/classes, WEB-INF/lib)
-```
-
-**Why this matters**
-
-1. **Isolation**
-  - App A can use commons-logging-1.1.jar
-  - App B can use commons-logging-1.2.jar
-  - No conflict because they’re loaded in different WebApp ClassLoaders.
-2. **Security**
-  - A webapp cannot override Tomcat internals (org.apache.catalina.*) since those are loaded higher up (Catalina ClassLoader).
-3. **Hot Deployment**
-  - When you redeploy a webapp, Tomcat discards the old WebApp ClassLoader and creates a new one.
-  - This avoids memory leaks, but if references to old classes remain (e.g., static singletons, threads), you get PermGen/Metaspace leaks.
-
-**Real-World Example**
-
-Imagine you deploy two WARs:
-
-- App1.war → WEB-INF/lib/mysql-connector-5.1.jar
-- App2.war → WEB-INF/lib/mysql-connector-8.0.jar
-
-Even though both define com.mysql.jdbc.Driver, they’re loaded by different WebApp ClassLoaders, so Tomcat keeps them separate.
-
-If instead you put mysql-connector.jar in CATALINA_HOME/lib, both apps would share the same driver → useful for connection pooling.
-
-**Summary**
-
-- Tomcat builds a ClassLoader tree on top of JVM loaders.
-- Each webapp has its own WebApp ClassLoader → isolation.
-- Shared libs go in CATALINA_HOME/lib.
-- Prevents conflicts but can cause memory leaks if class references escape after undeploy.
 
 ---
 
@@ -1674,3 +1440,647 @@ BankAccount b2 = accountRepo.get(2);
 a1 == b1   // true
 a2 == b2   // true
 ```
+
+
+
+================================================
+
+Advanced:
+
+### Q1. So, if I am making everything in my class final, variables, methods (so I cant not override methods now), why do I need to make the class final?
+### Answer
+
+1. Subclass constructors can break guarantees (even if everything is final)
+
+Base class (looks immutable & safe)
+
+class Money {
+private final int amount;
+
+    public Money(int amount) {
+        this.amount = amount;
+    }
+
+    public final int getAmount() {
+        return amount;
+    }
+}
+
+Looks safe:
+-	final field
+-	final method
+-	No setters
+
+⸻
+
+Subclass introduces dangerous behavior
+
+class EvilMoney extends Money {
+public EvilMoney(int amount) {
+super(amount);
+GlobalRegistry.register(this);
+}
+}
+
+
+⸻
+
+What exactly breaks?
+
+The problem: this escapes during construction
+
+Object creation steps:
+1.	Memory allocated
+2.	Base constructor starts
+3.	Base fields initialized
+4.	Control returns to subclass constructor
+5.	this is published to other threads
+
+Another thread may now see:
+-	Object reference
+-	But not guaranteed visibility of all final fields
+
+Why this matters
+
+The Java Memory Model guarantees final field visibility ONLY if the constructor finishes normally and object does not escape during construction.
+
+Subclass constructors can violate that guarantee.
+
+⸻
+
+Result
+
+Even though fields are final, another thread could see:
+
+money.getAmount() == 0   // default value
+
+This is extremely subtle and very real.
+
+⸻
+
+Why final class prevents this
+
+public final class Money { ... }
+
+No subclass → no subclass constructor → no escape → guarantee preserved.
+
+⸻
+
+2. Subclasses can add mutable state (breaks immutability contract)
+
+Base class (advertised as immutable)
+
+class User {
+private final String name;
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    public final String getName() {
+        return name;
+    }
+}
+
+Team assumes:
+
+“User is immutable”
+
+⸻
+
+Subclass adds mutable state
+
+class MutableUser extends User {
+private int loginCount;
+
+    public MutableUser(String name) {
+        super(name);
+    }
+
+    public void increment() {
+        loginCount++;
+    }
+}
+
+
+⸻
+
+What exactly breaks?
+
+Liskov Substitution Principle (LSP)
+
+Code expects:
+
+User user = getUser();
+
+Assumption:
+-	Thread-safe
+-	Immutable
+-	Safe to cache
+-	Safe to share
+
+But at runtime:
+
+user instanceof MutableUser
+
+Now:
+-	Shared mutable state exists
+-	Thread safety assumptions are violated
+-	Caching becomes unsafe
+
+⸻
+
+Real production bug example
+
+static final Map<User, Session> cache = new HashMap<>();
+
+Mutable subclass mutates internal state → equality assumptions break → cache corruption.
+
+⸻
+
+Why final class prevents this
+
+No subclass → no hidden mutable state → immutability guarantee holds globally.
+
+⸻
+
+3. Equality & hashCode contracts can silently break
+
+Base class defines equality
+
+class Point {
+private final int x;
+private final int y;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (!(o instanceof Point)) return false;
+        Point p = (Point) o;
+        return x == p.x && y == p.y;
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hash(x, y);
+    }
+}
+
+
+⸻
+
+Subclass adds new dimension
+
+class ColoredPoint extends Point {
+private final String color;
+
+    public ColoredPoint(int x, int y, String color) {
+        super(x, y);
+        this.color = color;
+    }
+}
+
+
+⸻
+
+What exactly breaks?
+
+Symmetry violation
+
+Point p = new Point(1, 2);
+ColoredPoint cp = new ColoredPoint(1, 2, "RED");
+
+p.equals(cp)  // true
+cp.equals(p)  // false (color not compared)
+
+This violates:
+-	equals symmetry rule
+-	hashCode consistency
+
+⸻
+
+Consequences
+-	HashMap behavior becomes undefined
+-	Sets contain duplicates
+-	Caches misbehave
+
+⸻
+
+Why final class prevents this
+
+No subclass → equality logic remains complete → contracts preserved.
+
+⸻
+
+4. Subclasses can violate thread-safety assumptions
+
+Base class used as thread-safe value
+
+class Config {
+private final String url;
+
+    public Config(String url) {
+        this.url = url;
+    }
+
+    public final String getUrl() {
+        return url;
+    }
+}
+
+Shared across threads safely.
+
+⸻
+
+Subclass introduces race condition
+
+class MutableConfig extends Config {
+private String temp;
+
+    public void setTemp(String t) {
+        temp = t;
+    }
+}
+
+Now:
+-	Reads + writes
+-	No synchronization
+-	Data race introduced
+
+⸻
+
+Breakage
+-	Base class was assumed thread-safe
+-	Subclass invalidates that assumption
+-	Bugs appear far from the source
+
+⸻
+
+5. Security assumptions can be broken
+
+Base security-sensitive class
+
+class AuthToken {
+private final String token;
+
+    public final boolean isValid() {
+        return token != null && token.length() > 10;
+    }
+}
+
+
+⸻
+
+Subclass manipulates behavior indirectly
+
+Even without overriding isValid, subclass can:
+-	Add state
+-	Leak token
+-	Store it insecurely
+-	Break audit expectations
+
+Security-sensitive classes must not be extensible.
+
+That’s why:
+-	String
+-	Integer
+-	ClassLoader
+
+are all final.
+
+⸻
+
+6. Why final methods + final fields is NOT enough
+
+Protection	What it stops	What it doesn’t
+final fields	Reassignment	Constructor escape
+final methods	Overriding	New behavior
+final class	Subclassing	Everything above
+
+You need all three to fully lock the design.
+
+⸻
+
+7. Why Java Records solve this cleanly
+
+public record Money(int amount) {}
+
+Records are:
+-	Final
+-	Fields final
+-	No subclassing
+-	Immutable by default
+
+Java added records because this pattern was so error-prone manually.
+
+⸻
+
+8. Interview-level summary (very important)
+
+Even if all fields and methods are final, allowing subclassing still permits constructor escape, hidden mutable state, broken equality contracts, and violated thread-safety assumptions. Making the class final closes these extension loopholes and preserves immutability guarantees.
+
+⸻
+
+Mental rule to lock forever
+
+Immutability is a design guarantee, not just a syntax choice.
+Final classes enforce the guarantee globally.
+
+⸻
+
+If you want next, we can:
+-	Show a real HashMap corruption demo
+-	Explain why records are better than builders sometimes
+-	Compare sealed vs final
+-	Tie this to Spring proxy limitations
+
+Just say which direction you want to go.
+
+
+------------
+
+## ClassLoaders
+
+A ClassLoader in Java is a part of the Java Runtime Environment (JRE) that dynamically loads classes into memory when they are required.
+
+- Java doesn’t load all classes upfront — it loads them on demand using ClassLoaders.
+- ClassLoaders also define the namespace of a class (i.e., where it belongs in the JVM).
+
+### Types of ClassLoaders
+
+Java uses a delegation hierarchy model for class loading:
+
+1. **Bootstrap ClassLoader (Primordial ClassLoader)**
+- Written in native code (C/C++).
+- Loads core Java classes (java.lang.*, java.util.*, etc.) from rt.jar (or jmods in Java 9+).
+- Has no parent.
+2. **Extension (Platform) ClassLoader**
+- Loads classes from the extension directories (jre/lib/ext or modules in newer Java).
+- Example: classes for cryptography or XML processing.
+3. **System (Application) ClassLoader**
+- Loads classes from the classpath (-cp or CLASSPATH env variable).
+- This is the default ClassLoader for user-defined classes.
+4. **Custom ClassLoaders**
+- You can create your own by extending ClassLoader.
+- Useful in frameworks (Spring, Hibernate, Tomcat) and application servers to load/unload classes dynamically (plugins, hot deployment).
+
+### Delegation Model (How ClassLoaders Work)
+
+- A ClassLoader first delegates the request to its parent before trying to load a class itself.
+- This prevents duplicate loading of core classes and maintains security.
+
+**Example:**
+
+If you try to load java.lang.String with your custom ClassLoader:
+
+1. Delegated to Bootstrap ClassLoader → finds it → returns.
+2. Your ClassLoader never gets the chance to override it.
+
+### Why are ClassLoaders important?
+
+- Frameworks & Containers (Spring Boot, Tomcat, OSGi) → load/unload classes dynamically.
+- Plugins → allow hot deployment without restarting JVM.
+- Security → prevents overriding of core classes.
+- Interview favorite → ties into JVM internals, reflection, and custom frameworks.
+
+### Custom ClassLoader
+
+**Steps**
+
+1. Create a normal Java class (to be loaded dynamically).
+2. Write a CustomClassLoader by extending ClassLoader.
+3. Use it to load the .class file at runtime.
+
+**1. A Simple Class (to be loaded)**
+
+Save this as Hello.java and compile (javac Hello.java → generates Hello.class).
+
+```java
+public class Hello {
+  public void sayHello() {
+    System.out.println("Hello from custom class loader!");
+  }
+}
+```
+
+**2. Custom ClassLoader**
+
+We’ll read the .class file as bytes, then use defineClass() to load it.
+
+```java
+import java.io.*;
+
+public class CustomClassLoader extends ClassLoader {
+
+    private String classPath;
+
+    public CustomClassLoader(String classPath) {
+        this.classPath = classPath;
+    }
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        try {
+            // Convert class name to file system path
+            String fileName = classPath + name.replace('.', '/') + ".class";
+
+            // Read class file bytes
+            byte[] bytes = loadClassData(fileName);
+
+            // Define the class in JVM
+            return defineClass(name, bytes, 0, bytes.length);
+        } catch (IOException e) {
+            throw new ClassNotFoundException(name, e);
+        }
+    }
+
+    private byte[] loadClassData(String fileName) throws IOException {
+        InputStream input = new FileInputStream(fileName);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        int data;
+        while ((data = input.read()) != -1) {
+            buffer.write(data);
+        }
+        input.close();
+
+        return buffer.toByteArray();
+    }
+}
+```
+
+**3. Using the Custom ClassLoader**
+
+Now create a runner class:
+
+```java
+public class LoaderTest {
+    public static void main(String[] args) throws Exception {
+        // Path to directory containing Hello.class
+        String classPath = "/path/to/classes/";
+
+        // Use custom class loader
+        CustomClassLoader loader = new CustomClassLoader(classPath);
+
+        // Load class dynamically
+        Class<?> helloClass = loader.loadClass("Hello");
+
+        // Create instance
+        Object obj = helloClass.getDeclaredConstructor().newInstance();
+
+        // Call method via reflection
+        helloClass.getMethod("sayHello").invoke(obj);
+    }
+}
+```
+
+**Output**
+
+```
+Hello from custom class loader!
+```
+
+**Where this is useful**
+
+- Application Servers (Tomcat, JBoss) → load webapps with separate classloaders.
+- Frameworks (Spring Boot, OSGi) → load/unload plugins dynamically.
+- Hot Reloading → reload a class without restarting JVM.
+
+### What happens if the same class is loaded by two different ClassLoaders?
+
+**Class Identity in Java**
+
+In the JVM, a class is uniquely identified not just by its name (e.g., com.example.MyClass) but by:
+
+```
+<class name, defining ClassLoader>
+```
+
+That means:
+
+- If two different ClassLoaders load a class with the same name and package, the JVM treats them as two completely different classes.
+- Even if the .class bytecode is identical, they live in different namespaces.
+
+**Example**
+
+Imagine you have Hello.class. If you load it with two different custom ClassLoaders:
+
+```java
+CustomClassLoader loader1 = new CustomClassLoader("/path/to/classes/");
+CustomClassLoader loader2 = new CustomClassLoader("/path/to/classes/");
+
+Class<?> class1 = loader1.loadClass("Hello");
+Class<?> class2 = loader2.loadClass("Hello");
+
+System.out.println(class1 == class2); // false
+```
+
+Even though both refer to Hello, they are not equal because loader1 ≠ loader2.
+
+**Consequence**
+
+This can cause:
+
+- ClassCastException
+
+```java
+Object obj = class1.newInstance();
+class2.cast(obj); // Throws ClassCastException!
+```
+
+Because JVM thinks Hello from loader1 ≠ Hello from loader2.
+
+**Why this Matters**
+
+- Application Servers (Tomcat, JBoss, WebSphere, etc.)
+    - Each web application runs in its own ClassLoader.
+    - This prevents class conflicts between different apps using different versions of the same library.
+- Plugins / OSGi
+    - Allows loading multiple versions of the same library at runtime.
+- Hot Reloading
+    - You can unload and reload a new version of a class by discarding the old ClassLoader and creating a new one.
+
+**Parent Delegation Model Recap**
+
+- By default, a ClassLoader first asks its parent to load a class.
+- This ensures core classes (java.lang.String) are never overridden.
+- Custom loaders can break this delegation model (but it’s dangerous unless you know what you’re doing).
+
+**Summary**
+
+- A class is identified by (name + defining ClassLoader).
+- Same class name loaded by two different ClassLoaders = different classes in JVM.
+- Leads to isolation (good for modularity), but also ClassCastException pitfalls.
+
+#### Tomcat ClassLoader Hierarchy
+
+In Apache Tomcat, the ClassLoader hierarchy is designed to provide isolation between web applications while allowing shared access to common libraries. Here’s a simplified overview of the ClassLoader hierarchy in Tomcat:
+
+When Tomcat starts, it builds a tree of ClassLoaders on top of the JVM ones:
+
+1. **Bootstrap ClassLoader (JVM)**
+- Loads rt.jar / core modules (java.lang.*, java.util.*, etc.).
+- Part of every Java process.
+2. **System (Application) ClassLoader (JVM)**
+- Loads classes from the classpath ($JAVA_HOME/lib).
+- Example: If you run Tomcat with java -cp, these classes are here.
+3. **Tomcat-specific ClassLoaders**
+- **Common ClassLoader**
+    - Loads classes/jars in CATALINA_HOME/lib.
+    - Shared by Tomcat internals + all deployed webapps.
+    - Example: JDBC drivers, logging frameworks.
+- **Catalina ClassLoader**
+    - Loads Tomcat’s internal server classes (org.apache.catalina.*, etc.).
+    - Isolated so webapps cannot override Tomcat’s core.
+- **Shared ClassLoader**
+    - (Optional, depending on Tomcat version/config).
+    - Loads jars that should be shared across multiple apps but not part of Tomcat itself.
+- **WebApp ClassLoader (per deployed app!)**
+    - Loads classes from /WEB-INF/classes and /WEB-INF/lib/*.jar.
+    - Each webapp gets its own loader → isolation.
+    - Two apps can use different versions of the same library without conflicts.
+
+**Diagram**
+
+```
+Bootstrap ClassLoader
+  ↑
+System (App) ClassLoader
+  ↑
+Common ClassLoader   ← (CATALINA_HOME/lib)
+  ↑
+Catalina ClassLoader  ← (Tomcat internals)
+  ↑
+WebApp ClassLoader(s) ← (WEB-INF/classes, WEB-INF/lib)
+```
+
+**Why this matters**
+
+1. **Isolation**
+- App A can use commons-logging-1.1.jar
+- App B can use commons-logging-1.2.jar
+- No conflict because they’re loaded in different WebApp ClassLoaders.
+2. **Security**
+- A webapp cannot override Tomcat internals (org.apache.catalina.*) since those are loaded higher up (Catalina ClassLoader).
+3. **Hot Deployment**
+- When you redeploy a webapp, Tomcat discards the old WebApp ClassLoader and creates a new one.
+- This avoids memory leaks, but if references to old classes remain (e.g., static singletons, threads), you get PermGen/Metaspace leaks.
+
+**Real-World Example**
+
+Imagine you deploy two WARs:
+
+- App1.war → WEB-INF/lib/mysql-connector-5.1.jar
+- App2.war → WEB-INF/lib/mysql-connector-8.0.jar
+
+Even though both define com.mysql.jdbc.Driver, they’re loaded by different WebApp ClassLoaders, so Tomcat keeps them separate.
+
+If instead you put mysql-connector.jar in CATALINA_HOME/lib, both apps would share the same driver → useful for connection pooling.
+
+**Summary**
+
+- Tomcat builds a ClassLoader tree on top of JVM loaders.
+- Each webapp has its own WebApp ClassLoader → isolation.
+- Shared libs go in CATALINA_HOME/lib.
+- Prevents conflicts but can cause memory leaks if class references escape after undeploy.
+
+---
