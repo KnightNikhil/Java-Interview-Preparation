@@ -122,11 +122,8 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
 - **Interpreter:** Reads and executes bytecode line-by-line.
 - **JIT Compiler (Just-In-Time):** Converts bytecode to native machine code for performance optimization.
 
----
+### Garbage Collection
 
-### Object Allocation and Garbage Collection
-
-- **Object Creation:** When a new object is created, memory is allocated in the heap, and the reference is stored on the stack.
 - **Garbage Collection:** Java uses automatic garbage collection to free up memory occupied by objects that are no longer referenced. 
   - There are several GC algorithms (like G1, ZGC, Shenandoah), and the heap’s generational division optimizes collection by focusing on short-lived objects first—most objects die young and are collected quickly in the young generation. 
   - Objects that survive multiple collections are promoted to the old generation, where they are collected less frequently.
@@ -137,6 +134,10 @@ class Circle extends Shape { void draw() { System.out.println("Drawing circle");
 - **Parallel GC:** Multi-threaded, optimized for throughput.
 - **CMS (Concurrent Mark-Sweep):** Low-latency GC (deprecated).
 - **G1 GC (Garbage First):** Default collector; splits heap into regions, supports concurrent and parallel collection.
+
+#### Object Allocation
+- **Object Creation:** When a new object is created, memory is allocated in the heap, and the reference is stored on the stack.
+
 
 ### JVM Tuning Parameters
 
