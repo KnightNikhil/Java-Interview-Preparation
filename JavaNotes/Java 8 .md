@@ -164,33 +164,57 @@ CheckedFunction cf = () -> { throw new IOException("Error"); };
 
 ---
 
-###   Q4: Variable scope in lambda?
+###   Q4: Explain what is meant by **effectively final** in the context of lambdas and local variables.
+- Follow‑up: Give an example that fails to compile because the captured variable is not effectively final.
+- An **effectively final** local variable is a variable whose value never changes after it is assigned, even if it is not explicitly declared `final`; such variables are the only local variables you can capture in a lambda.
+- What “effectively final” means
+  - A local variable is effectively final if you assign it once and never reassign it (no `=` or `++/--` that change its value later in the method).
+  - The compiler treats it as if it were declared `final`; if you try to modify it after using it in a lambda, you get a compile-time error.
 
-**Answer:**
-Lambdas can access **effectively final** local variables.
+Example:
 
 ```java
 String message = "Hello";
-// message = "Changed"; // This causes compile error
-Runnable r = () -> System.out.println(message);
-```
+// message = "Changed"; // Uncommenting this breaks compilation
+
+Runnable r = () -> System.out.println(message); // OK: message is effectively final
+``` 
+
+**This restriction exists because lambdas capture a **copy** of the local variable’s value, not a mutable slot, so allowing mutation would be unsafe and confusing.**
 
 ---
 
 ###   Q5: Can lambda expressions be serialized?
 
 **Answer:**
-Only if the target functional interface is `Serializable`.  
-Avoid serialization of lambdas for portability and maintainability.
+- Only if the target functional interface is `Serializable`.  
+- Avoid serialization of lambdas for portability and maintainability.
 
 ---
 
 ###   Q6: How does lambda work internally?
 
-**Answer:**
-- Compiles using `invokedynamic`
-- Uses method handles and `LambdaMetafactory`
-- No inner class generated like anonymous class
+Internally, a lambda is compiled as a normal method plus an `invokedynamic` call that asks the JVM to create a functional-interface instance at runtime, usually without generating a separate class file. 
+
+1. Compilation step
+
+- The compiler turns the lambda body into a private or synthetic method on the enclosing class (or uses an existing method reference). 
+- At the call site, instead of `new Runnable() { ... }`, it emits an `invokedynamic` instruction with metadata describing the target functional interface, the lambda method, and captured variables. 
+
+2. Bootstrap and LambdaMetafactory
+
+- The `invokedynamic` is linked via a bootstrap method, typically `java.lang.invoke.LambdaMetafactory.metafactory`. 
+- `LambdaMetafactory` uses method handles to return a factory for the functional-interface implementation, binding any captured arguments as needed. 
+
+3. Object creation and optimization
+
+- On first execution, the JVM resolves the `invokedynamic`, creates a concrete implementation (often as a hidden class or similar), and returns an instance of the target functional interface. 
+- The JVM is free to cache that instance, avoid repeated allocations for stateless lambdas, and heavily inline the lambda body, which is why lambdas can be more **efficient** than anonymous classes. 
+
+4. Key differences from anonymous classes
+
+- No explicit synthetic inner class like `Outer$1.class` is generated; instead, the behavior is described and linked dynamically via `invokedynamic`. 
+- Because lambdas are “just” method handles plus metadata, they capture scope differently (`this` and effectively-final variables) and are more amenable to JIT optimizations. 
 
 ---
 
@@ -245,35 +269,40 @@ A **Functional Interface** in Java is an interface that contains exactly **one a
 
 ##   Built-in Functional Interfaces (java.util.function package)
 
-### 🔸 1. Predicate<T>
+### 1. Predicate<T>
 Used for **boolean-valued** expressions (like filtering).
 ```java
 Predicate<String> isLong = str -> str.length() > 5;
 System.out.println(isLong.test("Hello")); // false
 ```
+Incorrect because Predicate<T> onl 1 parameter allowed in abstract method test(T t)
+```java 
+Predicate<Integer, Integer> isOdd = (x,y) -> x%y==1;
+System.out.println(isOdd.test(3,4));
+```
 
-### 🔸 2. Function<T, R>
+### 2. Function<T, R>
 Takes an input `T`, returns output `R`.
 ```java
 Function<String, Integer> strLength = s -> s.length();
 System.out.println(strLength.apply("Hello")); // 5
 ```
 
-### 🔸 3. Consumer<T>
+### 3. Consumer<T>
 Takes input but **returns nothing**.
 ```java
 Consumer<String> printer = s -> System.out.println("Name: " + s);
 printer.accept("Nikhil");
 ```
 
-### 🔸 4. Supplier<T>
+### 4. Supplier<T>
 Takes **no input**, returns `T`.
 ```java
 Supplier<Double> randomGenerator = () -> Math.random();
 System.out.println(randomGenerator.get());
 ```
 
-### 🔸 5. UnaryOperator<T> & BinaryOperator<T>
+### 5. UnaryOperator<T> & BinaryOperator<T>
 ```java
 UnaryOperator<Integer> square = x -> x * x;
 System.out.println(square.apply(5)); // 25
@@ -282,7 +311,7 @@ BinaryOperator<Integer> add = (a, b) -> a + b;
 System.out.println(add.apply(10, 20)); // 30
 ```
 
-### 🔸 6. BiPredicate<T, U>, BiFunction<T, U, R>, BiConsumer<T, U>
+### 6. BiPredicate<T, U>, BiFunction<T, U, R>, BiConsumer<T, U>
 
 #### BiPredicate<T, U>
 ```java
@@ -557,6 +586,12 @@ Specialized streams to avoid boxing:
 int sum = IntStream.range(1, 5).sum(); // 1 + 2 + 3 + 4 = 10
 ```
 
+## 8. Stateful vs stateless
+**Stateless intermediate operations:**
+- map, filter, limit, skip — each element is processed independently or by simple positional rules; they do not need to “remember” all previous elements.
+
+**Stateful intermediate operations:**
+- sorted, distinct — they need to see multiple or all elements to decide the result (sorting requires the whole dataset; distinct must track seen elements).
 ---
 
 ## Interview Questions
@@ -631,7 +666,12 @@ System.out.println(lengthSupplier.get()); // 5
 List<String> words = List.of("car", "bus", "train");
 words.sort(String::compareToIgnoreCase); // Equivalent to (a, b) -> a.compareToIgnoreCase(b)
 ```
-
+This will throw exception because List.of("car", "bus", "train") returns an immutable list, and sort tries to modify it.
+```java
+List<String> words = new ArrayList<>(List.of("car", "bus", "train"));
+words.sort(String::compareToIgnoreCase);
+System.out.println(words);
+```
 ---
 
 ## 3. Constructor References
@@ -806,7 +846,44 @@ class C implements A, B {
 **A**: Yes. Implementing classes can override default methods.
 
 ### Q3: What happens if two interfaces have same default method?
-**A**: Compilation error unless the implementing class overrides it and resolves the conflict.
+**A**: When a class implements two interfaces that each provide the **same default method signature**, the compiler cannot decide which default to inherit, which is the diamond problem; Java forces the class to override the method and choose explicitly.
+```java
+interface A {
+    default void greet() {
+        System.out.println("Hello from A");
+    }
+}
+
+interface B {
+    default void greet() {
+        System.out.println("Hello from B");
+    }
+}
+
+class C implements A, B {
+    // Compilation error unless greet() is overridden
+}
+``` 
+
+Both `A` and `B` provide `default void greet()`, so `C` has two candidate implementations and must resolve the conflict. 
+
+- **How to resolve in the implementing class**
+
+You override the conflicting method in the class and, if desired, delegate to one specific interface using `InterfaceName.super.methodName()` syntax. 
+
+```java
+class C implements A, B {
+    @Override
+    public void greet() {
+        // choose one:
+        A.super.greet();   // or B.super.greet();
+        // or provide completely new behavior
+        // System.out.println("Hello from C");
+    }
+}
+``` 
+
+This explicit override removes ambiguity and clearly states which default implementation (if any) is used. 
 
 ### Q4: Can default methods override methods in `java.lang.Object`?
 **A**: No. Default methods cannot override `Object` methods like `equals`, `hashCode`, `toString`.
@@ -1191,6 +1268,14 @@ Use **Concurrent collections** or `Collectors.toList()`:
 ```java
 List<Integer> result = list.parallelStream().collect(Collectors.toList());
 ```
+- Using forEach(result::add) with a parallel stream is unsafe because multiple threads mutate the same non‑thread‑safe ArrayList concurrently, while Collectors.toList() avoids this by giving each thread its own list and then merging them
+- Under the hood a collector has three functions: supplier, accumulator, and combiner.
+  - **Supplier:** creates a new List (e.g., new ArrayList<>()) for each parallel task.
+  - **Accumulator:** adds elements into that task’s own list (list.add(element)).
+  - **Combiner:** merges two partial lists with left.addAll(right) and returns left.
+- In parallel:
+  - Each thread works with its own local list, so there are no concurrent writes to the same list.
+  - At the end, the framework combines all local lists into one final list in a controlled, single‑threaded merge step per combine operation.
 
 ---
 
@@ -1254,7 +1339,7 @@ Map<Integer, String> map = Stream.of("apple", "banana")
 // Output: {5=apple, 6=banana}
 ```
 
-🔸 For duplicate keys, you must provide a merge function:
+For duplicate keys, you must provide a merge function:
 ```java
 Map<Integer, String> map = Stream.of("apple", "apricot")
     .collect(Collectors.toMap(
@@ -1371,162 +1456,7 @@ Map<Integer, List<Character>> result = Stream.of("cat", "cow", "car")
 
 ⸻
 
-# CompletableFuture in Java
-
-`CompletableFuture` enables **asynchronous**, **non-blocking**, and **composable** programming. It overcomes the limitations of `Future`.
-
----
-
-## Why CompletableFuture?
-
-| Problem with `Future`                  | CompletableFuture Solution                     |
-|----------------------------------------|------------------------------------------------|
-| Can't manually complete a future       | Can explicitly `complete()` or `completeExceptionally()` |
-| No chaining of tasks                   | Supports `thenApply`, `thenCompose`, etc.      |
-| Blocking `get()` to retrieve result    | Allows non-blocking callbacks (`thenAccept`)   |
-| No exception handling mechanism        | Offers `exceptionally`, `handle`, `whenComplete` |
-| No combining multiple futures          | Supports `thenCombine`, `allOf`, `anyOf`       |
-| Limited thread management              | Can use custom `Executor`                      |
-
----
-
-## Creating CompletableFuture
-
-### Run async task without return:
-```java
-CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-    // background task
-});
-```
-
-### Run async task with return:
-```java
-CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
-    return "Hello, World!";
-});
-```
-
----
-
-## Chaining and Combining Futures
-
-### `thenApply()` – transform result
-```java
-CompletableFuture<String> future = CompletableFuture
-    .supplyAsync(() -> "Hello")
-    .thenApply(s -> s + " World");
-```
-
-### `thenAccept()` – consume result
-```java
-CompletableFuture
-    .supplyAsync(() -> 42)
-    .thenAccept(result -> System.out.println("Result: " + result));
-```
-
-### `thenCompose()` – flatten nested futures
-```java
-CompletableFuture<String> future = CompletableFuture
-    .supplyAsync(() -> "John")
-    .thenCompose(name -> CompletableFuture.supplyAsync(() -> "Hi " + name));
-```
-
-### `thenCombine()` – combine two independent futures
-```java
-CompletableFuture<String> f1 = CompletableFuture.supplyAsync(() -> "Hello");
-CompletableFuture<String> f2 = CompletableFuture.supplyAsync(() -> "World");
-
-CompletableFuture<String> result = f1.thenCombine(f2, (a, b) -> a + " " + b);
-```
-
----
-
-## Exception Handling
-
-### `exceptionally()` – fallback on failure
-```java
-CompletableFuture<String> future = CompletableFuture
-    .supplyAsync(() -> { throw new RuntimeException("Oops!"); })
-    .exceptionally(ex -> "Default Value");
-```
-
-### `handle()` – result + exception access
-```java
-CompletableFuture<String> handled = CompletableFuture
-    .supplyAsync(() -> { throw new RuntimeException("fail"); })
-    .handle((res, ex) -> ex == null ? res : "Recovered");
-```
-
-### `whenComplete()` – observe success/failure
-```java
-CompletableFuture<String> future = CompletableFuture
-    .supplyAsync(() -> "Done")
-    .whenComplete((result, ex) -> {
-        if (ex == null) System.out.println("Result: " + result);
-        else System.out.println("Error: " + ex.getMessage());
-    });
-```
-
----
-
-## Threading & Executor Customization
-
-### Use default ForkJoinPool (common pool):
-```java
-CompletableFuture.runAsync(() -> { /* task */ });
-```
-
-### Use custom `ExecutorService`:
-```java
-ExecutorService executor = Executors.newFixedThreadPool(2);
-CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-    System.out.println("Running in custom pool");
-}, executor);
-```
-
----
-
-## Combining Multiple Futures
-
-### `allOf()` – wait for all to complete
-```java
-CompletableFuture<Void> combined = CompletableFuture.allOf(future1, future2);
-```
-
-### `anyOf()` – proceed with first completed
-```java
-CompletableFuture<Object> first = CompletableFuture.anyOf(f1, f2, f3);
-```
-
----
-
-## Best Practices
-
-| Tip                                          | Why it matters                                     |
-|---------------------------------------------|----------------------------------------------------|
-| Always handle exceptions                    | Avoid app crashes from uncaught async errors       |
-| Use custom executor for CPU-bound tasks     | Avoid ForkJoinPool starvation                      |
-| Avoid blocking with `get()` in async chains | Prefer `thenXxx()` for non-blocking design         |
-| Use `thenCompose()` for dependent tasks     | Prevents nesting and increases readability         |
-
----
-
-## 🧠 Interview Follow-ups
-
-### Q: Difference between `thenApply()` and `thenCompose()`?
-- `thenApply()` wraps result in a `CompletableFuture<CompletableFuture<T>>`
-- `thenCompose()` flattens nested futures (used for dependent tasks)
-
-### Q: How to handle exceptions globally?
-- Use `handle()` or `exceptionally()` in the final stage of the pipeline
-
-### Q: How is `CompletableFuture` better than `FutureTask`?
-- More fluent API, non-blocking chaining, better error handling, async combining
-
-
-## Q. Difference between this keyword and super keyword in java and how does it differ wrt lambda function?
-- `this` refers to the current instance of the class, while `super` refers to the parent class. In lambda expressions, `this` refers to the enclosing instance where the lambda is defined, not the lambda itself. `super` cannot be used in lambdas as they do not have a superclass.
-- example - 
+----------------
 
 
 # Anonymous Inner Classes in Java
