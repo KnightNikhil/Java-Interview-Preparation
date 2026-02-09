@@ -1,5 +1,8 @@
 The 15 core DSA patterns from Grokking-style resources cover most interview problems, each with a template to recognize and apply quickly for optimal solutions. These build on arrays, trees, graphs, and DP, helping achieve O(n log n) or better complexity. Use them to classify LeetCode hards as mediums
 
+**1. Whenever talked about reverse : Think about stack**
+
+
 ## Sliding Window
 Maintains a window [left, right] for subarray/substring problems, adding/removing elements to track min/max/valid states. Optimizes O(n²) scans to O(n) by incremental updates.
 

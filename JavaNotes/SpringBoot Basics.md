@@ -113,6 +113,18 @@ Main() → SpringApplication → Context → Auto-config → Beans → Embedded 
 
 ### Application Lifecycle Steps
 
+Before any Spring annotation runs, this already happened:
+1.	JVM starts
+2.	Gradle/Maven dependencies are resolved
+3.	All dependency JARs are put on the classpath
+4.	Bytecode is loaded by the ClassLoader
+
+At this point:
+-	Spring
+-	Spring Boot
+-	All your starters (JPA, Web, Security, Kafka, etc.) are already available in memory
+
+
 1\. **Application Entry Point**
 - App starts with public static void main() → SpringApplication.run(App.class, args).
 - Creates and configures the SpringApplication instance.
@@ -179,6 +191,44 @@ Main() → SpringApplication → Context → Auto-config → Beans → Embedded 
 4\. Our controllers were registered by @ComponentScan.  
 5\. Actuator exposed /actuator/health for Kubernetes readiness checks.  
 This entire flow required almost no XML configuration.”
+
+
+**IMPORTANT:**
+**Q: What happens if I replace @Configuration with @Component?**
+- @Bean methods won’t be proxied → multiple instances possible.
+- @Configuration enforces singleton semantics for @Bean methods
+```java
+@Component
+public class AppConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+}
+```
+new instance everytime
+
+
+**Q. What is the use of @Configuration in Main Class?**
+- The purpose is, If I add any bean method in main class, @Configuration is needed which is already present. in @SpringBootApplication.
+- If your main class has no @Bean methods, you do NOT need @Configuration at all.
+- And yes — you can replace @SpringBootApplication with @ComponentScan + @EnableAutoConfiguration, and the app will still work. 
+
+**Q. @Configuration vs @Import**
+- @Configuration defines beans.
+- @Import brings these configuration (or beans) into the context. 
+
+
+**Q. Why do I explicity need to add @Import even though we have @EnableAutoConfiguration?**
+- Spring Boot does NOT scan your dependency JARs for configuration classes.
+- @EnableAutoConfiguration only imports classes that are explicitly registered as auto-configurations via metadata, not all @Configuration classes found on the classpath.
+- Internally, @EnableAutoConfiguration does roughly this: `@Import(AutoConfigurationImportSelector.class)`
+- Looks for:META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports (Boot 3.x)
+- All the classes present here will be auto imported.
+- If I want m class to be auto imported then instead of @Configuration I shall use @AutoConfiguration in my dependency and register it in metadata.
+
+
 
 ---
 
@@ -369,9 +419,9 @@ The @SpringBootApplication is a meta-annotation introduced in Spring Boot that c
 2\. When you run SpringApplication.run(...), Spring:
 - Creates an ApplicationContext.
 - Loads beans from the configuration (@Configuration).
-- Auto-configures beans (@EnableAutoConfiguration) depending on libraries in the classpath.
 - Scans and registers beans in your package (@ComponentScan).
-  3\. End result → A fully configured Spring Boot application with minimal manual setup.
+- Auto-configures beans (@EnableAutoConfiguration) depending on libraries in the classpath.
+3\. End result → A fully configured Spring Boot application with minimal manual setup.
 
 ---
 
@@ -410,9 +460,12 @@ ApplicationRunner in Spring Boot lets us run code right after the application st
 
 ## 14. What is CommandLineRunner in SpringBoot?
 
-- CommandLineRunner and ApplicationRunner in Spring Boot both let us run code after the application starts, but they differ slightly. CommandLineRunner uses a run method with a String array of arguments, while ApplicationRunner uses an ApplicationArguments object for more flexible argument handling.
-
+- CommandLineRunner and ApplicationRunner in Spring Boot both let us run code after the application starts, but they differ slightly. 
+- CommandLineRunner uses a run method with a String array of arguments, while ApplicationRunner uses an ApplicationArguments object for more flexible argument handling.
 - CommandLineRunner is a Spring Boot functional interface that allows you to run specific code after the Spring ApplicationContext is fully initialized, but before the application is ready to serve requests.
+
+- basically, we can use the VM args here, and execute commands before application starts but after ApplicationContext is initialized.
+- like caching, establishing db connection etc.
 
 **It is often used for:**
 -	Initializing data at startup
@@ -420,7 +473,24 @@ ApplicationRunner in Spring Boot lets us run code right after the application st
 -	Performing sanity checks
 -	Interacting with external systems (e.g., database migrations, cache warming, etc.)
 
-⸻
+**Q. If we already have ApplicationRunner, which is structured, what is the use of commandline runner?**
+- CommandLineRunner exists for simplicity and backward compatibility.
+- ApplicationRunner exists for correctness and structure.
+- CommandLineRunner came first and then ApplicationRunner, now removing it will break implementations
+- For simple uses where in many cases args are not even required, its better the use CommandLineRunner.
+
+- Use CommandLineRunner when:
+  -	You don’t care about arguments
+  -	You want the simplest hook
+  -	It’s a one-liner startup task
+  -	You’re writing demos / PoCs / internal tools
+
+- Use ApplicationRunner when:
+  -	Arguments matter
+  -	You need clean parsing
+  -	You want production-grade startup behavior
+  -	You expect future extension
+
 
 **Definition**
 ```java
@@ -431,7 +501,6 @@ public interface CommandLineRunner {
 ```
 It has a single abstract method, making it a functional interface (and therefore can be implemented using a lambda).
 
-⸻
 
 **When It Runs**
 
@@ -474,10 +543,6 @@ This message prints immediately after the application context loads, before hand
 
 Since it’s a functional interface, you can define it as a bean using a lambda expression:
 ```java
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 @Configuration
 public class StartupConfig {
 
@@ -649,8 +714,6 @@ public class CacheLoader implements CommandLineRunner {
 | Alternative	   | ApplicationRunner                                                     |
 | Common Uses	   |  Data initialization, preloading, configuration setup, startup checks |
 
-
-⸻
 
 ---
 

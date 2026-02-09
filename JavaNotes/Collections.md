@@ -52,6 +52,8 @@ Collection interface is at the root of the hierarchy. Collection interface provi
 | Null Values   | Yes	  | Single Null    | 	Yes (LinkedList Queue). No (Priority Queue).  | Single null key and many null values  |
 
 **Collections Framework Implementation Classes Summary**
+
+
 <img src="assets/Collection_interfaces.png" alt="Java Collections Overview"/>
 
 ## Q. What is the benefit of Generics in Collections Framework?
@@ -62,7 +64,10 @@ Generics allow us to provide the type of Object that a collection can contain, s
 
 **fail-fast Iterator**
 
-`Iterators` in java are used to iterate over the Collection objects.Fail-Fast iterators immediately throw `ConcurrentModificationException` if there is **structural modification** of the collection. Structural modification means adding, removing or updating any element from collection while a thread is iterating over that collection. Iterator on ArrayList, HashMap classes are some examples of fail-fast Iterator.
+- `Iterators` in java are used to iterate over the Collection objects.
+- **Fail-Fast iterators immediately throw `ConcurrentModificationException` if there is **structural modification** of the collection.** 
+- **Structural modification means adding, removing or updating any element from collection while a thread is iterating over that collection.** 
+- Iterator on ArrayList, HashMap classes are some examples of fail-fast Iterator.
 
 ```java
 import java.util.ArrayList;
@@ -100,7 +105,9 @@ Exception in thread "main" java.util.ConcurrentModificationException
 
 **fail-safe Iterator**
 
-Fail-Safe iterators don’t throw any exceptions if a collection is structurally modified while iterating over it. This is because, they operate on the clone of the collection, not on the original collection and that’s why they are called fail-safe iterators. Iterator on CopyOnWriteArrayList, ConcurrentHashMap classes are examples of fail-safe Iterator.
+- Fail-Safe iterators don’t throw any exceptions if a collection is structurally modified while iterating over it.
+- This is because, they operate on the clone of the collection, not on the original collection and that’s why they are called fail-safe iterators. 
+- Iterator on CopyOnWriteArrayList, ConcurrentHashMap classes are examples of fail-safe Iterator.
 
 ```java
 import java.util.Iterator;
@@ -587,29 +594,62 @@ INACTIVE   [project id : 200, project name : Employee Management System,
 | Key Type              | Heterogeneous elements allowed because it does not perform sorting on keys, use:  Map<Object, String> map = new HashMap<>(); | Heterogeneous elements allowed because it does not perform sorting on keys, use:  Map<Object, String> map = new IdentityHashMap<>(); |
 
 ## Q. Explain EnumMap?
-EnumMap is a specialized Map implementation designed specifically for use with enum types as keys. It is part of the Java Collections Framework and provides a highly efficient way to map enum constants to values.
+- EnumMap is a specialized Map implementation designed specifically for use with enum types as keys. 
+- It is part of the Java Collections Framework and provides a highly efficient way to map enum constants to values.
+
+```java
+enum Day {
+    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+}
+
+EnumMap<Day, String> schedule = new EnumMap<>(Day.class);
+
+schedule.put(Day.MONDAY, "Gym");
+schedule.put(Day.FRIDAY, "Movie");
+schedule.put(Day.SUNDAY, "Family");
+
+// Iteration order: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+for (var e : schedule.entrySet()) {
+    System.out.println(e.getKey() + " -> " + e.getValue());
+}
+
+```
+
 **Key Features of EnumMap:**
-- **Enum Keys**: EnumMap can only use enum types as keys. This ensures type safety and allows for efficient storage and retrieval of values associated with enum constants.
-- **Performance**: EnumMap is implemented as an array, which makes it very fast for lookups and updates. The performance is generally better than that of HashMap when using enum keys.
-- **Null Values**: EnumMap allows null values, but it does not allow null keys. Attempting to use a null key will result in a NullPointerException.
-- **Iteration Order**: EnumMap maintains the natural order of the enum constants, which is the order in which they are declared in the enum type.
-- **Memory Efficiency**: EnumMap is more memory-efficient than other Map implementations like HashMap because it uses a compact array representation.
-- **Type Safety**: Since EnumMap is parameterized with the enum type, it provides compile-time type safety, preventing the insertion of keys that are not of the specified enum type.
-- **Serialization**: EnumMap implements the Serializable interface, allowing it to be serialized and deserialized.
+- **Enum Keys**: 
+  - EnumMap can only use enum types as keys. 
+  - This ensures type safety and allows for efficient storage and retrieval of values associated with enum constants.
+- **Performance**: 
+  - **EnumMap is implemented as an array, which makes it very fast for lookups and updates.** 
+  - The performance is generally better than that of HashMap when using enum keys.
+- **Null Values**: 
+  - EnumMap allows null values, but it does not allow null keys. 
+  - Attempting to use a null key will result in a NullPointerException.
+- **Iteration Order**: 
+  - EnumMap maintains the natural order of the enum constants, which is the order in which they are declared in the enum type.
+- **Memory Efficiency**: 
+  - EnumMap is more memory-efficient than other Map implementations like HashMap because it uses a compact array representation.
+- **Type Safety**: 
+  - Since EnumMap is parameterized with the enum type, it provides compile-time type safety, preventing the insertion of keys that are not of the specified enum type.
+- **Serialization**: 
+  - EnumMap implements the Serializable interface, allowing it to be serialized and deserialized.
+
+
+-------------------
+
 
 # List Interface
 
 ## Q. What is difference between Array and ArrayList?
 
-ArrayList internally uses a dynamic array to store the elements. 
-<br>
-An ArrayList starts with an initial capacity (default is 10 if not specified). When elements are added and the number of elements (size) reaches the current capacity, internally, ArrayList increases its capacity by about 50% more than the current capacity when resizing. a temporary array is used to copy elements from old array to new array.
+- ArrayList internally uses a dynamic array to store the elements. 
+- An ArrayList starts with an initial capacity (default is 10 if not specified). When elements are added and the number of elements (size) reaches the current capacity, internally, ArrayList increases its capacity by about 50% more than the current capacity when resizing. a temporary array is used to copy elements from old array to new array.
 
-In Java Array and ArrayList give different performance for different operations.
+- In Java Array and ArrayList give different performance for different operations.
 
-add() or get(): Adding an element to or retrieving an element from an array or ArrayList object has similar performance. These are constant time operations.
+- add() or get(): Adding an element to or retrieving an element from an array or ArrayList object has similar performance. These are constant time operations.
 
-resize(): Automatic resize of ArrayList slows down the performance. ArrayList is internally backed by an Array. In resize() a temporary array is used to copy elements from old array to new array.
+- resize(): Automatic resize of ArrayList slows down the performance. ArrayList is internally backed by an Array. In resize() a temporary array is used to copy elements from old array to new array.
 
 | Feature              | Array                                                                 | ArrayList                                    |
 |----------------------|-----------------------------------------------------------------------|----------------------------------------------|
@@ -657,6 +697,8 @@ Output
 ArrayList with duplicate elements: [1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 6, 7, 8]
 ArrayList without duplicate elements: [1, 2, 3, 4, 5, 6, 7, 8]
 ```
+
+
 ## Q. What are the differences between ArrayList and Vector?
 
 | Feature          | ArrayList	                                                                                                | Vector                                                                                                                                                                                                    |
@@ -670,11 +712,6 @@ ArrayList without duplicate elements: [1, 2, 3, 4, 5, 6, 7, 8]
 **Example:**
 
 ```java
-/**
-* Java Program to illustrate use of ArrayList 
-* and Vector in Java 
-*
-**/
 import java.io.*; 
 import java.util.*; 
   
@@ -721,6 +758,7 @@ Four
 Five
 Six
 ```
+Note: `List<Integer> n = List.of(1,46,7,8,0)` is immutable list now, can not reorder, can filter, map because those operations do not mutate the list itself.
 
 ## Q. Can you explain stack's implementation and characteristics in detail?
 A stack is a linear data structure that follows the Last In First Out (LIFO) principle. This means that the last element added to the stack will be the first one to be removed. You can think of a stack like a collection of plates; you add and remove plates from the top of the stack.

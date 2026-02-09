@@ -4902,3 +4902,164 @@ If you want next:
 Just say the word.
 
 ```
+
+
+
+
+
+# CompletableFuture in Java
+
+`CompletableFuture` enables **asynchronous**, **non-blocking**, and **composable** programming. It overcomes the limitations of `Future`.
+
+---
+
+## Why CompletableFuture?
+
+| Problem with `Future`                  | CompletableFuture Solution                     |
+|----------------------------------------|------------------------------------------------|
+| Can't manually complete a future       | Can explicitly `complete()` or `completeExceptionally()` |
+| No chaining of tasks                   | Supports `thenApply`, `thenCompose`, etc.      |
+| Blocking `get()` to retrieve result    | Allows non-blocking callbacks (`thenAccept`)   |
+| No exception handling mechanism        | Offers `exceptionally`, `handle`, `whenComplete` |
+| No combining multiple futures          | Supports `thenCombine`, `allOf`, `anyOf`       |
+| Limited thread management              | Can use custom `Executor`                      |
+
+---
+
+## Creating CompletableFuture
+
+### Run async task without return:
+```java
+CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+    // background task
+});
+```
+
+### Run async task with return:
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    return "Hello, World!";
+});
+```
+
+---
+
+## Chaining and Combining Futures
+
+### `thenApply()` – transform result
+```java
+CompletableFuture<String> future = CompletableFuture
+    .supplyAsync(() -> "Hello")
+    .thenApply(s -> s + " World");
+```
+
+### `thenAccept()` – consume result
+```java
+CompletableFuture
+    .supplyAsync(() -> 42)
+    .thenAccept(result -> System.out.println("Result: " + result));
+```
+
+### `thenCompose()` – flatten nested futures
+```java
+CompletableFuture<String> future = CompletableFuture
+    .supplyAsync(() -> "John")
+    .thenCompose(name -> CompletableFuture.supplyAsync(() -> "Hi " + name));
+```
+
+### `thenCombine()` – combine two independent futures
+```java
+CompletableFuture<String> f1 = CompletableFuture.supplyAsync(() -> "Hello");
+CompletableFuture<String> f2 = CompletableFuture.supplyAsync(() -> "World");
+
+CompletableFuture<String> result = f1.thenCombine(f2, (a, b) -> a + " " + b);
+```
+
+---
+
+## Exception Handling
+
+### `exceptionally()` – fallback on failure
+```java
+CompletableFuture<String> future = CompletableFuture
+    .supplyAsync(() -> { throw new RuntimeException("Oops!"); })
+    .exceptionally(ex -> "Default Value");
+```
+
+### `handle()` – result + exception access
+```java
+CompletableFuture<String> handled = CompletableFuture
+    .supplyAsync(() -> { throw new RuntimeException("fail"); })
+    .handle((res, ex) -> ex == null ? res : "Recovered");
+```
+
+### `whenComplete()` – observe success/failure
+```java
+CompletableFuture<String> future = CompletableFuture
+    .supplyAsync(() -> "Done")
+    .whenComplete((result, ex) -> {
+        if (ex == null) System.out.println("Result: " + result);
+        else System.out.println("Error: " + ex.getMessage());
+    });
+```
+
+---
+
+## Threading & Executor Customization
+
+### Use default ForkJoinPool (common pool):
+```java
+CompletableFuture.runAsync(() -> { /* task */ });
+```
+
+### Use custom `ExecutorService`:
+```java
+ExecutorService executor = Executors.newFixedThreadPool(2);
+CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+    System.out.println("Running in custom pool");
+}, executor);
+```
+
+---
+
+## Combining Multiple Futures
+
+### `allOf()` – wait for all to complete
+```java
+CompletableFuture<Void> combined = CompletableFuture.allOf(future1, future2);
+```
+
+### `anyOf()` – proceed with first completed
+```java
+CompletableFuture<Object> first = CompletableFuture.anyOf(f1, f2, f3);
+```
+
+---
+
+## Best Practices
+
+| Tip                                          | Why it matters                                     |
+|---------------------------------------------|----------------------------------------------------|
+| Always handle exceptions                    | Avoid app crashes from uncaught async errors       |
+| Use custom executor for CPU-bound tasks     | Avoid ForkJoinPool starvation                      |
+| Avoid blocking with `get()` in async chains | Prefer `thenXxx()` for non-blocking design         |
+| Use `thenCompose()` for dependent tasks     | Prevents nesting and increases readability         |
+
+---
+
+## 🧠 Interview Follow-ups
+
+### Q: Difference between `thenApply()` and `thenCompose()`?
+- `thenApply()` wraps result in a `CompletableFuture<CompletableFuture<T>>`
+- `thenCompose()` flattens nested futures (used for dependent tasks)
+
+### Q: How to handle exceptions globally?
+- Use `handle()` or `exceptionally()` in the final stage of the pipeline
+
+### Q: How is `CompletableFuture` better than `FutureTask`?
+- More fluent API, non-blocking chaining, better error handling, async combining
+
+
+## Q. Difference between this keyword and super keyword in java and how does it differ wrt lambda function?
+- `this` refers to the current instance of the class, while `super` refers to the parent class. In lambda expressions, `this` refers to the enclosing instance where the lambda is defined, not the lambda itself. `super` cannot be used in lambdas as they do not have a superclass.
+- example - 
