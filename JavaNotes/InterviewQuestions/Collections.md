@@ -33,8 +33,9 @@ list.add("Nikhil");
 // list.add(42);                  // compile‑time error
 ```
 
-7. When would you still need `instanceof` with collections even with Generics?
-- You have a List<Object> or List<Number> that legitimately holds different subtypes (e.g., Integer, Double, String for error markers), so inside iteration you distinguish with instanceof
+7. When would you still need `instanceof` with collections even with Generics? 
+- You have a List of `Object` and want to process only the `String` elements.
+
 
 
 ***
