@@ -160,3 +160,7 @@
 100. Explain function composition and currying conceptually and how you might approximate them in Java using lambdas.
      - ??
 
+101. Static method in child class as well?
+    - No error
+    - compile time
+    - ans will be based on reference type, not object type
