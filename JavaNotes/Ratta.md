@@ -41,4 +41,102 @@ Bean instantiation phase
 Application ready
 ```
 
-- Using @Component instead of @Configuration wih @Bean, this will result in a new instance everytime, bcoz new ObjectMapper(), for singleton, @Configuration 
+- Using @Component instead of @Configuration wih @Bean, this will result in a new instance everytime, bcoz new ObjectMapper(), for singleton, @Configuration
+
+---
+
+## Serialization & Deserialization
+
+## Transient
+The transient keyword is used to prevent sensitive or temporary instance variables from being serialized. When a field is marked as transient, its value is not saved to the serialization stream. During deserialization, the transient field is set to its default value (null, 0, false depending on type) rather than its original value.
+
+### Static Fields
+
+- Static fields are class variables, shared across all instances and belonging to the class itself, not individual objects.
+- Because serialization captures the state of an object, and **static variables are not part of individual object state, they are never serialized**.
+
+- Objects referenced by a serializable class must also be serializable; otherwise, NotSerializableException is thrown.
+
+
+---
+
+## Reflection API
+
+### Accessing Metadata
+
+```java
+Class<?> clazz = Class.forName("Employee");
+Method method = clazz.getDeclaredMethod("getName");
+method.setAccessible(true);
+Object result = method.invoke(emp);
+```
+
+## Enum
+
+### Strategy Pattern
+
+- Enums encapsulate behaviors without if-else
+
+### ENUM and interface implementation
+
+In Java an enum can implement interfaces.
+
+#### Why is it possible?
+
+- An enum in Java is just a special class that extends java.lang.Enum.
+- Since classes can implement interfaces, so can enums.
+- But enums cannot extend another class (because they already extend Enum).
+
+```java
+// Marker interface
+interface CategoryMarker {}
+
+// Two enums implementing it
+enum Fruit implements CategoryMarker {
+    APPLE, ORANGE, BANANA
+}
+
+enum Animal implements CategoryMarker {
+    DOG, CAT, LION
+}
+
+class CategoryPrinter {
+    public static void printCategory(CategoryMarker marker) {
+        System.out.println("Category: " + marker);
+    }
+}
+
+public class TestEnumMarker {
+    public static void main(String[] args) {
+        CategoryPrinter.printCategory(Fruit.APPLE);  // ✅ allowed
+        CategoryPrinter.printCategory(Animal.DOG);   // ✅ allowed
+        // CategoryPrinter.printCategory("Hello");   // ❌ compile error
+    }
+}
+```
+
+### StringBuilder vs StringBuffer vs `+`
+
+- `StringBuilder`: Fast, not thread-safe.
+- `StringBuffer`: Thread-safe but slower.
+- `+`: Concatenation (converted to StringBuilder internally in most cases).
+
+
+---
+
+### Compile-time vs Runtime Polymorphism
+
+- **Compile-time**: Method overloading
+- **Runtime**: Method overriding via inheritance
+
+---
+
+3. **How would you implement a cache using EnumMap?**
+- If keys are enums:
+  ```java
+  enum Status { ACTIVE, INACTIVE }
+  EnumMap<Status, String> cache = new EnumMap<>(Status.class);
+  ```
+  
+----
+

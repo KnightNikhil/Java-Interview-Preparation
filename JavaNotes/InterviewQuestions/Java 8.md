@@ -25,7 +25,7 @@
     - Follow‑up: When is an explicit `return` statement required inside a lambda body?
 
 
-6. What are the key **benefits** of lambda expressions compared to anonymous inner classes?
+`6. What are the key **benefits** of lambda expressions compared to anonymous inner classes?`
 - Follow‑up: Explain how `invokedynamic` helps lambda implementation at the JVM level conceptually.
 - Internally, a lambda is compiled as a normal method plus an `invokedynamic` call that asks the JVM to create a functional-interface instance at runtime, usually without generating a separate class file. 
 - No explicit synthetic inner class like `Outer$1.class` is generated; instead, the behavior is described and linked dynamically via `invokedynamic`. 
@@ -36,7 +36,7 @@
     - Follow‑up: How would you pass a method reference instead of an explicit lambda in the same example?
 
 
-8. Demonstrate using `removeIf` with a lambda `Predicate<Integer>` to remove even numbers from a list.
+`8. Demonstrate using `removeIf` with a lambda `Predicate<Integer>` to remove even numbers from a list.`
 - Follow‑up: What happens if the predicate itself throws a checked exception?
 - If a `Predicate` in your lambda throws a checked exception, the code will not compile unless that exception is declared in the functional interface’s abstract method signature.
 - Standard `Predicate<T>`’s `test(T t)` does not declare any checked exceptions, so you cannot write `n -> { throw new IOException(); }` directly with it; the compiler will force you to either wrap the checked exception in an unchecked one or handle it inside the lambda with try–catch. 
@@ -44,10 +44,10 @@
 
 
 9. Show how to use a lambda to provide a `Comparator<String>` for sorting a list.
-- Follow‑up: How would you change the sorting to be case‑insensitive using a lambda?
+- `Follow‑up: How would you change the sorting to be case‑insensitive using a lambda?` - words.sort((s1, s2) -> s1.compareToIgnoreCase(s2));
 
 
-10. How do you iterate a `Map<String, Integer>` using `forEach` and a lambda?
+`10. How do you iterate a `Map<String, Integer>` using `forEach` and a lambda?`
 - Follow‑up: Could you replace your lambda with a BiConsumer method reference in that example?
 - Yes. In that `Map.forEach` example you can replace the lambda with a `BiConsumer` method reference.
 - For example, instead of:
@@ -89,7 +89,7 @@ static void printEntry(String key, Integer value) {
 - Custom functional interface wholse abstract method throws exception -  void accept(T t) throws IOException;
     
 
-14. Explain what is meant by **effectively final** in the context of lambdas and local variables.
+`14. Explain what is meant by **effectively final** in the context of lambdas and local variables.`
 - Follow‑up: Give an example that fails to compile because the captured variable is not effectively final.
 - An **effectively final** local variable is a variable whose value never changes after it is assigned, even if it is not explicitly declared `final`; such variables are the only local variables you can capture in a lambda. 
 - **This restriction exists because lambdas capture a **copy** of the local variable’s value, not a mutable slot, so allowing mutation would be unsafe and confusing.**

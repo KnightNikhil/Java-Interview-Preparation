@@ -432,6 +432,35 @@ The ConcurrentModificationException is typically thrown for non-thread-safe coll
 
 ## Q. Internal working for HashMap vs LinkedHashMAp?
 
+Internally, a HashMap is implemented as an array of nodes, where each node stores a key-value pair.
+
+```java
+class Node<K, V> {
+  int hash;
+  K key;
+  V value;
+  Node<K, V> next;
+}
+```
+
+**Hashing and Index Calculation**
+- When a key-value pair is inserted, the hash code of the key is calculated using the hashCode() method, and then an index is derived to find the bucket (array position).
+Formula:
+`index = hashCode(key)  & (n - 1)`
+- Here, n is the number of buckets (initially 16 by default). The bitwise AND operation ensures even distribution of entries across buckets.
+
+**Collision Handling in HashMap**
+- A collision occurs when two different keys produce the same index in the HashMap.
+- To handle this:
+  -  Before Java 8: Collisions are managed using a linked list — new nodes are added at the same index, linked via the next reference.
+  -  Since Java 8: If a bucket contains more than 8 nodes, the linked list is converted into a balanced tree (TreeNode) for faster lookup (O(log n) instead of O(n)).
+
+`get() operation`
+- calculate hashcode of the key and find the bucket index using `index = hashCode(key)  & (n - 1)` formula, arr[index] will give the head of the linked list (or tree) at that bucket. 
+- Then, it traverses the linked list (or tree) to find the node with the matching key and returns its value.
+
+
+
 **HashMap**
 ```
 +----------------------+
@@ -461,6 +490,17 @@ Hash buckets (same as HashMap):
 Doubly linked list of entries preserving order:
 null <- Node(key1) <-> Node(key3) <-> Node(key5) -> null
 ```
+
+- Internally LinkedHashMap class uses a Doubly Linked list(hold on there is a catch 🤔). The below static inner class Entry is extending HashMap.Node class and has two extra pointers (before and after) along with all attributes of Nodeclass from HashMap class (attributes: hash, key, value, next). This entry is nothing but a node in a doubly-linked list and stores the key-value pairs with its before and after pointers.
+- 
+
+- Doubly-Linked List Logic: This is where LinkedHashMap differs. The newly inserted node is also linked into the global doubly-linked list that tracks insertion order:
+1. The after pointer of the previously last node (tail) is updated to point to the new node.
+2. The before pointer of the new node is updated to point to the previous last node.
+3. The tail reference is updated to point to the new node, as it is now the last inserted element.
+4. If it is the very first element, both head and tail point to it.
+
+-The LinkedHashMap also has head and tail references that point to the first (eldest) and last (youngest) nodes in this doubly-linked list, respectively.
 
 ## Q. Difference between containsKey(), keySet() and values() in HashMap.
 
@@ -806,9 +846,14 @@ Java HashSet class is used to create a collection that uses a hash table for sto
 * The initial default capacity of HashSet is 16, and the load factor is 0.75.
 
 ## Q. How HashSet works internally to maintain uniqueness of elements?
+- When we create a HashSet, it internally creates a HashMap and if we insert an element into this HashSet using add() method, it actually call put() method on internally created HashMap
+- In a HashSet, the key is the actual element value you add to the set.
+- Unlike a HashMap, which explicitly uses key-value pairs, a HashSet is designed to store only unique elements. Internally, the HashSet uses a HashMap for storage, but the key is not an independent piece of data; it is the element itself.
+- Here's how it works internally (primarily in Java, where HashSet is a common data structure):
+  - When you call the add(E e) method, the element e is used as the key in the internal HashMap.
+  - The value associated with this key in the internal HashMap is a constant, static dummy object (often named PRESENT). This dummy value is the same for all entries in the HashSet and is never exposed to the user.
 
-When we create a HashSet, it internally creates a HashMap and if we insert an element into this HashSet using add() method, it actually call put() method on internally created HashMap object with element you have specified as it’s key and constant Object called **PRESENT** as it’s value. So we can say that a Set achieves uniqueness internally through HashMap.
-When we try to add an element, HashSet first checks the hashcode of the element using hashCode() method. If there is no other element in the HashSet with the same hashcode, then the new element is added successfully. If there is already an element with the same hashcode, then it uses equals() method to check whether the two elements are actually equal. If they are equal, then the new element is not added (to maintain uniqueness). If they are not equal, then the new element is added successfully.
+- When we try to add an element, HashSet first checks the hashcode of the element using hashCode() method. If there is no other element in the HashSet with the same hashcode, then the new element is added successfully. If there is already an element with the same hashcode, then it uses equals() method to check whether the two elements are actually equal. If they are equal, then the new element is not added (to maintain uniqueness). If they are not equal, then the new element is added successfully.
 
 ## Q. What happens if two elements have same hashcode but are not equal?
 In this case, both elements will be stored in the same bucket (because they have the same hashcode), but they will be stored as separate entries in that bucket. This is known as a hash collision. The HashSet will use a linked list or a balanced tree (in case of many collisions) to store multiple elements in the same bucket. 

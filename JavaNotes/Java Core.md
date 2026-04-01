@@ -466,8 +466,8 @@ Sorting by Age
     2.	equals() resolves collision
     3.	HashMap assumes key never changes
   - What happens if the hashCode() changed?
-    1. Entry is in wrong bucket
-    2. map.get(key) → null
+    1. If you use a mutable object as a key in a HashMap and change it after it has been inserted, the bucket location will not change automatically, and the data will likely become unreachable.
+    2. since - map.get(key) → null
   - Immutable key = safe forever
     1. Make key final `private final String userId;`
     2. Since, equals + hashCode based on userId
@@ -1456,7 +1456,7 @@ Advanced:
 1. Subclass constructors can break guarantees (even if everything is final)
 
 Base class (looks immutable & safe)
-
+```java
 class Money {
 private final int amount;
 
@@ -1468,7 +1468,7 @@ private final int amount;
         return amount;
     }
 }
-
+```
 Looks safe:
 -	final field
 -	final method
@@ -1477,13 +1477,15 @@ Looks safe:
 ⸻
 
 Subclass introduces dangerous behavior
-
+```java
 class EvilMoney extends Money {
-public EvilMoney(int amount) {
-super(amount);
-GlobalRegistry.register(this);
+    public EvilMoney(int amount) {
+        super(amount);
+        GlobalRegistry.register(this);
+    }
 }
-}
+```
+
 
 
 ⸻
@@ -1594,8 +1596,9 @@ Now:
 ⸻
 
 Real production bug example
-
+```java
 static final Map<User, Session> cache = new HashMap<>();
+```
 
 Mutable subclass mutates internal state → equality assumptions break → cache corruption.
 
@@ -1610,7 +1613,7 @@ No subclass → no hidden mutable state → immutability guarantee holds globall
 3. Equality & hashCode contracts can silently break
 
 Base class defines equality
-
+```java
 class Point {
 private final int x;
 private final int y;
@@ -1627,12 +1630,12 @@ private final int y;
         return Objects.hash(x, y);
     }
 }
-
+```
 
 ⸻
 
 Subclass adds new dimension
-
+```java
 class ColoredPoint extends Point {
 private final String color;
 
@@ -1641,20 +1644,20 @@ private final String color;
         this.color = color;
     }
 }
-
+```
 
 ⸻
 
 What exactly breaks?
 
 Symmetry violation
-
+```java
 Point p = new Point(1, 2);
 ColoredPoint cp = new ColoredPoint(1, 2, "RED");
 
 p.equals(cp)  // true
 cp.equals(p)  // false (color not compared)
-
+```
 This violates:
 -	equals symmetry rule
 -	hashCode consistency
@@ -1677,7 +1680,7 @@ No subclass → equality logic remains complete → contracts preserved.
 4. Subclasses can violate thread-safety assumptions
 
 Base class used as thread-safe value
-
+```java
 class Config {
 private final String url;
 
@@ -1689,13 +1692,13 @@ private final String url;
         return url;
     }
 }
-
+```
 Shared across threads safely.
 
 ⸻
 
 Subclass introduces race condition
-
+```java
 class MutableConfig extends Config {
 private String temp;
 
@@ -1703,7 +1706,7 @@ private String temp;
         temp = t;
     }
 }
-
+```
 Now:
 -	Reads + writes
 -	No synchronization
@@ -1722,6 +1725,7 @@ Breakage
 
 Base security-sensitive class
 
+```java
 class AuthToken {
 private final String token;
 
@@ -1729,7 +1733,7 @@ private final String token;
         return token != null && token.length() > 10;
     }
 }
-
+```
 
 ⸻
 
@@ -1764,9 +1768,9 @@ You need all three to fully lock the design.
 ⸻
 
 7. Why Java Records solve this cleanly
-
+```java
 public record Money(int amount) {}
-
+```
 Records are:
 -	Final
 -	Fields final

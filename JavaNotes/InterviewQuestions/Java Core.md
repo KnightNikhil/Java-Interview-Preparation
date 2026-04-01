@@ -13,11 +13,70 @@
    - Saving account -  extends account and implements both capabilities
    - investment account - extends account and implements deposit capabilities
    - Note: In Java an interface cannot extend a class, it can only extend other interfaces.
+
+- In modern Java (8+), I choose an abstract class over an interface when I need to model shared state and enforce common behavior across implementations.”
+- Interfaces are ideal for defining capabilities or contracts (like Withdrawable or Depositable), especially when multiple inheritance is needed.
+
+  - However, in the case of an Account:
+  1.	There is shared state : accountNumber, accountType, etc.
+  -    Interfaces cannot hold instance state
+  2.	There is a need for controlled initialization
+  -	Abstract classes can have constructors
+  -	Interfaces cannot
+  3.	There is common behavior tied to that state
+  -	e.g., validation, logging, formatting
+  -	Abstract class can provide this cleanly
+  4.	We want to avoid duplication
+  -	Without an abstract class, every implementation must redefine the same fields and logic
+
 7. What is **inheritance** and when can it become harmful in a large codebase? 
 8. Why is composition often preferred over inheritance? Give a concrete example. 
-   - ??
+   - Inheritance creates a tight coupling between parent and child classes, making it harder to change one without affecting the other. It can lead to fragile code if the hierarchy becomes too deep or if subclasses need to override a lot of behavior.
+   - Composition allows you to build complex functionality by combining simpler objects, promoting loose coupling and better maintainability. 
+   - For example, instead of having a `Car` class inherit from a `Vehicle` class, you could have a `Car` class that contains a `Vehicle` object and delegates relevant methods to it. 
+   - This way, you can change the `Vehicle` implementation without affecting the `Car` class, and you can also reuse the `Vehicle` class in other contexts (like `Truck` or `Motorcycle`) without being forced into an inheritance hierarchy.
+   - Example:
+   ```java
+     class Vehicle {
+         void start() {
+             System.out.println("Vehicle starts");
+         }
+     }
+     class Car {
+         private Vehicle vehicle = new Vehicle();
+         void start() {
+             vehicle.start(); // Delegation
+             System.out.println("Car is ready to go");
+         }
+     }
+     ```
+
 9. Explain **polymorphism** with an example of overriding in Java. 
 10. How does dynamic dispatch work at runtime for overridden methods? 
+    - Example:
+    ```java
+    class Animal {
+        void speak() {
+            System.out.println("Animal speaks");
+        }
+    }
+      class Dog extends Animal {
+           @Override
+           void speak() {
+             System.out.println("Dog barks");
+           }
+      }
+         public class Main {
+             public static void main(String[] args) {
+                 Animal myAnimal = new Dog();
+                 myAnimal.speak(); // Output: "Dog barks"
+             }
+         }
+      ```
+    - In this example, even though `myAnimal` is of type `Animal`, the overridden `speak()` method in `Dog` is called at runtime due to dynamic dispatch.
+    - At compile time, it only checks if the `speak()` method exists in the `Animal` class, which it does. But at runtime, it determines that the actual object is a `Dog` and calls the `Dog`'s implementation of `speak()`.
+
+
 11. What are the key methods defined in `Object` class? 
 12. Why is `finalize()` deprecated and what would you use instead? 
 13. How does `clone()` work and what are the pitfalls of using it? 

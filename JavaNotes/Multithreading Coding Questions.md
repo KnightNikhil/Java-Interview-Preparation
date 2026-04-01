@@ -846,3 +846,277 @@ public class Singleton {
 28.	Demo priority inversion and how to solve it
 29.	Profile and debug a multithreaded Java application
 30.	Implement Multithreaded Map-Reduce using ExecutorService
+
+----
+
+
+## Executor Service
+
+1. Custom ThreadPoolExecutor
+```java
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+        2, 4,
+        10, TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(2),
+        Executors.defaultThreadFactory(),
+        new ThreadPoolExecutor.AbortPolicy()
+);
+
+for (int i = 1; i <= 10; i++) {
+    int taskId = i;
+
+    executor.execute(() -> {
+        System.out.println("Task " + taskId + " running");
+        try { Thread.sleep(3000); } catch (Exception e) {}
+    });
+}
+```
+
+2. Handle Rejected Tasks (Custom Handler)
+```java
+RejectedExecutionHandler handler = (r, executor) -> {
+    System.out.println("Task Rejected: " + r.toString());
+};
+
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+        1, 1,
+        0L, TimeUnit.MILLISECONDS,
+        new ArrayBlockingQueue<>(1),
+        handler
+);
+
+for (int i = 1; i <= 5; i++) {
+    int taskId = i;
+    executor.execute(() -> System.out.println("Task " + taskId));
+}
+```
+
+3. invokeAll() — batch execution
+```java
+ExecutorService executor = Executors.newFixedThreadPool(3);
+
+List<Callable<Integer>> tasks = List.of(
+        () -> { Thread.sleep(1000); return 1; },
+        () -> { Thread.sleep(2000); return 2; },
+        () -> { Thread.sleep(3000); return 3; }
+);
+
+List<Future<Integer>> results = executor.invokeAll(tasks);
+
+for (Future<Integer> f : results) {
+    System.out.println(f.get());
+}
+
+executor.shutdown();
+```
+
+4. invokeAny() — get first completed result
+```java
+ExecutorService executor = Executors.newFixedThreadPool(3);
+
+List<Callable<Integer>> tasks = List.of(
+        () -> { Thread.sleep(3000); return 1; },
+        () -> { Thread.sleep(1000); return 2; },
+        () -> { Thread.sleep(2000); return 3; }
+);
+
+int result = executor.invokeAny(tasks);
+
+System.out.println("Fastest result: " + result);
+
+executor.shutdown();
+```
+
+5. Graceful Shutdown vs shutdownNow
+```java
+ExecutorService executor = Executors.newFixedThreadPool(2);
+
+executor.submit(() -> {
+    try {
+        Thread.sleep(5000);
+    } catch (InterruptedException e) {
+        System.out.println("Task interrupted!");
+    }
+});
+
+executor.shutdownNow();
+```
+
+6. CompletableFuture — Basic async
+```java
+CompletableFuture<Void> future =
+        CompletableFuture.runAsync(() -> {
+            System.out.println("Async task running");
+        });
+
+future.join();
+```
+
+7. CompletableFuture — with result
+```java
+CompletableFuture<Integer> future =
+        CompletableFuture.supplyAsync(() -> {
+            try { Thread.sleep(1000); } catch (Exception e) {}
+            return 42;
+        }); 
+```
+
+System.out.println("Result: " + future.get());
+
+8. Chaining
+```java
+CompletableFuture<Integer> future =
+        CompletableFuture.supplyAsync(() -> 10)
+                .thenApply(x -> x * 2)
+                .thenApply(x -> x + 5);
+
+System.out.println(future.join()); // 25
+```
+
+9. Exception Handling in CompletableFuture
+```java
+CompletableFuture<Integer> future =
+        CompletableFuture.supplyAsync(() -> {
+            if (true) throw new RuntimeException("Error");
+            return 10;
+        }).exceptionally(ex -> {
+            System.out.println("Handled: " + ex.getMessage());
+            return 0;
+        });
+
+System.out.println(future.join());
+```
+
+10.  allOf (wait for all tasks)
+```java
+CompletableFuture<Void> all =
+        CompletableFuture.allOf(
+                CompletableFuture.runAsync(() -> System.out.println("Task 1")),
+                CompletableFuture.runAsync(() -> System.out.println("Task 2"))
+        );
+
+all.join();
+System.out.println("All tasks done");
+```
+
+11. anyOf (wait for first task)
+```java
+CompletableFuture<Object> any =
+        CompletableFuture.anyOf(
+                CompletableFuture.supplyAsync(() -> {
+                    sleep(2000);
+                    return "A";
+                }),
+                CompletableFuture.supplyAsync(() -> {
+                    sleep(1000);
+                    return "B";
+                })
+        );
+
+System.out.println(any.join()); // B
+```
+
+12. Custom Executor with CompletableFuture
+```java
+ExecutorService executor = Executors.newFixedThreadPool(2);
+
+CompletableFuture<Integer> future =
+        CompletableFuture.supplyAsync(() -> {
+            return 50;
+        }, executor);
+
+System.out.println(future.join());
+
+executor.shutdown();
+```
+
+13. Parallel API calls with CompletableFuture
+```java
+CompletableFuture<String> api1 = CompletableFuture.supplyAsync(() -> {
+    sleep(1000);
+    return "Result from API 1";
+});
+CompletableFuture<String> api2 = CompletableFuture.supplyAsync(() -> {
+    sleep(1500);
+    return "Result from API 2";
+});
+
+CompletableFuture<Void> combined = CompletableFuture.allOf(api1, api2);
+combined.join();
+System.out.println(api1.join());
+System.out.println(api2.join());
+``` 
+
+14. Combining results from multiple tasks
+```java
+CompletableFuture<Integer> future1 = CompletableFuture.supplyAsync(() -> 10);
+CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> 20);
+CompletableFuture<Integer> combined = future1.thenCombine(future2, Integer::sum);
+System.out.println(combined.join()); // 30
+```
+
+15. Timeout Handling
+```java
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+    sleep(3000);
+    return "Done";
+}).orTimeout(2, TimeUnit.SECONDS).exceptionally(ex -> {
+    System.out.println("Timeout occurred");
+    return "Default";
+});
+System.out.println(future.join());
+```
+
+16. Retry Mechanism
+```java
+public static CompletableFuture<Integer> retryTask(int retries) {
+    return CompletableFuture.supplyAsync(() -> {
+        if (Math.random() < 0.7) {
+            throw new RuntimeException("Fail");
+        }
+        return 100;
+    }).exceptionallyCompose(ex -> {
+        if (retries > 0) {
+            System.out.println("Retrying...");
+            return retryTask(retries - 1);
+        }
+        return CompletableFuture.completedFuture(-1);
+    });
+}
+```
+
+17. ForkJoinPool for parallelism
+```java
+ForkJoinPool pool = new ForkJoinPool();
+
+int result = pool.invoke(new RecursiveTask<Integer>() {
+    @Override
+    protected Integer compute() {
+        return 10 + 20;
+    }
+});
+
+System.out.println(result);
+```
+
+18. Map reduce with CompletableFuture
+```java
+ExecutorService executor = Executors.newFixedThreadPool(3);
+
+List<Integer> data = List.of(1,2,3,4,5);
+
+List<Future<Integer>> futures = new ArrayList<>();
+
+for (int num : data) {
+    futures.add(executor.submit(() -> num * num));
+}
+
+int sum = 0;
+for (Future<Integer> f : futures) {
+    sum += f.get();
+}
+
+System.out.println("Sum of squares: " + sum);
+
+executor.shutdown();
+```

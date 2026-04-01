@@ -1,5 +1,29 @@
 # Multithreading Interview Questions
 
+## Index:
+
+1. Q\. What is Callable and Future in Java concurrency?
+2. Q\. What is blocking method in Java?
+3. Q\. What is atomic variable in Java?
+4. Q\. What is Executors Framework?
+5. Q\. What are the available implementations of ExecutorService in the standard library?
+6. Q\. What kind of thread is the Garbage collector thread?
+7. Q\. How can we pause the execution of a Thread for specific time?
+8. Q\. What is difference between Executor\.submit\(\) and Executor\.execute\(\) method?
+9. Q\. What is Phaser in Java concurrency?
+10. Q\. How to stop a Thread in Java?
+11. Q\. How to implement thread-safe code without using the synchronized keyword?
+12. Q\. What is difference between ArrayBlockingQueue \& LinkedBlockingQueue in Java Concurrency?
+13. Q\. What is PriorityBlockingQueue in Java Concurrency?
+14. Q\. What is DelayQueue in Java Concurrency?
+15. Q\. What is SynchronousQueue in Java?
+16. Q\. What is Exchanger in Java concurrency?
+17. Q\. What is Busy Spinning\? Why will you use Busy Spinning as wait strategy\?
+18. Q\. What is Multithreading in java\?
+19. Q\. ReadWriteLock
+20. Q\. Difference between `this` keyword and `super` keyword in java and how does it differ wrt lambda function?
+
+
 ## Q. What are the states in the lifecycle of a Thread?
 A java thread can be in any of following thread states during it\'s life cycle i.e. New, Runnable, Blocked, Waiting, Timed Waiting or Terminated. These are also called life cycle events of a thread in java.
 
