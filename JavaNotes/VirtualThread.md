@@ -38,7 +38,8 @@ A comprehensive, practical guide to virtual threads: what they are, how they wor
 
 ## Overview
 
-Virtual threads (Project Loom, Java 21) are lightweight Java-managed threads scheduled by the JVM rather than the OS. They make blocking operations scalable by unmounting from carrier (OS) threads when parked, enabling massive concurrency for I/O-bound workloads while preserving a synchronous programming model.
+- Virtual threads (Project Loom, Java 21) are lightweight Java-managed threads scheduled by the JVM rather than the OS. 
+- They make blocking operations scalable by unmounting from carrier (OS) threads when parked, enabling massive concurrency for I/O-bound workloads while preserving a synchronous programming model.
 
 ---
 
@@ -51,7 +52,8 @@ Problems with platform (OS) threads:
 - Costly context switches
 - Limited scalability (practical limits in thousands)
 
-Real systems (web servers, DB clients, HTTP callers, Kafka consumers) spend most time waiting. Platform threads are blocked during waits, wasting OS resources. Virtual threads solve blocking scalability (not CPU speed).
+- Real systems (web servers, DB clients, HTTP callers, Kafka consumers) spend most time waiting. 
+- Platform threads are blocked during waits, wasting OS resources. Virtual threads solve blocking scalability (not CPU speed).
 
 ---
 
