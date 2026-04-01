@@ -116,13 +116,11 @@
 - How:
     - Example:
       ```java
-      ```java
       int num = switch(day) {
           case MONDAY -> 1;
           case TUESDAY -> 2;
           default -> 0;
       };
-      ```
       ```
     - Use pattern matching for `switch` in later versions.
 - When to use:
@@ -140,14 +138,13 @@
     - Multi-line string literals without manual escaping; improved readability for SQL, JSON, HTML.
 - How:
     - Use `"""` delimiters:
-      ```java
+      
       ```java
       String html = """
           <html>
               <body>Hello</body>
           </html>
       """;
-      ```
       ```
 - When to use:
     - Long multi-line literals and templates.
@@ -235,14 +232,14 @@ Advanced sealed notes:
 - Pattern Matching for `switch`
     - Why: Unified pattern matching across `instanceof` and `switch` with exhaustive checks.
     - Example:
-      ```java
+      
       ```java
       switch (obj) {
           case String s -> System.out.println(s.toLowerCase());
           case Integer i -> System.out.println(i + 1);
       }
       ```
-      ```
+      
 - Virtual Threads (previewed earlier, finalized in later updates)
     - Why: Simplify massively concurrent I/O-bound programming using lightweight threads.
     - How: Create virtual threads via `Thread.ofVirtual().start(...)` or `Executors.newVirtualThreadPerTaskExecutor()`.
