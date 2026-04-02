@@ -1,969 +1,436 @@
-# Spring Security Notes
+# Spring Security — Complete Reference
+
+Table of Contents
+1. [Introduction](#1-introduction)
+2. [Core Concepts](#2-core-concepts)
+3. [Authentication](#3-authentication)
+4. [Authorization](#4-authorization)
+5. [Security Filters & Filter Chain](#5-security-filters--filter-chain)
+6. [Form-Based and HTTP Basic Authentication](#6-form-based-and-http-basic-authentication)
+7. [JWT Authentication (Practical)](#7-jwt-authentication-practical)
+8. [Refresh Tokens (Design & Best Practices)](#8-refresh-tokens-design--best-practices)
+9. [OAuth2 & OpenID Connect (Overview)](#9-oauth2--openid-connect-overview)
+10. [CORS and CSRF](#10-cors-and-csrf)
+11. [Session Management & Stateless Architectures](#11-session-management--stateless-architectures)
+12. [Security with API Gateway & Microservices](#12-security-with-api-gateway--microservices)
+13. [Custom Authentication & Authorization](#13-custom-authentication--authorization)
+14. [Thread Safety, Concurrency & Token Rotation](#14-thread-safety-concurrency--token-rotation)
+15. [Testing Secured Applications](#15-testing-secured-applications)
+16. [Best Practices](#16-best-practices)
+17. [Common Pitfalls to Avoid](#17-common-pitfalls-to-avoid)
+18. [Useful Patterns & Reference Implementations](#18-useful-patterns--reference-implementations)
+19. [Appendix: Quick Cheatsheet](#19-appendix-quick-cheatsheet)
 
 ---
 
-## 1. Spring Security Core Concepts
-- What is Spring Security and how the filter chain works
+## 1. Introduction
+Spring Security is a powerful and highly customizable authentication and access-control framework for Java applications. It integrates with Spring applications and supports a wide range of security scenarios: session-based authentication, stateless JWTs, OAuth2, method-level security, and custom auth flows.
+
+This document targets developers from beginners to seniors and provides practical examples, configuration snippets, best practices, and common pitfalls.
+
+---
+
+## 2. Core Concepts
 - Authentication vs Authorization
-- SecurityContext and SecurityContextHolder
+  - Authentication: proving identity (login).
+  - Authorization: deciding whether an authenticated identity can access a resource (roles/permissions).
 - Principal and GrantedAuthority
+  - Principal: the authenticated user object (often `UserDetails`).
+  - GrantedAuthority: a granted permission or role (e.g., `ROLE_USER`).
+- SecurityContext & SecurityContextHolder
+  - `SecurityContext` holds the current `Authentication`.
+  - `SecurityContextHolder` exposes the `SecurityContext` (thread-local by default).
+- Filters & Filter Chain
+  - Spring Security is implemented as a chain of servlet filters that intercept requests and populate `SecurityContext`.
 
 ---
 
-## 2. Authentication
-- In-memory authentication
-- JDBC authentication (using database users)
-- Custom user details service (UserDetailsService)
-- Password encoding (e.g., BCryptPasswordEncoder)
-- AuthenticationManager and AuthenticationProvider
-- Programmatic vs declarative authentication
-
----
-
-## 3. Authorization
-- Role-based access control (RBAC)
-- \@PreAuthorize, \@PostAuthorize, \@Secured, \@RolesAllowed
-- Method-level security (enable via \@EnableGlobalMethodSecurity)
-- Expression-based access control
-
----
-
-## 4. Security Filters and Chain
-- Understanding the Spring Security filter chain
-- Role of filters like UsernamePasswordAuthenticationFilter, BasicAuthenticationFilter, etc.
-- Custom filter creation
-- Ordering and precedence of filters
-
----
-
-## 5. Form-Based and Basic Authentication
-- Login page, logout mechanism
-- HTTP Basic authentication (with REST)
-- CSRF protection (disabling for APIs)
-
----
-
-## 6. JWT Authentication
-- Stateless authentication using JWTs
-- Creating and verifying JWTs
-- Storing JWT in headers (Bearer tokens)
-- Filter to intercept and validate token
-- Expiry, signature, and refresh token handling
-
----
-
-## 7. OAuth2 & OpenID Connect
-- Spring Security OAuth2 client and resource server
-- Integrating with providers like Google, GitHub, Okta, Keycloak
-- `spring-security-oauth2-client` and `spring-security-oauth2-resource-server`
-- Scopes and userinfo endpoints
-
----
-
-## 8. Security with API Gateway
-- Global security filter for authentication/authorization
-- Forwarding JWT tokens downstream
-- Custom GatewayFilter for request validation
-
----
-
-## 9. CORS and CSRF
-- Difference between CORS and CSRF
-- CORS configuration in Spring Security
-- CSRF protection for browser clients
-- Disabling CSRF for REST APIs
-
----
-
-## 10. Session Management and Stateless Security
-- Statefulness vs stateless authentication
-- Session creation policy
-- Handling session fixation and concurrent sessions
-- Logout in stateless systems
-
----
-
-## 11. Custom Authentication & Authorization
-- Custom login authentication filter
-- Custom AccessDecisionVoter and AccessDecisionManager
-- Custom token-based or header-based authentication
-
----
-
-## 12. Security Context Propagation
-- In async scenarios (\@Async, CompletableFuture)
-- Using DelegatingSecurityContextRunnable or SecurityContextAwareExecutor
-
----
-
-## 13. Spring Boot 3.x & Spring Security 6+ Changes
-- Lambda-based security configuration (SecurityFilterChain beans)
-- Removal of WebSecurityConfigurerAdapter
-- Declarative security using DSL-style config
-
----
-
-## 14. Testing Secured Applications
-- \@WithMockUser, \@WithUserDetails
-- MockMvc + Spring Security
-- Testing with JWT authentication filters
-
----
-
-## 15. Best Practices
-- Always hash passwords (e.g., BCrypt)
-- Avoid storing tokens in local/session storage on frontend
-- Secure all endpoints (deny-all-by-default strategy)
-- Don’t expose internal endpoints (actuator, DB)
-- Use HTTPS and set secure headers (CSP, HSTS, X-Frame-Options)
-
-
----
-
-### 1. The Core Problem JWT Tries to Solve
-
-JWT access tokens exist to answer one simple question:
-
-“Is this request coming from an authenticated user, and what are they allowed to do?”
-
-JWTs are:
-- Stateless
-- Self-contained
-- Fast to validate (no DB hit)
-
-So far so good.
-
----
-
-### 2. The Fundamental Problem With JWT Access Tokens
-
-Option A: Long-lived Access Token (Bad)
-
-Access token valid for 7 days
-
-What happens if:
-- Token is stolen?
-- Laptop compromised?
-- Token leaked via logs?
-
-❌ Attacker has full access for 7 days  
-❌ No way to revoke it  
-❌ Logout is meaningless
-
----
-
-Option B: Short-lived Access Token (Better, but incomplete)
-
-Access token valid for 10–15 minutes
-
-Pros:
-- Damage window is small
-- Better security
-
-But now a new problem appears:
-
-❌ User gets logged out every 10–15 minutes  
-❌ Terrible user experience
-
-So we now have a trade-off:
-
-Security vs User Experience
-- Long token = Bad security
-- Short token = Bad UX
-
----
-
-### 3. This Is Where Refresh Token Comes In
-
-Refresh token exists ONLY to solve this trade-off.
-
-It allows you to keep access tokens short-lived without forcing the user to log in again
-
----
-
-### 4. What a Refresh Token Actually Is (Important)
-
-A refresh token is:
-- Long-lived
-- Stored server-side
-- Used only to get a new access token
-- Never used to call business APIs
-
-It is NOT another JWT for APIs.
-
----
-
-### 5. Two-Token Model (Correct Mental Model)
-
-| Token | Purpose | Sent With Every Request? |
-|---|---:|:---:|
-| Access Token | Authorization | Yes |
-| Refresh Token | Re-authentication | No |
-
----
-
-### 6. The Actual Flow (Step-by-Step)
-
-Login
-
-User logs in  
-↓  
-Server issues:
-- Access Token (15 min)
-- Refresh Token (7 days)
-
----
-
-Normal API Call
-
-Client → API Gateway  
-Authorization: Bearer ACCESS_TOKEN
-
-No DB call. Fast. Stateless.
-
----
-
-Access Token Expires
-
-API returns 401 Unauthorized
-
-Client does not ask user to login.
-
-Instead:
-
-Client → AuthService /refresh  
-Body: refreshToken
-
----
-
-Refresh Token Validation
-
-AuthService:
-1. Checks refresh token exists in DB
-2. Checks it is not expired
-3. Checks it is not revoked
-
-If valid:
-
-Issue new access token
-
----
-
-Result
-
-User continues seamlessly.  
-No login screen.  
-No session expiry frustration.
-
----
-
-### 7. Why Refresh Token Must Be Stateful
-
-This is critical.
-
-Access tokens:
-- Stateless
-- Cannot be revoked
-
-Refresh tokens:
-- Stored in DB
-- Can be revoked
-- Can be rotated
-- Can be audited
-
-This gives you:
-- Logout support
-- Compromised token recovery
-- Device-level control
-
----
-
-### 8. What Happens Without Refresh Token (Real Scenario)
-
-Banking Example (relevant to you)
-
-Imagine:
-- Access token valid for 24 hours
-- Token leaks
-
-Attacker:
-- Transfers money
-- Views statements
-- Changes profile
-
-For 24 hours, bank is helpless.
-
-Now with refresh token:
-- Access token lasts 10 minutes
-- Bank revokes refresh token
-- Attacker is dead in 10 minutes
-
-That is why banks require refresh tokens.
-
----
-
-### 9. Logout Is Impossible Without Refresh Tokens
-
-Without refresh token:
-- Logout = client deletes token
-- Token still valid on server
-
-With refresh token:
-- Logout = server deletes refresh token
-- User can never get new access token
-
-This is real logout.
-
----
-
-### 10. Why Not Just Store JWT in DB?
-
-People ask this a lot.
-
-If you store access tokens in DB:
-- You lose stateless benefit
-- Every request hits DB
-- Scalability drops
-- Microservices coupling increases
-
-Refresh token avoids this.
-
----
-
-### 11. In Your MediConnect Microservices
-
-Without refresh token:
-- Access token must be long-lived
-- Any token leak compromises patient data
-- HIPAA-style compliance impossible
-
-With refresh token:
-- Access tokens are short
-- AuthService controls sessions
-- Gateway and services stay stateless
-- Proper healthcare-grade security
-
----
-
-### 12. Interview-Grade Explanation (Memorize This)
-
-“Refresh tokens exist to decouple security from user experience.  
-They allow short-lived access tokens for security while maintaining seamless user sessions.  
-Access tokens remain stateless and fast, while refresh tokens are stateful and revocable.”
-
-If you say this in an interview, the panel knows you understand it.
-
----
-
-### 13. When You Don’t Need Refresh Tokens
-
-Being honest is senior-level.
-
-You don’t need refresh tokens when:
-- Internal service-to-service auth
-- One-time tokens
-- CLI tools
-- Very low-risk apps
-
-But for:
-- Healthcare
-- Banking
-- Consumer apps
-- Long sessions
-
-They are mandatory.
-
----
-
-### 14. One Line Summary
-
-Access token = permission  
-Refresh token = continuity
-
----
-
-If you want next, I can:
-- Explain refresh token rotation
-- Explain why refresh token must never be JWT
-- Show Postman flow
-- Explain OAuth 2.0 vs custom JWT flow
-
-Just say the word.
-
-----
-
-Perfect. Now we go inside the engine.
-
-I’ll explain refresh tokens internally, exactly what happens at runtime, data structures, thread flow, Spring Security hooks, and why each step exists.
-
-No hand-waving. This is senior-level internal understanding.
-
----
-
-## 1. What a Refresh Token Actually Is
-
-A refresh token is NOT:
-- a JWT (often it isn’t)
-- proof of identity
-- used on every request
-
-A refresh token is:
-
-A long-lived secret that allows issuing new access tokens
-
-It represents:
-- user
-- device/session
-- permission to continue authentication
-
----
-
-## 2. Internal Components Involved
-
-Let’s name the moving parts.
-
-Server Side
-- AuthController
-- AuthenticationManager
-- UserDetailsService
-- RefreshTokenService
-- TokenStore (DB / Redis)
-- JwtTokenProvider
-
-Client Side
-- Access Token (short)
-- Refresh Token (long)
-
----
-
-## 3. Data Model (Very Important)
-
-Refresh Token Table (Typical)
-
-`refresh_token`  
---------------  
-- id (UUID)  
-- user_id  
-- token_hash  
-- issued_at  
-- expires_at  
-- revoked (boolean)  
-- device_id  
-- ip_address
-
-⚠️ Never store raw token, only hash.
-
----
-
-## 4. Login Flow (Step-by-Step)
-
-Step 1: Credential Authentication
-
-POST /auth/login  
-username + password
-
-Internally:
-1. AuthenticationManager.authenticate()
-2. Calls loadUserByUsername() → DB
-3. Password verified
-
----
-
-Step 2: Token Generation
-
-String accessToken = jwtProvider.generate(user);  
-String refreshToken = randomSecureToken();
-
-Internally:
-- Access token = signed JWT
-- Refresh token = cryptographically random (256-bit)
-
----
-
-Step 3: Persist Refresh Token
-
-refreshTokenRepository.save(  
-hash(refreshToken),  
-userId,  
-expiry  
-);
-
-Why?
-- Enables revocation
-- Enables logout
-- Enables device tracking
-
----
-
-Step 4: Return Tokens
-
-Response:
-{
-accessToken,
-refreshToken
+## 3. Authentication
+
+### 3.1 Common Authentication Sources
+- In-memory (good for demos)
+- JDBC-based (users stored in DB)
+- LDAP / Active Directory
+- OAuth2 / OpenID Connect
+- Custom `UserDetailsService` or `ReactiveUserDetailsService`
+
+### 3.2 Password Encoding
+Always store hashed passwords. Use `BCryptPasswordEncoder` or `Argon2PasswordEncoder`.
+
+Example:
+```java
+// java
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
 }
+```
 
-Client stores:
-- Access token → memory
-- Refresh token → HttpOnly cookie / secure storage
+### 3.3 Spring Boot 3 / Spring Security 6 Configuration (recommended)
+Use `SecurityFilterChain` beans instead of `WebSecurityConfigurerAdapter`.
 
----
+Example: Stateless API using JWT (basic skeleton)
+```java
+// java
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+      .csrf(csrf -> csrf.disable())
+      .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .authorizeHttpRequests(auth -> auth
+          .requestMatchers("/public/**").permitAll()
+          .requestMatchers("/admin/**").hasRole("ADMIN")
+          .anyRequest().authenticated())
+      .httpBasic(Customizer.withDefaults());
+    return http.build();
+}
+```
 
-## 5. Normal API Call (No Refresh Token)
-
-GET /appointments  
-Authorization: Bearer access-token
-
-Internally:
-1. JwtAuthenticationFilter
-2. Validate signature
-3. Check expiry
-4. Build Authentication object
-5. Set SecurityContext
-
-🚀 No DB call
-
----
-
-## 6. Access Token Expires (Critical Moment)
-
-JWT validation fails:
-
-ExpiredJwtException
-
-Spring Security:
-- Rejects request with 401
-
-Client now triggers refresh flow.
+### 3.4 AuthenticationManager & AuthenticationProvider
+- `AuthenticationManager` delegates to one or more `AuthenticationProvider`.
+- Custom `AuthenticationProvider` can implement bespoke verification (2FA, hardware token).
 
 ---
 
-## 7. Refresh Flow (Internals)
+## 4. Authorization
 
-POST /auth/refresh  
-refresh_token
+### 4.1 URL-based vs Method-based
+- URL-based: `HttpSecurity` rules.
+- Method-based: annotations like `@PreAuthorize`, `@PostAuthorize`, `@Secured`, `@RolesAllowed`.
 
-Step-by-Step Internals
+Enable method security:
+```java
+// java
+@Configuration
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
+public class MethodSecurityConfig { }
+```
 
-Step 1: Token Lookup
+Example:
+```java
+// java
+@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+public Appointment getAppointment(Long id) { ... }
+```
 
-hashed = hash(refreshToken);  
-token = refreshTokenRepository.findByHash(hashed);
-
-DB / Redis call happens only here.
-
----
-
-Step 2: Validations
-
-- Exists?  
-- Expired?  
-- Revoked?  
-- Belongs to user?  
-- Same device?
-
-Any failure → force re-login.
+### 4.2 Expression-based Access Control
+Use SpEL expressions in `@PreAuthorize` and `HttpSecurity` (`hasRole`, `hasAuthority`, `principal`, `authentication`, `permitAll`).
 
 ---
 
-Step 3: Rotation (Security Critical)
+## 5. Security Filters & Filter Chain
 
-revoke(oldToken);  
-newToken = generateNewRefreshToken();  
-save(newToken);
+- Key filters: `UsernamePasswordAuthenticationFilter`, `BasicAuthenticationFilter`, `OncePerRequestFilter` for custom filters, `JwtAuthenticationFilter` (custom).
+- Order matters: authentication filters should run before protected resource handling.
+- Create custom filters by extending `OncePerRequestFilter`.
 
-Why rotation?
-- Prevent replay attacks
-- Stolen refresh token becomes useless
+Example JWT filter skeleton:
+```java
+// java
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
+        String header = req.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            Authentication auth = jwtProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        }
+        chain.doFilter(req, res);
+    }
+}
+```
 
----
-
-Step 4: Issue New Access Token
-
-String newAccessToken = jwtProvider.generate(user);
-
-Return:
-- accessToken (new)
-- refreshToken (new)
-
----
-
-## 8. Logout Internals
-
-POST /auth/logout  
-refresh_token
-
-Internally:
-refreshTokenRepository.revoke(token);
-
-No JWT invalidation needed.
-
-Access token:
-- Dies naturally
+Register filter:
+```java
+// java
+http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+```
 
 ---
 
-## 9. Why NOT JWT for Refresh Token?
+## 6. Form-Based and HTTP Basic Authentication
 
-Because JWT:
-- Cannot be revoked
-- Can be replayed
-- Encourages long expiry
+- Form-based: default for web applications, supports login page, remember-me, CSRF protection.
+- HTTP Basic: simple header-based auth for REST or internal services (use HTTPS).
 
-Refresh tokens must be controllable.
-
----
-
-## 10. Thread Safety & Concurrency
-
-Problem
-- Two refresh requests at same time.
-
-Solution
-- DB unique constraint
-- Transactional revoke + insert
-- Optimistic locking
-
-Result:
-- One succeeds
-- Other fails
+Example form login:
+```java
+// java
+http
+  .formLogin(form -> form
+    .loginPage("/login")
+    .permitAll())
+  .logout(logout -> logout
+    .logoutUrl("/logout")
+    .invalidateHttpSession(true));
+```
 
 ---
 
-## 11. Why Hash Refresh Tokens?
+## 7. JWT Authentication (Practical)
 
-If DB leaks:
-- Raw tokens = account takeover
+### 7.1 When to use JWT
+- Stateless APIs, microservices with distributed verification.
+- Short-lived JWTs for authorization; never store sensitive long-term secrets in JWT payload.
 
-Hashing:
-- Same model as passwords
-- Zero trust storage
+### 7.2 Typical JWT Setup
+- Access token: short-lived (minutes), sent on every request (Authorization: Bearer).
+- Refresh token: long-lived, stored server-side, used to issue new access tokens (see section 8).
 
----
+### 7.3 JWT Provider Responsibilities
+- Generate signed JWTs (HMAC or RSA).
+- Verify signature and expiry.
+- Convert claims to `Authentication`/`UserDetails`.
 
-## 12. Spring Security Integration Points
+Example JWT provider with HMAC:
+```java
+// java
+public class JwtTokenProvider {
+    private final SecretKey key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
 
-Layer | Role
----|---
-Filter | JWT validation
-Controller | Refresh endpoint
-Service | Token lifecycle
-Repository | Persistence
-SecurityConfig | Stateless policy
+    public String generateToken(UserDetails user, Duration ttl) {
+        return Jwts.builder()
+            .setSubject(user.getUsername())
+            .claim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
+            .setIssuedAt(Date.from(Instant.now()))
+            .setExpiration(Date.from(Instant.now().plus(ttl)))
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact();
+    }
 
----
+    public Authentication getAuthentication(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        String username = claims.getSubject();
+        List<GrantedAuthority> authorities = ... // convert claims
+        UserDetails user = new User(username, "", authorities);
+        return new UsernamePasswordAuthenticationToken(user, token, authorities);
+    }
+}
+```
 
-## 13. Why This Design Is “Internally Correct”
-
-Problem | Solved
----|---
-DB on every request | No
-Logout | Yes
-Compromise handling | Yes
-Multi-device | Yes
-Scalability | Yes
-
----
-
-## 14. Internal State Diagram (Mental)
-
-[LOGIN]  
-↓  
-[ACCESS OK] → [EXPIRED]  
-↓  
-[REFRESH]  
-↓  
-[ROTATED]
-
----
-
-## 15. Interview-Level Explanation (Use This)
-
-“Internally, refresh tokens are persisted secrets tied to a user and device. On refresh, the server validates the token from storage, rotates it to prevent replay, and issues a new stateless access token. This design keeps request processing stateless while retaining centralized control over session lifecycle.”
+### 7.4 Storing JWTs on the Client
+- Avoid storing in localStorage (XSS risk). Prefer HttpOnly secure cookies if web application.
+- For SPAs, use same-site, secure, HttpOnly cookies or short-lived access tokens + refresh token in secure storage.
 
 ---
 
-## 16. One Line to Remember Forever
+## 8. Refresh Tokens (Design & Best Practices)
+- Purpose: allow short-lived access tokens with seamless UX.
+- Refresh tokens must be stateful (store hash in DB or Redis), rotatable, revocable.
+- Never use refresh tokens to call APIs.
+- Hash refresh tokens before storing (same rationale as password hashing).
 
-Access token = computation  
-Refresh token = coordination
+Typical refresh token DB table:
+- id (UUID), user_id, token_hash, issued_at, expires_at, revoked, device_id, ip_address
 
----
+Refresh flow:
+1. Client sends refresh token to `/auth/refresh`.
+2. Server hashes token and looks it up.
+3. Validate: exists, not expired, not revoked, device matches.
+4. Rotate: revoke old token and issue new refresh token + new access token.
+5. Return both to client.
 
-If you want next, I can:
-- Implement this line-by-line in your repo
-- Show Redis-based implementation
-- Explain OAuth2 refresh vs custom
-- Simulate token theft scenarios
-
-Just tell me what to do next.
-
----
-
-This is a fundamental systems concept, not just Spring Security.  
-I’ll explain it cleanly, with intuition, with Spring Security mapping, and with real-world analogies.
-
-No jargon dumping.
+Concurrency: use DB constraints or distributed locking to prevent double usage.
 
 ---
 
-## 1. One-Line Definitions (First Principles)
+## 9. OAuth2 & OpenID Connect (Overview)
 
-**Stateless**
+### 9.1 Roles
+- Authorization Server: issues tokens (access + refresh).
+- Resource Server: accepts access tokens and serves protected resources.
+- Client: application that requests tokens (confidential vs public).
 
-The server does not remember anything about the client between requests.
+Spring libraries:
+- `spring-security-oauth2-client` — clients (login with Google/GitHub).
+- `spring-security-oauth2-resource-server` — validate incoming JWTs or opaque tokens.
 
-**Stateful**
+Example resource server config:
+```java
+// java
+http
+  .oauth2ResourceServer(oauth -> oauth
+      .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter())));
+```
 
-The server remembers something about the client between requests.
-
-That’s it. Everything else is consequence.
-
----
-
-## 2. Visual Mental Model
-
-**Stateless**
-
-Request 1 → Server (no memory)  
-Request 2 → Server (no memory)  
-Request 3 → Server (no memory)
-
-Each request must be self-sufficient.
-
-**Stateful**
-
-Request 1 → Server (stores state)  
-Request 2 → Server (uses stored state)  
-Request 3 → Server (uses stored state)
-
-The server depends on past interactions.
+Use provider metadata for OIDC and rely on JWKs for JWT verification.
 
 ---
 
-## 3. Real-World Analogy (Best Way to Lock It In)
+## 10. CORS and CSRF
 
-**Stateless = ATM Card**
-- You insert card + PIN every time
-- ATM doesn’t remember you
-- Each transaction stands alone
+### 10.1 CORS
+- Cross-Origin Resource Sharing: browser mechanism controlling cross-origin HTTP requests.
+- Configure allowed origins, methods, headers, and credentials in Spring Security or via `CorsConfigurationSource`.
 
-**Stateful = Hotel Reception**
-- You check in
-- They remember your room, stay, preferences
-- Next interaction depends on earlier one
+Example:
+```java
+// java
+http.cors(cors -> cors.configurationSource(request -> {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of("https://app.example.com"));
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+    config.setAllowCredentials(true);
+    config.setAllowedHeaders(List.of("*"));
+    return config;
+}));
+```
 
----
-
-## 4. HTTP Itself Is Stateless
-
-This is crucial.
-
-HTTP does not remember:
-- Who you are
-- What you did before
-- Whether you are logged in
-
-That’s why:
-- Cookies
-- Sessions
-- Tokens
-
-exist.
-
----
-
-## 5. Stateful Authentication (Session-Based)
-
-How it works
-
-Login  
-↓  
-Server stores session in memory / DB  
-↓  
-Client sends session ID cookie  
-↓  
-Server looks up session on every request
-
-Characteristics
-
-Aspect | Stateful
----|---
-Server memory | Required
-DB / Cache | Required
-Horizontal scaling | Hard
-Logout | Easy
-Revocation | Easy
-
-Spring Security (Session):
-- HttpSession
-- SecurityContext stored in session
+### 10.2 CSRF
+- Prevents cross-site request forgery for stateful web applications.
+- Spring Security enables CSRF protection for non-GET requests by default.
+- For stateless REST APIs using JWTs, disable CSRF:
+```java
+// java
+http.csrf(csrf -> csrf.disable());
+```
+- For form-based apps, keep CSRF enabled and transmit tokens in forms or via custom headers.
 
 ---
 
-## 6. Stateless Authentication (JWT)
+## 11. Session Management & Stateless Security
 
-How it works
+### 11.1 Session Creation Policies
+- `SessionCreationPolicy.STATELESS` — no `HttpSession` created; use for APIs.
+- `IF_REQUIRED` or `ALWAYS` — session-based auth.
 
-Login  
-↓  
-Server issues JWT  
-↓  
-Client sends JWT every request  
-↓  
-Server verifies JWT (no memory)
+Example:
+```java
+// java
+http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+```
 
-Characteristics
-
-Aspect | Stateless
----|---
-Server memory | Not required
-DB lookup | Not required
-Scaling | Very easy
-Logout | Hard
-Revocation | Not possible
-
-JWT is proof, not a session.
+### 11.2 Session Fixation & Concurrent Sessions
+- Use Spring Security features to prevent session fixation (`migrateSession`) and limit concurrent sessions (`ConcurrentSessionControlAuthenticationStrategy` or session management configuration).
 
 ---
 
-## 7. Why JWT Is Stateless (Key Insight)
-
-JWT contains:
-- User ID
-- Roles
-- Expiry
-- Signature
-
-So server can say:
-
-“I can trust this token without remembering you”
-
-This is why:
-- No DB
-- No session
-- No cache
+## 12. Security with API Gateway & Microservices
+- Gateway validates access tokens (JWT) and forwards user info downstream or passes `Authorization` header.
+- Keep gateways stateless: do not perform DB calls for every request.
+- Use short-lived access tokens; use refresh flow via centralized AuthService.
+- Prefer verification via signature (JWK) rather than introspection for JWTs to avoid DB hits.
 
 ---
 
-## 8. Why Refresh Token Is Stateful
+## 13. Custom Authentication & Authorization
 
-Now the important contrast.
+### 13.1 Custom Filters
+- Implement `OncePerRequestFilter` or extend `AbstractAuthenticationProcessingFilter`.
+- Validate headers, perform token lookup, create `Authentication` and populate `SecurityContext`.
 
-Refresh tokens:
-- Stored in DB / Redis
-- Tied to user + device
-- Can be revoked
+### 13.2 Custom AuthenticationProvider
+- Implement `authenticate()` and `supports()` for bespoke credential types.
 
-So:
+### 13.3 Custom AccessDecisionVoter / AccessDecisionManager
+- Fine-grained access decisions across multiple voters.
 
-Refresh token = state
-
----
-
-## 9. Hybrid Model (Production-Grade)
-
-Modern systems combine both.
-
-Component | Nature
----|---
-Access Token (JWT) | Stateless
-Refresh Token | Stateful
-
-This gives:
-- Performance
-- Scalability
-- Security
-- Control
-
-This is what you are building in MediConnect.
+### 13.4 Auditing & Device Control
+- Store refresh token metadata (device id, IP).
+- Allow per-device logout / token revocation.
 
 ---
 
-## 10. Spring Security Mapping (Very Important)
-
-**Stateless**
-
-sessionManagement()  
-.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-Means:
-- Spring will NOT create HttpSession
-- SecurityContext exists only per request
-
-**Stateful**
-
-sessionManagement()  
-.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-
-Means:
-- Session created
-- SecurityContext stored server-side
+## 14. Thread Safety, Concurrency & Token Rotation
+- Always store token state atomically: revoke+insert in a transaction.
+- Use DB unique constraints to prevent reuse of the same refresh token.
+- Optimistic locking or CAS if using Redis.
 
 ---
 
-## 11. Why Microservices Prefer Stateless
+## 15. Testing Secured Applications
 
-Because:
+### 15.1 Unit & Integration
+- `@WithMockUser` for method-level tests.
+- `@WithUserDetails` to load real user data.
+- `MockMvc` with Spring Security setup:
+```java
+// java
+mockMvc.perform(get("/secure")
+    .with(user("user").roles("USER")))
+    .andExpect(status().isOk());
+```
 
-Problem | Stateful | Stateless
----|---:|---:
-Load balancing | Sticky sessions | Any node
-Auto-scaling | Hard | Easy
-Failover | Painful | Seamless
-Latency | DB/Cache hit | Pure CPU
+### 15.2 Testing JWT Filters
+- Mock `JwtTokenProvider` or provide test tokens signed with test key.
+- For refresh flows, test rotation and concurrency (simulate two refresh requests).
 
-This is why API Gateways must be stateless.
-
----
-
-## 12. Common Confusion (Clear This)
-
-“Stateless means server has no data”
-
-❌ Wrong
-
-Stateless means:
-- Server does not remember client-specific session data
-
-Your DB still exists.  
-Your Kafka still exists.  
-Your business data still exists.
+### 15.3 Test Utilities
+- Use `SecurityMockMvcRequestPostProcessors` for token injection.
+- Use `@SpringBootTest` with test profile for DB-backed refresh tokens (H2 / Testcontainers).
 
 ---
 
-## 13. Interview-Grade Explanation
-
-Say this:
-
-“Stateless means the server does not store client session information between requests. Each request contains all information needed for authentication. Stateful means the server maintains session context across requests, requiring server-side storage and lookup.”
-
-This is perfect.
-
----
-
-## 14. One Line to Remember Forever
-
-Stateless = proof  
-Stateful = memory
+## 16. Best Practices
+- Hash all passwords (`BCrypt`, `Argon2`).
+- Use short-lived access tokens and rotate refresh tokens.
+- Store refresh token hashes, not raw tokens.
+- Use HttpOnly, Secure, SameSite cookies for web refresh tokens.
+- Deny-by-default: protect endpoints and explicitly permit public ones.
+- Validate tokens early in filter chain to fail fast.
+- Use HTTPS everywhere.
+- Enable CSP, HSTS, X-Frame-Options, X-Content-Type-Options headers.
+- Log security events (login success/failures, token revocations) but avoid logging raw tokens.
+- Centralize authentication in an AuthService for microservices.
+- Use provider metadata & JWKs for OAuth2/OIDC.
 
 ---
 
-## 15. Mapping Back to Your Question
-
-Question | Answer
----|---
-Why no DB call for JWT? | Stateless
-Why refresh token needs DB? | Stateful
-Why short-lived access token? | No revocation
-Why logout uses refresh token? | Server memory
+## 17. Common Pitfalls to Avoid
+- Storing raw refresh tokens in DB (instead store hash).
+- Making access tokens too long-lived.
+- Disabling CSRF blindly on stateful apps.
+- Storing JWTs in localStorage for web apps (XSS risk).
+- Verifying JWTs by relying on claims without checking signature/expiry.
+- Performing DB lookups on every request for access token validation (defeats stateless advantage).
+- Inadequate handling of concurrent refresh requests (allowing replay).
+- Exposing internal endpoints (management/actuator) without protection.
 
 ---
 
-If you want next, I can:
-- Show request lifecycle diagram
-- Compare JWT vs OAuth sessions
-- Explain why Kafka consumers are stateful
-- Show why Redis is often used for refresh tokens
+## 18. Useful Patterns & Reference Implementations
 
-Just tell me.
+### 18.1 Two-Token Model (Recommended)
+- Access token (JWT) — short-lived, stateless.
+- Refresh token — server-side, rotatable, revocable.
+
+### 18.2 Refresh Token Rotation (sample flow)
+1. Client sends `refreshToken`.
+2. Server validates and issues new `accessToken` and new `refreshToken`.
+3. Server revokes old refresh token (mark revoked).
+4. Store hash(new refresh token).
+
+### 18.3 Token Store Options
+- Relational DB: durability, auditing, device tracking.
+- Redis: low latency, TTL eviction.
+- Use hashing to protect tokens in storage.
+
+---
+
+## 19. Appendix: Quick Cheatsheet
+
+- Disable CSRF for stateless APIs:
+```java
+// java
+http.csrf(csrf -> csrf.disable());
+```
+- Make security stateless:
+```java
+// java
+http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+```
+- Add custom filter:
+```java
+// java
+http.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+```
+- Create `SecurityFilterChain`:
+```java
+// java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { ... }
+```
+
+---

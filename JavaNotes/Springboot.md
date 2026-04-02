@@ -1,4 +1,28 @@
-
+## Table of contents
+- [Spring Boot DevTools](#spring-boot-devtools)
+    - [Hot Reloading](#hot-reloading)
+    - [Dev-Only Beans](#dev-only-beans)
+    - [Conditional Development Tools](#conditional-development-tools)
+    - [How to Enable DevTools](#how-to-enable-devtools)
+    - [Interview Follow-up Questions and Answers (DevTools)](#interview-follow-up-questions-and-answers-devtools)
+    - [Use Cases (DevTools)](#use-cases-devtools)
+- [Spring Boot Testing](#spring-boot-testing)
+- [Spring Boot with Spring Ecosystem](#spring-boot-with-spring-ecosystem)
+- [Spring Boot Configuration Tricks](#spring-boot-configuration-tricks)
+    - [Configuration Properties with `@ConfigurationProperties`](#configuration-properties-with-configurationproperties)
+    - [Property Validation](#property-validation)
+    - [Profiles per Environment](#profiles-per-environment)
+    - [EnvironmentPostProcessor](#environmentpostprocessor)
+    - [Dynamic Property Refresh (Spring Cloud Config)](#dynamic-property-refresh-spring-cloud-config)
+    - [Configuration Summary](#configuration-summary)
+- [Spring Boot Logging](#spring-boot-logging)
+    - [Logback Configuration](#logback-configuration)
+    - [Log Level per Profile](#log-level-per-profile)
+    - [Structured Logging](#structured-logging)
+    - [Log Correlation with Zipkin or Sleuth](#log-correlation-with-zipkin-or-sleuth)
+    - [Logging Use Cases](#logging-use-cases)
+    - [Interview Follow-Up Questions (Logging)](#interview-follow-up-questions-logging)
+    - [Logging Summary](#logging-summary)
 
 ## Spring Boot DevTools
 
@@ -6,13 +30,13 @@ Spring Boot DevTools is a set of tools aimed at improving the developer experien
 
 ---
 
-## 🔹 1. Hot Reloading
+## 1. Hot Reloading
 
-### 🔸 What is it?
+### What is it?
 
 Hot reloading allows developers to see changes in the application without restarting the server manually.
 
-### 🔸 How it works:
+### How it works:
 
 - Spring Boot DevTools automatically monitors classpath resources.
 - When a change is detected (e.g., in `.java`, `.properties`, or `.html` files), the application restarts automatically.
@@ -20,24 +44,24 @@ Hot reloading allows developers to see changes in the application without restar
     - **Base Classloader**: loads third-party jars.
     - **Restart Classloader**: loads your own classes and resources.
 
-### 🔸 Tools integration:
+### Tools integration:
 
 - Works well with IDEs like IntelliJ IDEA, Eclipse, and Spring Tool Suite.
 - Can be enhanced with LiveReload browser extensions for real-time frontend refresh.
 
-### 🔸 Limitation:
+### Limitation:
 
 - Doesn’t support hot reloading for static files in some IDEs unless properly configured.
 
 ---
 
-## 🔹 2. Dev-Only Beans
+## 2. Dev-Only Beans
 
-### 🔸 Purpose:
+### Purpose:
 
 You may want certain beans to only load in the development environment (like database seeders, debugging tools, etc).
 
-### 🔸 How to create Dev-only beans:
+### How to create Dev-only beans:
 
 ```java
 @Configuration
@@ -54,13 +78,13 @@ public class DevOnlyConfig {
 
 ---
 
-## 🔹 3. Conditional Development Tools
+## 3. Conditional Development Tools
 
-### 🔸 DevTools-specific conditions:
+### DevTools-specific conditions:
 
 Spring Boot provides conditional annotations such as `@ConditionalOnProperty`, `@ConditionalOnClass`, and more. These can be used to conditionally enable certain configurations or beans only in the development context.
 
-### 🔸 Examples:
+### Examples:
 
 ```java
 @Configuration
@@ -72,7 +96,7 @@ public class RestartConfig {
 
 ---
 
-## 🔹 How to Enable DevTools
+## How to Enable DevTools
 
 ### Maven:
 
@@ -95,7 +119,7 @@ dependencies {
 
 ---
 
-## 🔹 Interview Follow-up Questions and Answers
+## Interview Follow-up Questions and Answers
 
 ### Q1: What is the purpose of DevTools in Spring Boot?
 
@@ -115,7 +139,7 @@ dependencies {
 
 ---
 
-## 🔹 Use Cases
+## Use Cases
 
 - Automatically reload changes during development
 - Enable debug-only tools or seeders
@@ -124,10 +148,10 @@ dependencies {
 ---
 ⸻
 
-🔹
+
 ⸻
 
-🔹 5. Spring Boot Testing
+5. Spring Boot Testing
 * @SpringBootTest, @DataJpaTest, @WebMvcTest
 * Test slicing
 * Test configuration
@@ -136,20 +160,20 @@ dependencies {
 
 ⸻
 
-🔹 6. Spring Boot with Spring Ecosystem
+6. Spring Boot with Spring Ecosystem
 
 You’ve integrated Spring Boot with:
-* ✅ Spring MVC
-* ✅ Spring Data JPA
-* ✅ Spring Security
-* ✅ Spring AOP
-* ✅ Spring Events
-* ✅ Spring Cache (covered conceptually)
-* ✅ Spring Cloud (Config Server, Eureka, Gateway, Feign, Resilience4j)
+* Spring MVC
+* Spring Data JPA
+* Spring Security
+* Spring AOP
+* Spring Events
+* Spring Cache (covered conceptually)
+* Spring Cloud (Config Server, Eureka, Gateway, Feign, Resilience4j)
 
 ⸻
 
-🔹 7. Spring Boot Configuration Tricks
+7. Spring Boot Configuration Tricks
 * Configuration properties using @ConfigurationProperties
 * Property validation
 * Profiles per environment
@@ -163,7 +187,7 @@ This guide covers advanced techniques and features for managing configuration in
 
 ---
 
-## ✅ Configuration Properties with `@ConfigurationProperties`
+## Configuration Properties with `@ConfigurationProperties`
 
 - Use `@ConfigurationProperties` to bind external configuration properties to Java objects.
 - Works well for grouping related properties.
@@ -187,7 +211,7 @@ public class DataSourceConfig {
 
 ---
 
-## ✅ Property Validation
+## Property Validation
 
 - Spring Boot supports JSR-303 Bean Validation on configuration properties.
 - Add validation annotations to the fields:
@@ -231,7 +255,7 @@ public class AppConfig {
 
 ---
 
-## ✅ EnvironmentPostProcessor
+## EnvironmentPostProcessor
 
 - A hook to customize the environment before the application starts.
 - Implement `EnvironmentPostProcessor` interface and register via `META-INF/spring.factories`.
@@ -251,7 +275,7 @@ public class CustomEnvPostProcessor implements EnvironmentPostProcessor {
 
 ---
 
-## ✅ Dynamic Property Refresh (Spring Cloud Config)
+## Dynamic Property Refresh (Spring Cloud Config)
 
 - Use Spring Cloud Config for centralized external configuration.
 - Enable property refresh with actuator and `@RefreshScope`:
@@ -285,7 +309,7 @@ public class FeatureProperties {
 | Spring Cloud Config        | Centralized and refreshable configs    |
 ⸻
 
-🔹 8. Spring Boot Logging
+8. Spring Boot Logging
 * Logback config
 * Log level per profile
 * Structured logging
@@ -297,7 +321,7 @@ Spring Boot uses **Logback** as the default logging framework. It also supports 
 
 ---
 
-## 🔹 Logback Configuration
+## Logback Configuration
 
 - Logback is configured using `logback.xml` or `logback-spring.xml`.
 - Spring Boot provides default configuration if none is defined.
@@ -325,7 +349,7 @@ Spring Boot uses **Logback** as the default logging framework. It also supports 
 
 ---
 
-## 🔹 Log Level per Profile
+## Log Level per Profile
 
 You can configure log levels differently for each profile by creating multiple `application-{profile}.yml` or `logback-spring.xml` files.
 
@@ -347,7 +371,7 @@ This ensures verbose logging in development and minimal logging in production.
 
 ---
 
-## 🔹 Structured Logging
+## Structured Logging
 
 Structured logging helps parse and analyze logs better (e.g., in JSON).
 
@@ -369,7 +393,7 @@ Structured logging helps parse and analyze logs better (e.g., in JSON).
 
 ---
 
-## 🔹 Log Correlation with Zipkin or Sleuth
+## Log Correlation with Zipkin or Sleuth
 
 **Spring Cloud Sleuth** enables distributed tracing and automatically adds:
 
@@ -393,7 +417,7 @@ Combine with **Zipkin** to visualize trace graphs.
 
 ---
 
-## ✅ Use Cases
+## Use Cases
 
 - Enable DEBUG level for dev, INFO for prod
 - Trace requests using Sleuth
@@ -402,7 +426,7 @@ Combine with **Zipkin** to visualize trace graphs.
 
 ---
 
-## 💬 Interview Follow-Up Questions
+## Interview Follow-Up Questions
 
 ### Q1: How does Spring Boot choose the default logging framework?
 
