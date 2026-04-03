@@ -855,11 +855,13 @@ public class Singleton {
 1. Custom ThreadPoolExecutor
 ```java
 ThreadPoolExecutor executor = new ThreadPoolExecutor(
-        2, 4,
-        10, TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(2),
-        Executors.defaultThreadFactory(),
-        new ThreadPoolExecutor.AbortPolicy()
+        2, // corePoolSize - number of threads to keep in pool even if idle
+        4, // maximumPoolSize - max number of threads in pool
+        10, // keepAliveTime for extra threads beyond core
+        TimeUnit.SECONDS, // time unit for keepAliveTime 
+        new ArrayBlockingQueue<>(2), // work queue with capacity 2
+        Executors.defaultThreadFactory(), // default thread factory
+        new ThreadPoolExecutor.AbortPolicy() // rejection handler (default is to throw exception on rejected tasks)
 );
 
 for (int i = 1; i <= 10; i++) {
@@ -872,17 +874,39 @@ for (int i = 1; i <= 10; i++) {
 }
 ```
 
+MENTAL MODEL FLOW ::
+  1. Fill core threads
+  2. Then fill queue
+  3. Then create extra threads (up to max)
+  4. Then reject
+
 2. Handle Rejected Tasks (Custom Handler)
 ```java
-RejectedExecutionHandler handler = (r, executor) -> {
-    System.out.println("Task Rejected: " + r.toString());
-};
+class RetryRejectedHandler implements RejectedExecutionHandler {
+
+  @Override
+  public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+    try {
+      System.out.println("Retrying task: " + r.toString());
+
+      // wait before retry
+      Thread.sleep(1000);
+
+      // retry submission
+      executor.execute(r);
+
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Task retry interrupted", e);
+    }
+  }
+}
 
 ThreadPoolExecutor executor = new ThreadPoolExecutor(
         1, 1,
         0L, TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(1),
-        handler
+        new RetryRejectedHandler() // custom handler that retries rejected tasks
 );
 
 for (int i = 1; i <= 5; i++) {
@@ -939,13 +963,24 @@ executor.submit(() -> {
     }
 });
 
-executor.shutdownNow();
+executor.shutdown(); // stops accepting new tasks, but lets running tasks finish
+executor.shutdownNow(); // interrupts running tasks and stops accepting new ones
+
+
 ```
+
+### Diff b/w Future and CompletableFuture
+- Future is a simple interface that represents the result of an asynchronous computation. 
+- It provides methods to check if the computation is complete, to wait for its completion, and to retrieve the result. 
+- However, it does not support chaining or composition of asynchronous tasks, and it does not have built-in support for handling exceptions or timeouts.
+- CompletableFuture is a more powerful and flexible implementation of the Future interface. 
+- It allows you to create complex asynchronous workflows by chaining multiple tasks together, handling exceptions, and specifying timeouts. 
+- It also provides a rich set of methods for combining and composing asynchronous operations, making it easier to write non-blocking code.
 
 6. CompletableFuture — Basic async
 ```java
 CompletableFuture<Void> future =
-        CompletableFuture.runAsync(() -> {
+        CompletableFuture.runAsync(() -> { // runAsync is used for tasks that don't return a result (void)
             System.out.println("Async task running");
         });
 
@@ -955,36 +990,191 @@ future.join();
 7. CompletableFuture — with result
 ```java
 CompletableFuture<Integer> future =
-        CompletableFuture.supplyAsync(() -> {
+        CompletableFuture.supplyAsync(() -> { // supplyAsync is used for tasks that return a result
             try { Thread.sleep(1000); } catch (Exception e) {}
             return 42;
-        }); 
-```
-
+        });
 System.out.println("Result: " + future.get());
+```
 
 8. Chaining
 ```java
-CompletableFuture<Integer> future =
-        CompletableFuture.supplyAsync(() -> 10)
-                .thenApply(x -> x * 2)
-                .thenApply(x -> x + 5);
+CompletableFuture<String> result =
+        CompletableFuture.supplyAsync(() -> getUser()) // start with getting user info
+                .thenApply(user -> getOrders(user)) // once user info is available, get orders for that user
+                .thenApply(orders -> processOrders(orders)); // once orders are available, process them and return final result
 
-System.out.println(future.join()); // 25
+System.out.println(result.join());
 ```
+13. Parallel API calls with CompletableFuture
+```java
+CompletableFuture<String> api1 = CompletableFuture.supplyAsync(() -> {
+    sleep(1000);
+    return "Result from API 1";
+});
+CompletableFuture<String> api2 = CompletableFuture.supplyAsync(() -> {
+    sleep(1500);
+    return "Result from API 2";
+});
+
+CompletableFuture<Void> combined = CompletableFuture.allOf(api1, api2);
+combined.join();
+System.out.println(api1.join());
+System.out.println(api2.join());
+``` 
+
+14. Combining results from multiple tasks
+```java
+CompletableFuture<Integer> future1 = CompletableFuture.supplyAsync(() -> 10);
+CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> 20);
+CompletableFuture<Integer> combined = future1.thenCombine(future2, Integer::sum);
+System.out.println(combined.join()); // 30
+```
+
+ALSO:
+```java
+CompletableFuture<String> userFuture =
+    CompletableFuture.supplyAsync(() -> getUser()); // start first task
+
+CompletableFuture<String> orderFuture =
+    CompletableFuture.supplyAsync(() -> getOrders()); 
+// can start in parallel with userFuture, but will wait for userFuture to complete before processing orders
+// if getOrders() needs user info, then we can do userFuture.thenApply(user -> getOrders(user)) instead of starting it in parallel
+// if getOrders() does not need user info, then we can start it in parallel as shown above
+
+CompletableFuture<String> paymentFuture =
+    CompletableFuture.supplyAsync(() -> getPayments()); // can start in parallel with userFuture and orderFuture, but will wait for both to complete before processing payments
+
+CompletableFuture<Void> all =
+    CompletableFuture.allOf(userFuture, orderFuture, paymentFuture); // wait for all to complete
+
+CompletableFuture<String> finalResult = all.thenApply(v ->
+    userFuture.join() + " | " +
+    orderFuture.join() + " | " +
+    paymentFuture.join()
+); // combine results after all are done
+
+System.out.println(finalResult.join());
+```
+
+```text
+User   ┐
+Orders ├──→ combine → result
+Payment┘
+```
+
+### Scenario (Banking Style)
+  1.	Fetch User
+  2.	Fetch Account (depends on user)
+  3.	Fetch Transactions (depends on account)
+  4.	Fetch Offers (independent)
+  5.	Combine everything
+
+
+```java
+CompletableFuture<String> result =
+    CompletableFuture.supplyAsync(() -> getUser())
+
+        // dependent call
+        .thenCompose(user ->
+            CompletableFuture.supplyAsync(() -> getAccount(user)) // returns CompletableFuture<Account>, so we use thenCompose to flatten it to CompletableFuture<String>
+        )
+
+        // dependent again
+        .thenCompose(account ->
+            CompletableFuture.supplyAsync(() -> getTransactions(account)) // returns CompletableFuture<String>, so we use thenCompose to flatten it to CompletableFuture<String>
+        )
+
+        // combine with independent call
+        .thenCombine(
+            CompletableFuture.supplyAsync(() -> getOffers()), // independent call that can run in parallel
+            (transactions, offers) -> transactions + " | " + offers // combine results of transactions and offers
+        );
+
+System.out.println(result.join());
+```
+
+### Scenario (Banking Style)
+1.	Fetch User
+2.	Fetch Account (depends on user)
+3.	Fetch Transactions (depends on user)
+4.	Fetch Offers (independent)
+5.	Combine everything
+```java
+CompletableFuture<String> result =
+        CompletableFuture.supplyAsync(() -> getUser())
+
+                // Step 1: Once user is available
+                .thenCompose(user -> {
+
+                  // Dependent calls (need user)
+                  CompletableFuture<String> accountFuture =
+                          CompletableFuture.supplyAsync(() -> getAccount(user)); // can run in parallel with transactionsFuture since both depend on user but not on each other
+
+                  CompletableFuture<String> transactionsFuture =
+                          CompletableFuture.supplyAsync(() -> getTransactions(user)); // can run in parallel with accountFuture since both depend on user but not on each other
+
+                  // Combine account + transactions
+                  return accountFuture.thenCombine(
+                          transactionsFuture, // combine account and transactions once both are available
+                          (account, transactions) -> account + " | " + transactions // combine results of account and transactions in string format just for demonstration, can be a custom object instead of string
+                  );
+                })
+
+                // Step 2: Independent API
+                .thenCombine(
+                        CompletableFuture.supplyAsync(() -> getOffers()),
+                        (prevResult, offers) -> prevResult + " | " + offers
+                );
+
+System.out.println(result.join());
+```
+```text
+         ┌──────── offers ────────┐
+user → account + transactions → combine all
+```
+
+```java
+future1.thenCombine(future2, (r1, r2) -> doSomething(r1, r2)) // thenCombine takes a BiFunction because it merges results of two completed futures, not create new async tasks.”
+```
+
+### thenCompose vs thenApply
+- thenApply is used when the next step is a simple transformation of the result (synchronously).
+- thenCompose is used when the next step is another asynchronous operation that returns a CompletableFuture. 
+- It flattens the nested CompletableFuture into a single one.
+```java
+CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> "Hello");
+// Using thenApply (results in CompletableFuture<CompletableFuture<String>>)
+CompletableFuture<CompletableFuture<String>> nestedFuture = future1.thenApply(greeting ->
+    CompletableFuture.supplyAsync(() -> greeting + " World")
+);
+System.out.println(nestedFuture.join().join()); // need two joins to get final result
+// Using thenCompose (results in CompletableFuture<String>)
+CompletableFuture<String> flatFuture = future1.thenCompose(greeting ->
+    CompletableFuture.supplyAsync(() -> greeting + " World")
+);
+System.out.println(flatFuture.join()); // directly get final result
+
+CompletableFuture<String> result =
+        CompletableFuture.supplyAsync(() -> getUser()) // returns CompletableFuture<User>
+        .thenApply(user -> getOrders(user)) // getOrders returns List<Order>, so now we have CompletableFuture<List<Order>>
+        .thenApply(orders -> processOrders(orders)); // processOrders returns String, so now we have CompletableFuture<String>
+
+```
+
 
 9. Exception Handling in CompletableFuture
 ```java
 CompletableFuture<Integer> future =
         CompletableFuture.supplyAsync(() -> {
-            if (true) throw new RuntimeException("Error");
+            if (true) throw new RuntimeException("Error"); // simulate error
             return 10;
         }).exceptionally(ex -> {
-            System.out.println("Handled: " + ex.getMessage());
+            System.out.println("Handled: " + ex.getMessage()); // handle exception and provide fallback value
             return 0;
         });
 
-System.out.println(future.join());
+System.out.println(future.join()); 
 ```
 
 10.  allOf (wait for all tasks)
@@ -1018,42 +1208,18 @@ System.out.println(any.join()); // B
 
 12. Custom Executor with CompletableFuture
 ```java
-ExecutorService executor = Executors.newFixedThreadPool(2);
+ExecutorService executor = Executors.newFixedThreadPool(2); 
 
 CompletableFuture<Integer> future =
         CompletableFuture.supplyAsync(() -> {
             return 50;
-        }, executor);
+        }, executor); // specify custom executor for async task
 
 System.out.println(future.join());
 
 executor.shutdown();
 ```
 
-13. Parallel API calls with CompletableFuture
-```java
-CompletableFuture<String> api1 = CompletableFuture.supplyAsync(() -> {
-    sleep(1000);
-    return "Result from API 1";
-});
-CompletableFuture<String> api2 = CompletableFuture.supplyAsync(() -> {
-    sleep(1500);
-    return "Result from API 2";
-});
-
-CompletableFuture<Void> combined = CompletableFuture.allOf(api1, api2);
-combined.join();
-System.out.println(api1.join());
-System.out.println(api2.join());
-``` 
-
-14. Combining results from multiple tasks
-```java
-CompletableFuture<Integer> future1 = CompletableFuture.supplyAsync(() -> 10);
-CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> 20);
-CompletableFuture<Integer> combined = future1.thenCombine(future2, Integer::sum);
-System.out.println(combined.join()); // 30
-```
 
 15. Timeout Handling
 ```java
@@ -1084,6 +1250,11 @@ public static CompletableFuture<Integer> retryTask(int retries) {
     });
 }
 ```
+
+### ForkJoinPool and Parallelism
+- ForkJoinPool is a special type of ExecutorService designed for tasks that can be broken down into smaller subtasks recursively (divide-and-conquer).
+- It uses a work-stealing algorithm where idle threads can "steal" tasks from busy threads to improve performance.
+
 
 17. ForkJoinPool for parallelism
 ```java
