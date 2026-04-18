@@ -24,9 +24,8 @@ Table of Contents
 ---
 
 ## 1. Introduction
-Spring Security is a powerful and highly customizable authentication and access-control framework for Java applications. It integrates with Spring applications and supports a wide range of security scenarios: session-based authentication, stateless JWTs, OAuth2, method-level security, and custom auth flows.
-
-This document targets developers from beginners to seniors and provides practical examples, configuration snippets, best practices, and common pitfalls.
+Spring Security is a powerful and highly customizable authentication and access-control framework for Java applications. It integrates with Spring applications and supports a wide range of security scenarios: 
+session-based authentication, stateless JWTs, OAuth2, method-level security, and custom auth flows.
 
 ---
 

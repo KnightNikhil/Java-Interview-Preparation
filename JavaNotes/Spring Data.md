@@ -864,10 +864,6 @@ An entity instance navigates through these lifecycle states within the persisten
 
 ***
 
-Here is a detailed explanation of the **Dirty Checking mechanism with @Transactional annotation** in JPA/Hibernate based on the video section (56:46 - 60:00) and supported by authoritative sources:
-
-***
-
 ## Dirty Checking with @Transactional Annotation
 
 ### What is Dirty Checking?

@@ -631,3 +631,216 @@ If you want, next I can explain:
 •	How to generate WebClient clients from OpenAPI
 
 Which direction is your team leaning?
+
+-------
+
+
+1. What is a Microservices architecture and how does it differ from a monolithic architecture?
+Microservices as the name suggests is a small service (a Java, .NET, JavaScript, or any other program) that provides a specific functionality. For example, the Authentication Service can provide authentication functionality and UserService can provide all the functionality related to Users.
+
+Here is a simple example of how Microservices look like:
+
+
+
+
+2. What are the benefits and drawbacks of a Microservices architecture? Pros and Cons?
+
+Microservices architecture is an approach to building software systems that involve breaking down a monolithic application into a set of small, modular services that can be developed, deployed, and scaled independently. Here are some of the benefits and drawbacks of this approach:
+
+Pros of Microservcies :
+
+Flexibility: Microservices architecture allows for flexibility in terms of technology choices, as each service can be implemented using different languages, frameworks, and databases. For example, you can implement one Microservices in Java and other in C++ or Python.
+
+Scalability: Microservices can be scaled independently, which allows for better resource utilization and faster scaling of the overall system. With Cloud computing, Kubernetes can scale Microservices very easily depending upon load.
+
+Resilience: Microservices architecture allows for more fault-tolerant systems, as a failure in one service can be isolated and handled without affecting the entire system.
+
+Agility: Microservices architecture allows for faster development and deployment cycles, as changes can be made to a single service without impacting the entire system.
+
+Reusability: Microservices can be reused across multiple applications, which can result in cost savings and increased efficiency.
+
+Drawbacks:
+
+Complexity: Microservices architecture can increase the complexity of the system, as there are more moving parts and more interactions between services.
+
+Testing and Debugging: Testing and debugging a Microservices architecture can be more complex, as it requires testing each service individually, as well as testing their interactions.
+
+Monitoring and Management: Microservices architecture requires more monitoring and management, as there are more services to keep track of and manage.
+
+Inter-service communication: Microservices architecture increases the number of network calls between services, which can lead to increased latency, and if not handled properly, to cascading failures.
+
+Security: Microservices architecture can make it more challenging to implement security measures, as each service may need to be secured individually.
+
+In conclusion, Microservices architecture offers many benefits in terms of flexibility, scalability, and resiliency, but it also increases the complexity of the system and requires more monitoring and management.
+
+It’s important to weigh the benefits and drawbacks and choose the right approach that fits the specific requirements and constraints of your system.
+
+And, if you want to watch, here is also a nice video from ByteByteGo, to learn 5 most used Software architecture patterns, most of the questions will be from these patterns, particularly Microservcies.
+
+2. How to design and implement a Microservices?
+
+You can use any framework to develop Microservices in different programming language but in Java you can use Spring Boot and Spring Cloud to implement Microservices.
+
+3. What are the key characteristics of a well-designed Microservice?
+   Well-designed Microservices have clear, single responsibilities, are loosely coupled, have high cohesion, communicate via APIs, have bounded context, and are independently deployable, testable and scalable.
+
+And, here are few more Microservices questions for you to practice, you can find answers in web but if you don’t find let me know and I will add
+
+How to ensure that Microservices are loosely coupled and highly cohesive? (hint — keep it small)
+
+How does a Java Microservice and .NET Microservice can talk with teach? (hint json)
+
+How to handle cross-cutting concerns, such as security, in a Microservices architecture?
+
+Why debugging is so tough on Microservice Architecture?
+
+How to handle data consistency in a Microservices architecture?
+
+How do you ensure that Microservices are scalable and resilient?
+
+How to handle service discovery and registration in a Microservices architecture?
+
+How to handle service communication and data sharing in a Microservices architecture?
+
+How to handle service versioning and backward compatibility in a Microservices architecture?
+
+How to monitor and troubleshoot Microservices?
+
+How to handle deployments and rollbacks in a Microservices architecture?
+
+How to handle testing and continuous integration in a Microservices architecture?
+In Microservices architecture, testing and continuous integration should be done at service level, with automated tests and continuous delivery pipeline for each service. This allows for independent deployment and scaling of services.
+
+How to handle service governance and lifecycle management in a Microservices architecture?
+
+How to handle security and access control in a Microservices architecture?
+
+Howdo you data integration and data migration in a Microservices architecture?
+
+How to handle service composition and orchestration in a Microservices architecture?
+
+How do you deploy your Java Microservices?
+We use Docker and Kubernetes for deploying our Microservices in cloud. Docker is used to create a Docker image of whole service and then Kubernetes to deploy it on AWS or Azure. Service is managed by K8 so it takes care of starting stopped instances and increasing them if load is increased
+
+How to handle service resiliency in case of failures?
+K8 does that for you and start new MicroService or restart the same one.
+
+What are Java Frameworks you can use to create Microservices?
+hint — Quarkus, Spring Boot, and MicroNaut
+
+How many Microservices you have in your project? How do you find if a user says that one of his order is missing in database?
+hint — one database per microservice is a pattern
+
+15 Microservices Interview Questions on Design Patterns and Principles
+Here are few more questions which are based on Microservices Design patterns and principles like API Gateway, CQRS, SAGA and more.
+
+1.What is API Gateway pattern and how is it used in Microservices architecture? Please explain what problem does it solve and whether its mandatory for Microservices or not?
+
+API Gateway is one of the essential Microservices pattern which is used to provide a single entry point for external consumers to access the services. It acts as a reverse proxy and routing layer, which is responsible for request routing, composition, and protocol translation, among other things.
+
+API Gateway pattern solves several problems in Microservices architecture:
+
+It decouples the external consumers from the internal implementation of the services. This allows the services to evolve and scale independently, without affecting the external consumers.
+
+It provides a single entry point for external consumers, which simplifies the client-side service discovery and reduces the number of network calls.
+
+It can handle cross-cutting concerns such as security, rate limiting, and caching at the edge of the architecture, rather than scattering them across the services.
+
+It can aggregate multiple services into a single response, reducing the number of network calls and improving the performance of the client-side.
+
+It can handle protocol and content type translations, allowing the services to be implemented using different protocols and data formats.
+
+It is not mandatory for Microservices architecture, but it is commonly used to help manage the complexity and improve the performance of Microservices. It can also be used to provide a consistent security, rate limiting, and caching policies across the Microservices.
+
+It’s worth noting that depending on the size of your Microservices environment and the number of requests, it may make sense to have multiple API Gateways in order to distribute the load and improve scalability.
+
+And, if you like to watch, here is a nice video from ByteByteGo which explains API Gateway design pattern in Microservices:
+
+2. Can you Explain Circuit Breaker pattern and how is it used to handle service failures in Microservices architecture? What problem does it solve.
+
+It improves Service availability. Circuit breaker pattern is a technique used to prevent cascading failures by temporarily preventing further calls to a service that is failing frequently. It helps to improve the resiliency of the system.
+
+3. What is Command Query Responsibility Segregation (CQRS) pattern and when is it appropriate to use in Microservices architecture?
+
+CQRS stands for Command Query Responsibility Segregation. It’s one of the popular Microservices design pattern that separates the read and write operations in a system and allows them to evolve independently. It allows for a more scalable and performant system, but also increase complexity.
+
+And, if you want to watch, here is another great video from ByteByteGo which explains common distribute system design patterns including CQRS in Microservices:
+
+4. What is retry pattern in Microservices? When and how to use it?
+
+Retry pattern is a technique used in Microservices architecture to handle service failures automatically. It involves automatically retrying a failed service call a certain number of times, with a delay between retries.
+
+This pattern helps to improve the robustness and resiliency of the system by increasing the chances of a successful call, even in the presence of temporary failures.
+
+It’s also used to handle flaky service dependencies gracefully, by retrying the calls to them instead of breaking the whole process and returning an error.
+
+Here are few Microservices design patterns and principle based questions for practice:
+
+Can you Explain Event-Driven pattern and how is it used in Microservices architecture?
+
+Can you Explain Service Registry pattern and how is it used in Microservices architecture?
+
+Can you Explain Sidecar pattern and how is it used in Microservices architecture?
+
+Can you Explain Service Mesh pattern and how is it used in Microservices architecture?
+
+Can you Explain Back-end for Front-end pattern and how is it used in Microservices architecture?
+
+Can you Explain Bulkhead pattern and how is it used in Microservices architecture?
+
+What is Saga pattern? What problem does it solve?
+
+Can you Explain Outbox pattern and how is it used in Microservices architecture?
+
+What is Self-Containment pattern and how is it used in Microservices architecture?
+
+Can you Explain External Configuration pattern and how is it used in Microservices architecture?
+
+What is Strangler pattern and how is it used in Microservices architecture?
+
+15 Advanced Microservices Interview Questions for Experienced Developers
+These are more advanced question on Microservices for experienced Java developers like 5 to 10 years experience and it covers advanced topics like data replication, data partitioning, Orchestration and service choreography, Security etc.
+
+
+
+
+How to data partitioning and data replication in MS?
+
+Have you done any service partitioning and service scaling in a microservices architecture? If not, how can you do it?
+
+Explain service orchestration and service choreography in a microservices ?
+
+What challenges have you faced while developing a Microservices in your project?
+
+How do you handle service security and service encryption in a microservices?
+
+How will you implement service monitoring and service logging in a microservices architecture?
+
+How do you handle service tracing and service debugging in a microservices architecture?
+
+What is service testing and service quality assurance in a microservices architecture?
+
+How do you handle service deployment and service rollback in a microservices architecture?
+
+How do you handle service governance and service lifecycle management in a Microservices Architecture?
+
+How do you handle service migration and service modernization in a microservices architecture?
+
+How do you handle service integration and service API management in a microservices architecture?
+
+How do you handle service performance and service optimization in a microservices architecture?
+
+How will you make sure that your Microservices is not affecting other Microservices in the same host?
+
+How do you organize your Microservices? Does all code remain same repo or you create multiple repo for different Microservices?
+
+What is better? Different database for different Microservice or single database for all Microservices? and Why?
+
+Java and Spring Interview Preparation Material
+Before any Java and Spring Developer interview, I always use to read the below resources
+
+Grokking the Java Interview: click here
+
+I have personally bought these books to speed up my preparation.
+
+You can get your sample copy here, check the content of it and go for
