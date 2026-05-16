@@ -942,6 +942,819 @@ public void shouldFindByStatus() {
 | Query/Repo tests                 | Validates correct behavior for CRUD, custom queries                       | Use standard and custom methods, assert results     |
 | Rollback after test              | Ensures isolation, prevents side-effects across tests                     | Automatic via Spring; no manual clean-up needed     |
 
+----
 
+JUnit 5 @ExtendWith and Testcontainers — Interview Preparation Documentation
+
+⸻
+
+Table of Contents
+
+1. Introduction
+2. JUnit 4 vs JUnit 5
+3. What is @ExtendWith
+4. Why JUnit 5 Introduced Extension Model
+5. Internal Working of Extensions
+6. Common JUnit 5 Extensions
+7. SpringExtension
+8. MockitoExtension
+9. Multiple Extensions in JUnit 5
+10. Lifecycle Callbacks in Extensions
+11. Custom Extensions
+12. Parameter Injection
+13. Interview Questions on @ExtendWith
+14. What is Testcontainers
+15. Why Testcontainers Were Introduced
+16. Problems With Traditional Integration Testing
+17. H2 vs Real Database Testing
+18. How Testcontainers Work Internally
+19. @Testcontainers
+20. @Container
+21. Static vs Non-Static Containers
+22. Spring Boot + Testcontainers Integration
+23. @DynamicPropertySource
+24. PostgreSQL Testcontainer Example
+25. Redis Testcontainer Example
+26. Kafka Testcontainer Example
+27. Testcontainers Lifecycle
+28. Local Development With Testcontainers
+29. Testcontainers in CI/CD
+30. Benefits of Testcontainers
+31. Drawbacks of Testcontainers
+32. Best Practices
+33. Integration Testing Strategy
+34. Real-World Use Cases
+35. Advanced Concepts
+36. Common Interview Questions
+37. Senior-Level Talking Points
+38. Final Interview Answers
+
+⸻
+
+1. Introduction
+
+Modern enterprise applications require:
+
+* reliable integration testing
+* production-like testing environments
+* modular testing architecture
+* realistic infrastructure validation
+
+JUnit 5 and Testcontainers together solve many limitations of traditional testing approaches.
+
+These concepts are extremely important for:
+
+* Spring Boot applications
+* microservices
+* distributed systems
+* backend engineering interviews
+
+⸻
+
+2. JUnit 4 vs JUnit 5
+
+JUnit 4 Problem
+
+JUnit 4 used:
+
+@RunWith(...)
+
+Example:
+
+@RunWith(SpringRunner.class)
+
+The major limitation:
+
+* only ONE runner allowed per test class
+
+This created problems when multiple frameworks needed integration simultaneously.
+
+Example:
+
+* Spring support
+* Mockito support
+* custom logging
+* retry handling
+
+Only one could be used cleanly.
+
+⸻
+
+3. What is @ExtendWith
+
+JUnit 5 replaced:
+
+@RunWith
+
+with:
+
+@ExtendWith
+
+This introduced:
+
+Extension Model
+
+The extension model allows:
+
+* multiple extensions together
+* modular testing architecture
+* lifecycle interception
+* dependency injection
+* advanced customization
+
+⸻
+
+4. Why JUnit 5 Introduced Extension Model
+
+The extension model was introduced to solve:
+
+* rigidity of single-runner architecture
+* lack of composability
+* poor extensibility
+* framework integration limitations
+
+JUnit 5 follows:
+
+composition over inheritance
+
+Instead of:
+
+one giant runner
+
+JUnit 5 allows:
+
+multiple modular extensions
+
+⸻
+
+5. Internal Working of Extensions
+
+Extensions hook into:
+
+test lifecycle callbacks
+
+Examples:
+
+* before test execution
+* after test execution
+* exception handling
+* parameter injection
+* dependency resolution
+
+JUnit internally invokes extension callbacks during test execution phases.
+
+⸻
+
+6. Common JUnit 5 Extensions
+
+Extension	Purpose
+SpringExtension	Spring TestContext support
+MockitoExtension	Mockito mock initialization
+TempDir	Temporary directory management
+TestInfo	Metadata injection
+TestReporter	Reporting support
+
+⸻
+
+7. SpringExtension
+
+Example:
+
+@ExtendWith(SpringExtension.class)
+
+Responsibilities:
+
+* load Spring context
+* dependency injection
+* transaction management
+* bean lifecycle handling
+* integration test support
+
+Important:
+
+@SpringBootTest
+
+already internally uses:
+
+SpringExtension
+
+⸻
+
+8. MockitoExtension
+
+Example:
+
+@ExtendWith(MockitoExtension.class)
+
+Responsibilities:
+
+* initialize mocks
+* inject mocks
+* manage Mockito lifecycle
+
+Example:
+
+@Mock
+private AccountRepository repository;
+@InjectMocks
+private AccountService service;
+
+Without MockitoExtension, these annotations will not initialize automatically.
+
+⸻
+
+9. Multiple Extensions in JUnit 5
+
+One of the biggest advantages.
+
+Example:
+
+@ExtendWith({
+SpringExtension.class,
+MockitoExtension.class
+})
+
+This allows:
+
+* Spring support
+* Mockito support
+* custom extensions
+
+to work together.
+
+This was difficult in JUnit 4.
+
+⸻
+
+10. Lifecycle Callbacks in Extensions
+
+Extensions implement callback interfaces.
+
+Examples:
+
+Interface	Purpose
+BeforeEachCallback	before each test
+AfterEachCallback	after each test
+BeforeAllCallback	before all tests
+ParameterResolver	parameter injection
+TestExecutionExceptionHandler	exception handling
+
+⸻
+
+11. Custom Extensions
+
+JUnit 5 allows creating custom extensions.
+
+Use cases:
+
+* logging
+* retry logic
+* timing measurement
+* security setup
+* tenant context injection
+
+Example:
+
+public class TimingExtension
+implements BeforeTestExecutionCallback,
+AfterTestExecutionCallback {
+}
+
+⸻
+
+12. Parameter Injection
+
+JUnit 5 supports parameter injection through extensions.
+
+Example:
+
+@Test
+void test(TestInfo info) {
+System.out.println(info.getDisplayName());
+}
+
+This is powered by:
+
+extension model
+
+⸻
+
+13. Interview Questions on @ExtendWith
+
+⸻
+
+Q1. Why was @ExtendWith introduced?
+
+Answer
+
+JUnit 5 introduced @ExtendWith to replace the restrictive single-runner architecture of JUnit 4 with a modular extension model supporting multiple extensions and richer lifecycle integration.
+
+⸻
+
+Q2. Can multiple extensions work together?
+
+Answer
+
+Yes. This is one of the biggest advantages of JUnit 5.
+
+Example:
+
+@ExtendWith({
+SpringExtension.class,
+MockitoExtension.class
+})
+
+⸻
+
+Q3. Does Spring Boot use extensions internally?
+
+Answer
+
+Yes.
+
+@SpringBootTest internally uses:
+
+SpringExtension
+
+⸻
+
+14. What is Testcontainers
+
+Testcontainers is a Java library that:
+
+starts real Docker containers during tests
+
+Examples:
+
+* PostgreSQL
+* Redis
+* Kafka
+* MongoDB
+
+Integration tests interact with:
+
+real infrastructure
+
+instead of mocks or in-memory substitutes.
+
+⸻
+
+15. Why Testcontainers Were Introduced
+
+Before Testcontainers:
+
+* developers manually installed DBs
+* shared environments caused conflicts
+* CI/CD setup was inconsistent
+* “works on my machine” problems common
+
+Testcontainers solved this by:
+
+* automating infrastructure startup
+* isolating test environments
+* improving reproducibility
+
+⸻
+
+16. Problems With Traditional Integration Testing
+
+Traditional approaches:
+
+* shared local DB
+* manually started Kafka
+* manually configured Redis
+
+Problems:
+
+* flaky tests
+* environment inconsistencies
+* port conflicts
+* configuration drift
+
+⸻
+
+17. H2 vs Real Database Testing
+
+Many teams used:
+
+H2 in-memory DB
+
+Problem:
+H2 behaves differently from PostgreSQL/MySQL.
+
+Differences:
+
+* SQL dialect
+* transaction behavior
+* indexing
+* locking
+* JSON support
+
+This caused production bugs escaping tests.
+
+Testcontainers solve this by using:
+
+real production-like DBs
+
+⸻
+
+18. How Testcontainers Work Internally
+
+Flow:
+
+JUnit starts
+↓
+Testcontainers starts Docker container
+↓
+Spring connects to container
+↓
+Tests execute
+↓
+Container destroyed automatically
+
+⸻
+
+19. @Testcontainers
+
+Example:
+
+@Testcontainers
+class AccountIT {
+}
+
+This tells JUnit:
+
+* manage container lifecycle
+* integrate containers with test execution
+
+⸻
+
+20. @Container
+
+Example:
+
+@Container
+static PostgreSQLContainer<?> postgres
+
+Marks:
+
+managed container instance
+
+JUnit automatically:
+
+* starts container
+* stops container
+* monitors lifecycle
+
+⸻
+
+21. Static vs Non-Static Containers
+
+Static Container
+
+@Container
+static PostgreSQLContainer<?> postgres
+
+Behavior:
+
+* starts once per test class
+* faster execution
+
+⸻
+
+Non-Static Container
+
+@Container
+PostgreSQLContainer<?> postgres
+
+Behavior:
+
+* starts per test method
+* slower
+* better isolation
+
+⸻
+
+22. Spring Boot + Testcontainers Integration
+
+Example:
+
+@SpringBootTest
+@Testcontainers
+class AccountIT {
+}
+
+This creates:
+
+full production-like integration test environment
+
+⸻
+
+23. @DynamicPropertySource
+
+Used to inject dynamic container properties into Spring.
+
+Example:
+
+@DynamicPropertySource
+static void properties(DynamicPropertyRegistry registry) {
+registry.add(
+"spring.datasource.url",
+postgres::getJdbcUrl
+);
+}
+
+Important because:
+
+* container ports are dynamic
+* Spring must discover runtime connection details
+
+⸻
+
+24. PostgreSQL Testcontainer Example
+
+@Testcontainers
+@SpringBootTest
+class AccountIT {
+@Container
+static PostgreSQLContainer<?> postgres =
+new PostgreSQLContainer<>("postgres:15")
+.withDatabaseName("test-db")
+.withUsername("test")
+.withPassword("test");
+}
+
+⸻
+
+25. Redis Testcontainer Example
+
+@Container
+static GenericContainer<?> redis =
+new GenericContainer<>("redis:7")
+.withExposedPorts(6379);
+
+⸻
+
+26. Kafka Testcontainer Example
+
+@Container
+static KafkaContainer kafka =
+new KafkaContainer(
+DockerImageName.parse("confluentinc/cp-kafka:latest")
+);
+
+⸻
+
+27. Testcontainers Lifecycle
+
+Before tests:
+container starts
+During tests:
+application uses real infra
+After tests:
+container destroyed automatically
+
+⸻
+
+28. Local Development With Testcontainers
+
+Testcontainers are commonly run locally.
+
+Requirement:
+
+Docker
+
+Developers simply run:
+
+mvn test
+
+or
+
+gradle test
+
+Containers start automatically.
+
+⸻
+
+29. Testcontainers in CI/CD
+
+Huge advantage:
+same tests run:
+
+* locally
+* CI/CD
+* build pipelines
+
+This reduces:
+
+environment drift
+
+⸻
+
+30. Benefits of Testcontainers
+
+Benefit	Description
+production-like	realistic infra
+isolated	no shared state
+reproducible	stable CI
+automatic cleanup	no leftovers
+portable	works everywhere
+
+⸻
+
+31. Drawbacks of Testcontainers
+
+Drawback	Explanation
+Docker required	runtime dependency
+slower startup	containers boot
+resource usage	CPU/memory heavy
+Kafka containers heavy	large RAM usage
+
+⸻
+
+32. Best Practices
+
+Use Static Containers
+
+Improves speed.
+
+⸻
+
+Combine With Unit Tests
+
+Do NOT replace all tests with Testcontainers.
+
+Recommended:
+
+* unit tests for business logic
+* integration tests for infra validation
+
+⸻
+
+Avoid Shared External Infra
+
+Use isolated containers.
+
+⸻
+
+Use Realistic Images
+
+Prefer:
+
+postgres:15
+
+instead of H2.
+
+⸻
+
+33. Integration Testing Strategy
+
+Recommended testing pyramid:
+
+Layer	Purpose
+unit tests	business logic
+integration tests	infra interaction
+E2E tests	full system validation
+
+⸻
+
+34. Real-World Use Cases
+
+Database Persistence Testing
+
+Validate:
+
+* transactions
+* schema mappings
+* SQL queries
+
+⸻
+
+Redis Cache Testing
+
+Validate:
+
+* cache population
+* TTL
+* cache hit/miss
+
+⸻
+
+Kafka Integration Testing
+
+Validate:
+
+* producers
+* consumers
+* serialization
+* async processing
+
+⸻
+
+35. Advanced Concepts
+
+Reusable Containers
+
+Example:
+
+.withReuse(true)
+
+Improves local execution speed.
+
+⸻
+
+Parallel Test Execution
+
+Possible but requires careful resource management.
+
+⸻
+
+Awaitility With Async Tests
+
+Useful for Kafka/eventual consistency testing.
+
+⸻
+
+36. Common Interview Questions
+
+⸻
+
+Q1. Why use Testcontainers instead of H2?
+
+Answer
+
+H2 behavior differs from production databases like PostgreSQL in transactions, locking, indexing, and SQL dialects. Testcontainers provide production-like realism.
+
+⸻
+
+Q2. Do Testcontainers require Docker?
+
+Answer
+
+Yes.
+
+Docker runtime is required.
+
+⸻
+
+Q3. Can Testcontainers run locally?
+
+Answer
+
+Yes. They are commonly used by developers locally.
+
+⸻
+
+Q4. Why use static containers?
+
+Answer
+
+Static containers start once per test class, improving test performance.
+
+⸻
+
+Q5. Are Testcontainers slow?
+
+Answer
+
+Slower than mocks but far more realistic for infrastructure integration testing.
+
+⸻
+
+37. Senior-Level Talking Points
+
+Excellent statements for interviews:
+
+⸻
+
+“JUnit 5 replaced the restrictive single-runner architecture with a modular extension model supporting composable lifecycle integrations.”
+
+⸻
+
+“Testcontainers provide production-like infrastructure validation by dynamically starting real Dockerized services during test execution.”
+
+⸻
+
+“One major advantage of Testcontainers is eliminating environment inconsistency between local development and CI/CD pipelines.”
+
+⸻
+
+“Integration testing should validate not only business logic but also infrastructure behavior, serialization, caching, messaging, and transaction management.”
+
+⸻
+
+38. Final Interview Answers
+
+⸻
+
+@ExtendWith
+
+“JUnit 5 introduced the @ExtendWith extension model to replace the restrictive single-runner architecture of JUnit 4. Extensions provide modular lifecycle integration for frameworks such as Spring and Mockito and allow multiple extensions to participate together in the test lifecycle.”
+
+⸻
+
+Testcontainers
+
+“Testcontainers allow us to execute integration tests against real Dockerized infrastructure such as PostgreSQL, Redis, and Kafka. This provides production-like testing environments locally and in CI/CD pipelines, improving reliability and eliminating environment inconsistencies.”
 
 
