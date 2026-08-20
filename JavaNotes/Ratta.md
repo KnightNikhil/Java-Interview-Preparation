@@ -41,7 +41,11 @@ Bean instantiation phase
 Application ready
 ```
 
-- Using @Component instead of @Configuration wih @Bean, this will result in a new instance everytime, bcoz new ObjectMapper(), for singleton, @Configuration
+@Component
+→ annotated class becomes the bean
+
+@Configuration + @Bean
+→ object returned by the method becomes the bean
 
 ---
 

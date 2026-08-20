@@ -3898,3 +3898,55 @@ Perfect Interview Answer
     - Outbox + Debezium is best at scale; polling outbox OK for small systems
 
 ---
+
+
+1. isolation.level: read_committed
+   This setting controls whether the consumer can see records written inside an unfinished or aborted Kafka transaction.
+   spring:
+   kafka:
+   consumer:
+   properties:
+   isolation.level: read_committed
+   It matters only when the upstream producer uses Kafka transactions.
+   Transactional producer example
+   A producer begins a transaction and writes three records:
+   beginTransaction()
+   write R1
+   write R2
+   write R3
+   Until it calls:
+   commitTransaction()
+   the transaction is open.
+   With the default read_uncommitted:
+   Consumer may receive R1, R2 and R3 before commit
+   If the producer subsequently aborts, the consumer may already have processed records that should never have become logically visible.
+   With read_committed:
+   Open transaction
+   ↓
+   R1, R2 and R3 remain invisible
+   ↓
+   commitTransaction()
+   ↓
+   consumer can receive them
+   If the producer calls:
+   abortTransaction()
+   the consumer skips those records.
+   Last stable offset
+   Assume the partition contains:
+   offset 10 → committed record
+   offset 11 → open transactional record
+   offset 12 → another producer’s record
+   A read_committed consumer generally cannot move past the open transaction boundary and expose offset 12 yet. It reads only up to Kafka’s last stable offset.
+   Consequences include:
+   Temporary apparent consumer lag
+   Records after a long-running transaction being delayed
+   Aborted offsets not being delivered to the listener
+   Delivered offsets potentially appearing to have gaps
+   Idempotence is not a transaction
+   The project configures its output producer with:
+   enable.idempotence: true
+   Idempotence prevents duplicate records caused by producer retries. It does not create a multi-record transaction.
+   Idempotence → retry deduplication
+   Transaction → atomic commit or abort of multiple operations
+   For the raw input topic, read_committed is valuable only if upstream systems use Kafka transactions. Non-transactional messages remain visible normally.
+   It also does not make this whole service exactly-once. Kafka publication, Mongo auditing and Mongo offset storage are separate operations.
